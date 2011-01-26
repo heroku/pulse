@@ -52,7 +52,8 @@
           message (get s-finds 7)
           message-attrs (parse-message-attrs message)]
     (merge
-      {"level" "info"
+      {"type" "standard"
+       "level" "info"
        "timestamp_src" timestamp-src
        "slot" slot
        "ion_id" ion-id
@@ -77,7 +78,8 @@
           http-bytes (Long/parseLong (get n-finds 8))
           http-protocol (get n-finds 9)
           http-status (Long/parseLong (get n-finds 10))]
-       {"level" "info"
+       {"type" "nginx_access"
+        "level" "info"
         "timestamp_src" timestamp-src
         "slot" slot
         "ion_id" ion-id

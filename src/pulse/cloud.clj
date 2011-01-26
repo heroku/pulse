@@ -11,7 +11,7 @@
   (swap! current assoc k v)
   (println "\u001B[2j\u001B[f")
   (doseq [p @current]
-    (prn p))
+    (prn p)))
 
 (let [current (atom {})
       config (doto (Configuration.) (.addEventType "devent" (Properties.)))
@@ -22,31 +22,31 @@
       listener1 (proxy [UpdateListener] []
                   (update [new-evts old-evts]
                     (let [info (.getUnderlying ^EventBean (first new-evts))]
-                      (println (int (/ (get info "rate") 5.0)) "events/sec"))))
+                      (update-current current "events/sec" (int (/ (get info "rate") 5.0))))))
       _ (.addListener statement1 listener1)
       statement2 (.createEPL admin "select count(*) as rate from devent.win:time(5 sec) where exists(http_protocol?) output every 1 sec")
       listener2 (proxy [UpdateListener] []
                   (update [new-evts old-evts]
                     (let [info (.getUnderlying ^EventBean (first new-evts))]
-                      (println (int (/ (get info "rate") 5.0)) "hits/sec"))))
+                      (update-current current "hits/sec" (int (/ (get info "rate") 5.0))))))
       _ (.addListener statement2 listener2)
       statement3 (.createEPL admin "select count(*) as rate from devent.win:time(5 sec) where cast(message?,string) regexp '.*core_service converge_service.*' output every 1 sec")
       listener3 (proxy [UpdateListener] []
                   (update [new-evts old-evts]
                     (let [info (.getUnderlying ^EventBean (first new-evts))]
-                      (println (int (/ (get info "rate") 5.0)) "converges/sec"))))
+                      (update-current current "converges/sec"  (int (/ (get info "rate") 5.0))))))
       _ (.addListener statement3 listener3)
       statement4 (.createEPL admin "select count(*) as runs from devent.win:time(30 sec) where (cast(message?,string) regexp 'amqp_publish.*' and (cast(exchange?,string) regexp '(ps\\.run|service\\.needed).*')) output every 5 sec")
       listener4 (proxy [UpdateListener] []
                   (update [new-evts old-evts]
                     (let [info (.getUnderlying ^EventBean (first new-evts))]
-                      (println (int (* (get info "runs") 2.0)) "run reqs/min"))))
+                      (update-current current "run-reqs/min" (int (* (get info "runs") 2.0))))))
       _ (.addListener statement4 listener4)
       statement5 (.createEPL admin "select * from devent where (cast(message?,string) regexp 'core_app create.*')")
       listener5 (proxy [UpdateListener] []
                   (update [new-evts old-evts]
                     (let [info (.getUnderlying ^EventBean (first new-evts))]
-                      (println info "app event"))))
+                      (comment (println info "app event")))))
       _ (.addListener statement5 listener5)]
   (pipe/pipe-lines
     (fn [line]
