@@ -105,8 +105,3 @@
         (.sendEvent runtime parsed "devent")))))
 
 ; db ssh syslog tail -f /logs/heroku.log -f /logs/nginx_access.log | clj dev/cloud.clj
-select uri, count(*) from WebEvent 
-group by uri 
-output snapshot every 1 minute
-order by count(*) desc 
-limit 10
