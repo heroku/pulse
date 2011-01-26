@@ -91,8 +91,52 @@
         "http_protocol" http-protocol
         "http_status" http-status})))
 
+(def nginx-error-re
+  #"^([a-zA-Z]{3} \d\d \d\d:\d\d:\d\d) ([a-z4-6]+)?\.(\d+)@([a-z.]+\.com) nginx: \d\d\d\d\/\d\d\/\d\d \d\d:\d\d:\d\d \[error\] \d+\#0: (.*)$")
+
+(defn parse-nginx-error-line [l]
+  (if-let [n-finds (re-find nginx-error-re l)]
+    (let [timestamp-src (.getTime (.parse ^SimpleDateFormat time-formatter (get n-finds 1)))
+          slot (get n-finds 2)
+          ion-id (Long/parseLong (get n-finds 3))
+          cloud (get n-finds 4)
+          message (get n-finds 5)]
+       {"type" "nginx_error"
+        "level" "error"
+        "timestamp_src" timestamp-src
+        "slot" slot
+        "ion_id" ion-id
+        "cloud" cloud
+        "message" message})))
+
+(def hermes-access-re
+  #"^([a-zA-Z]{3} \d\d \d\d:\d\d:\d\d) ([a-z4-6]+)?\.(\d+)@([a-z.]+\.com) [a-z]+\[(\d+)\]: \[hermes_proxy\] (.*)$")
+
+(defn parse-hermes-access-line [l]
+  (if-let [s-finds (re-find standard-re l)]
+    (let [timestamp-src (.getTime (.parse ^SimpleDateFormat time-formatter (get s-finds 1)))
+          slot (get s-finds 2)
+          ion-id (Long/parseLong (get s-finds 3))
+          cloud (get s-finds 4)
+          component (get s-finds 5)
+          pid (Long/parseLong (get s-finds 6))
+          message (get s-finds 7)
+          message-attrs (parse-message-attrs message)]
+    (merge
+      {"type" "hermes_access"
+       "level" "info"
+       "timestamp_src" timestamp-src
+       "slot" slot
+       "ion_id" ion-id
+       "cloud" cloud
+       "component" component
+       "pid" pid
+       "message" message}
+      message-attrs))))
+
 (defn parse-line [l]
   (if-not (tail-line? l)
-    (or (parse-standard-line l)
-        (parse-nginx-access-line l))))
-
+    (or (parse-nginx-access-line l)
+        (parse-nginx-error-line l)
+        (parse-hermes-access-line l)
+        (parse-standard-line l))))
