@@ -52,7 +52,7 @@
           message (get s-finds 7)
           message-attrs (parse-message-attrs message)]
     (merge
-      {"type" "standard"
+      {"event_type" "standard"
        "level" "info"
        "timestamp_src" timestamp-src
        "slot" slot
@@ -78,7 +78,7 @@
           http-bytes (Long/parseLong (get n-finds 8))
           http-protocol (get n-finds 9)
           http-status (Long/parseLong (get n-finds 10))]
-       {"type" "nginx_access"
+       {"event_type" "nginx_access"
         "level" "info"
         "timestamp_src" timestamp-src
         "slot" slot
@@ -101,7 +101,7 @@
           ion-id (Long/parseLong (get n-finds 3))
           cloud (get n-finds 4)
           message (get n-finds 5)]
-       {"type" "nginx_error"
+       {"event_type" "nginx_error"
         "level" "error"
         "timestamp_src" timestamp-src
         "slot" slot
@@ -109,10 +109,10 @@
         "cloud" cloud
         "message" message})))
 
-(def hermes-access-re
+(def hermes-re
   #"^([a-zA-Z]{3} \d\d \d\d:\d\d:\d\d) ([a-z4-6]+)?\.(\d+)@([a-z.]+\.com) [a-z]+\[(\d+)\]: \[hermes_proxy\] (.*)$")
 
-(defn parse-hermes-access-line [l]
+(defn parse-hermes-line [l]
   (if-let [s-finds (re-find standard-re l)]
     (let [timestamp-src (.getTime (.parse ^SimpleDateFormat time-formatter (get s-finds 1)))
           slot (get s-finds 2)
@@ -123,7 +123,7 @@
           message (get s-finds 7)
           message-attrs (parse-message-attrs message)]
     (merge
-      {"type" "hermes_access"
+      {"event_type" "hermes"
        "level" "info"
        "timestamp_src" timestamp-src
        "slot" slot
@@ -138,5 +138,5 @@
   (if-not (tail-line? l)
     (or (parse-nginx-access-line l)
         (parse-nginx-error-line l)
-        (parse-hermes-access-line l)
+        (parse-hermes-line l)
         (parse-standard-line l))))

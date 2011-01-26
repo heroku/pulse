@@ -24,7 +24,13 @@
                     (let [info (.getUnderlying ^EventBean (first new-evts))]
                       (update-current current "events/sec" (int (/ (get info "rate") 5.0))))))
       _ (.addListener statement1 listener1)
-      statement2 (.createEPL admin "select count(*) as rate from devent.win:time(5 sec) where exists(http_protocol?) output every 1 sec")
+      statement1b (.createEPL admin "select count(*) as rate from devent.win:time(5 sec) where event_type? = 'hermes' output every 1 sec")
+      listener1b (proxy [UpdateListener] []
+                   (update [new-evts old-evts]
+                     (let [info (.getUnderlying ^EventBean (first new-evts))]
+                       (update-current current "herm-events/sec" (int (/ (get info "rate") 5.0))))))
+      _ (.addListener statement1b listener1b)
+      statement2 (.createEPL admin "select count(*) as rate from devent.win:time(5 sec) where exists(http_protocol?)  and http_host? != '127.0.0.1' output every 1 sec")
       listener2 (proxy [UpdateListener] []
                   (update [new-evts old-evts]
                     (let [info (.getUnderlying ^EventBean (first new-evts))]
@@ -54,4 +60,3 @@
         (.sendEvent runtime parsed "devent")))))
 
 ; db ssh syslog tail -f /logs/heroku.log -f /logs/nginx_access.log | clj dev/cloud.clj
-; search amqp_publish (exchange=ps.run* OR exchange=service.needed*) | stats count(linecount) as run_reqs
