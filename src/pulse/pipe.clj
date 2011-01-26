@@ -7,6 +7,3 @@
       (f line)
       (recur))))
 
-(pipe-lines
-  (fn [line]
-    ()))
