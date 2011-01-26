@@ -1,6 +1,8 @@
 (ns pulse.parse
   (:import java.text.SimpleDateFormat))
 
+(set! *warn-on-reflection* true)
+
 (def tail-re
   #"^==>")
 
@@ -41,7 +43,7 @@
 
 (defn parse-standard-line [l]
   (if-let [s-finds (re-find standard-re l)]
-    (let [timestamp-src (.getTime (.parse time-formatter (get s-finds 1)))
+    (let [timestamp-src (.getTime (.parse ^SimpleDateFormat time-formatter (get s-finds 1)))
           slot (get s-finds 2)
           ion-id (Long/parseLong (get s-finds 3))
           cloud (get s-finds 4)
@@ -65,7 +67,7 @@
 
 (defn parse-nginx-access-line [l]
   (if-let [n-finds (re-find nginx-access-re l)]
-    (let [timestamp-src (.getTime (.parse time-formatter (get n-finds 1)))
+    (let [timestamp-src (.getTime (.parse ^SimpleDateFormat time-formatter (get n-finds 1)))
           slot (get n-finds 2)
           ion-id (Long/parseLong (get n-finds 3))
           cloud (get n-finds 4)
