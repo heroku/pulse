@@ -7,23 +7,30 @@
 
 (defn redraw [snap]
   (printf "\u001B[2J\u001B[f")
-  (printf "events/sec      %d\n"  (get snap "events_per_second" 0))
-  (printf "nginx req/sec   %d\n" (get snap "nginx_requests_per_second" 0))
-  (printf "nginx err/min   %d\n" (get snap "nginx_errors_per_minute" 0))
-  (printf "nginx 500/min   %d\n" (get snap "nginx_500_per_minute" 0))
-  (printf "nginx 502/min   %d\n" (get snap "nginx_502_per_minute" 0))
-  (printf "nginx 503/min   %d\n" (get snap "nginx_503_per_minute" 0))
-  (printf "nginx 504/min   %d\n" (get snap "nginx_504_per_minute" 0))
-  (printf "hermes prx/sec  %d\n" (get snap "hermes_proxies_per_second" 0))
-  (printf "hermes H10/min  %d\n" (get snap "hermes_H10_per_minute" 0))
-  (printf "hermes H11/min  %d\n" (get snap "hermes_H11_per_minute" 0))
-  (printf "hermes H12/min  %d\n" (get snap "hermes_H12_per_minute" 0))
-  (printf "hermes H13/min  %d\n" (get snap "hermes_H13_per_minute" 0))
-  (printf "hermes H99/min  %d\n" (get snap "hermes_H99_per_minute" 0))
-  (printf "psmgr conv/sec  %d\n" (get snap "psmgr_converges_per_second" 0))
-  (printf "slugc inv/min   %d\n" (get snap "slugc_invokes_per_minute" 0))
-  (printf "slugc fail/min  %d\n" (get snap "slugc_fails_per_minute" 0))
-  (printf "slugc err/min   %d\n" (get snap "slugc_errors_per_minute" 0))
+  (printf "events/sec       %d\n" (get snap "events_per_second" 0))
+  (printf "nginx req/sec    %d\n" (get snap "nginx_requests_per_second" 0))
+  (printf "nginx err/min    %d\n" (get snap "nginx_errors_per_minute" 0))
+  (printf "nginx 500/min    %d\n" (get snap "nginx_500_per_minute" 0))
+  (printf "nginx 502/min    %d\n" (get snap "nginx_502_per_minute" 0))
+  (printf "nginx 503/min    %d\n" (get snap "nginx_503_per_minute" 0))
+  (printf "nginx 504/min    %d\n" (get snap "nginx_504_per_minute" 0))
+  (printf "hermes prx/sec   %d\n" (get snap "hermes_proxies_per_second" 0))
+  (printf "hermes H10/min   %d\n" (get snap "hermes_H10_per_minute" 0))
+  (printf "hermes H11/min   %d\n" (get snap "hermes_H11_per_minute" 0))
+  (printf "hermes H12/min   %d\n" (get snap "hermes_H12_per_minute" 0))
+  (printf "hermes H13/min   %d\n" (get snap "hermes_H13_per_minute" 0))
+  (printf "hermes H99/min   %d\n" (get snap "hermes_H99_per_minute" 0))
+  (printf "ps converge/sec  %d\n" (get snap "ps_converges_per_second" 0))
+  (printf "ps run req/min   %d\n" (get snap "ps_run_requests_per_minute" 0))
+  (printf "ps stop req/min  %d\n" (get snap "ps_stop_requests_per_minute" 0))
+  (printf "ps kill req/min  %d\n" (get snap "ps_kill_requests_per_minute" 0))
+  (printf "ps run/min       %d\n" (get snap "ps_runs_per_minute" 0))
+  (printf "ps return/min    %d\n" (get snap "ps_returns_per_minute" 0))
+  (printf "ps trap/min      %d\n" (get snap "ps_traps_per_minute" 0))
+  (printf "ps lost          %d\n" (get snap "ps_lost" 0))
+  (printf "slugc inv/min    %d\n" (get snap "slugc_invokes_per_minute" 0))
+  (printf "slugc fail/min   %d\n" (get snap "slugc_fails_per_minute" 0))
+  (printf "slugc err/min    %d\n" (get snap "slugc_errors_per_minute" 0))
   (flush))
 
 (def snap-a
@@ -57,7 +64,28 @@
           (publish (str "hermes_" e "_per_minute") (get evt "count(*)")))))
     (engine/add-query service (str "select count(*) from devent.win:time(10 sec) where ((event_type? = 'standard') and (cast(message?,string) regexp '.*converge_service.*')) output every 1 second")
         (fn [[evt] _]
-          (publish (str "psmgr_converges_per_second") (long (/ (get evt "count(*)") 10.0)))))
+          (publish (str "ps_converges_per_second") (long (/ (get evt "count(*)") 10.0)))))
+    (engine/add-query service "select count(*) from devent.win:time(60 sec) where ((cast(message?,string) regexp 'amqp_publish.*') and (cast(exchange?,string) regexp '(ps\\.run|service\\.needed).*')) output every 1 second"
+        (fn [[evt] _]
+          (publish "ps_run_requests_per_minute" (get evt "count(*)"))))
+    (engine/add-query service "select count(*) from devent.win:time(60 sec) where ((cast(message?,string) regexp 'amqp_publish.*') and (cast(exchange?,string) regexp 'ps\\.kill.*')) output every 1 second"
+        (fn [[evt] _]
+          (publish "ps_stop_requests_per_minute" (get evt "count(*)"))))
+    (engine/add-query service "select count(*) from devent.win:time(60 sec) where ((cast(message?,string) regexp 'railgun_service.*ps_kill.*') and (reason? = 'load')) output every 1 second"
+        (fn [[evt] _]
+          (publish "ps_kill_requests_per_minute" (get evt "count(*)"))))
+    (engine/add-query service "select count(*) from devent.win:time(60 sec) where (cast(message?,string) regexp 'railgun_ps_watch invoke_ps_run.*') output every 1 second"
+        (fn [[evt] _]
+          (publish "ps_runs_per_minute" (get evt "count(*)"))))
+    (engine/add-query service "select count(*) from devent.win:time(60 sec) where (cast(message?,string) regexp 'railgun_ps_watch handle_ps_return.*') output every 1 second"
+        (fn [[evt] _]
+          (publish "ps_returns_per_minute" (get evt "count(*)"))))
+    (engine/add-query service "select count(*) from devent.win:time(60 sec) where (cast(message?,string) regexp 'railgun_ps_watch trap_exit.*') output every 1 second"
+        (fn [[evt] _]
+          (publish "ps_traps_per_minute" (get evt "count(*)"))))
+    (engine/add-query service (str "select cast(lastever(total_count?),long) as count from devent where ((event_type? = 'standard') and (cast(message?,string) regexp '.*process_lost.*')) output first every 1 second")
+        (fn [[evt] _]
+          (publish "ps_lost" (get evt "count"))))
     (doseq [[k p] {"invokes" "invoke"
                    "fails"   "(compile_error)|(locked_error)"
                    "errors"  "(publish_error)|(unexpected_error)"}]
@@ -137,7 +165,7 @@
 ;               (let [info (.getUnderlying ^EventBean (first new-evts))]
 ;                 (update-current current "converges/sec"  (int (/ (get info "rate") 5.0))))))
 ; _ (.addListener statement3 listener3)
-; statement4 (.createEPL admin "select count(*) as runs from devent.win:time(30 sec) where (cast(message?,string) regexp 'amqp_publish.*' and (cast(exchange?,string) regexp '(ps\\.run|service\\.needed).*')) output every 5 sec")
+; statement4 (.createEPL admin "select count(*) from devent.win:time(30 sec) where ((cast(message?,string) regexp 'amqp_publish.*') and (cast(exchange?,string) regexp '(ps\\.run|service\\.needed).*')) output every 5 sec")
 ; listener4 (proxy [UpdateListener] []
 ;             (update [new-evts old-evts]
 ;               (let [info (.getUnderlying ^EventBean (first new-evts))]
