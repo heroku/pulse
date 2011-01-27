@@ -1,9 +1,10 @@
 (ns pulse.pipe
-  (:import (java.io )))
+  (:import clojure.lang.LineNumberingPushbackReader))
 
-(defn pipe-lines [f]
+(set! *warn-on-reflection* true)
+
+(defn stdin-lines [handler]
   (loop []
-    (when-let [line (.readLine *in*)]
-      (f line)
+    (when-let [line (.readLine ^LineNumberingPushbackReader *in*)]
+      (handler line)
       (recur))))
-

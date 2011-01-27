@@ -10,7 +10,7 @@
   (or (= "" l) (re-find tail-re l)))
 
 (def long-re
-  #"^-?[0-9]+$")
+  #"^-?[0-9]{1,18}$")
 
 (def double-re
   #"^-?[0-9]+\.[0-9]+$")
@@ -135,8 +135,12 @@
       message-attrs))))
 
 (defn parse-line [l]
-  (if-not (tail-line? l)
-    (or (parse-nginx-access-line l)
-        (parse-nginx-error-line l)
-        (parse-hermes-line l)
-        (parse-standard-line l))))
+  (try
+    (if-not (tail-line? l)
+      (or (parse-nginx-access-line l)
+          (parse-nginx-error-line l)
+          (parse-hermes-line l)
+          (parse-standard-line l)))
+    (catch Exception e
+      (println "error parsing: " l)
+      (throw e))))
