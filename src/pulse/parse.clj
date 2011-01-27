@@ -110,10 +110,10 @@
         "message" message})))
 
 (def hermes-re
-  #"^([a-zA-Z]{3} \d\d \d\d:\d\d:\d\d) ([a-z4-6]+)?\.(\d+)@([a-z.]+\.com) [a-z]+\[(\d+)\]: \[hermes_proxy\] (.*)$")
+  #"^([a-zA-Z]{3} \d\d \d\d:\d\d:\d\d) ([a-z4-6]+)?\.(\d+)@([a-z.]+\.com) ([a-z]+)\[(\d+)\]: \[hermes_proxy\] (.*)$")
 
 (defn parse-hermes-line [l]
-  (if-let [s-finds (re-find standard-re l)]
+  (if-let [s-finds (re-find hermes-re l)]
     (let [timestamp-src (.getTime (.parse ^SimpleDateFormat time-formatter (get s-finds 1)))
           slot (get s-finds 2)
           ion-id (Long/parseLong (get s-finds 3))

@@ -14,11 +14,15 @@
   (printf "nginx 502/min   %d\n" (get snap "nginx_502_per_minute" 0))
   (printf "nginx 503/min   %d\n" (get snap "nginx_503_per_minute" 0))
   (printf "nginx 504/min   %d\n" (get snap "nginx_504_per_minute" 0))
+  (printf "hermes prx/sec  %d\n" (get snap "hermes_proxies_per_second" 0))
   (printf "hermes H10/min  %d\n" (get snap "hermes_H10_per_minute" 0))
   (printf "hermes H11/min  %d\n" (get snap "hermes_H11_per_minute" 0))
   (printf "hermes H12/min  %d\n" (get snap "hermes_H12_per_minute" 0))
   (printf "hermes H13/min  %d\n" (get snap "hermes_H13_per_minute" 0))
   (printf "hermes H99/min  %d\n" (get snap "hermes_H99_per_minute" 0))
+  (printf "slugc inv/min   %d\n" (get snap "slugc_invokes_per_minute" 0))
+  (printf "slugc fail/min  %d\n" (get snap "slugc_fails_per_minute" 0))
+  (printf "slugc err/min   %d\n" (get snap "slugc_errors_per_minute" 0))
   (flush))
 
 (def snap-a
@@ -43,10 +47,19 @@
       (engine/add-query service (str "select count(*) from devent.win:time(60 sec) where ((event_type? = 'nginx_access') and (cast(http_status?,long) = " s ")) output every 1 second")
         (fn [[evt] _]
           (publish (str "nginx_" s "_per_minute") (get evt "count(*)")))))
+    (engine/add-query service (str "select count(*) from devent.win:time(10 sec) where ((event_type? = 'hermes') and exists(domain?)) output every 1 second")
+        (fn [[evt] _]
+          (publish (str "hermes_proxies_per_second") (long (/ (get evt "count(*)") 10.0)))))
     (doseq [e ["H10" "H11" "H12" "H13" "H99"]]
       (engine/add-query service (str "select count(*) from devent.win:time(60 sec) where ((event_type? = 'hermes') and (cast(message?,string) regexp '.*Error " e ".*')) output every 1 second")
         (fn [[evt] _]
           (publish (str "hermes_" e "_per_minute") (get evt "count(*)")))))
+    (doseq [[k p] {"invokes" "invoke"
+                   "fails"   "(compile_error)|(locked_error)"
+                   "errors"  "(publish_error)|(unexpected_error)"}]
+      (engine/add-query service (str "select count(*) from devent.win:time(60 sec) where ((event_type? = 'standard') and (cast(message?,string) regexp '.*slugc_bin.*" p ".*')) output every 1 second")
+        (fn [[evt] _]
+          (publish (str "slugc_" k "_per_minute") (get evt "count(*)")))))
     (pipe/stdin-lines
       (fn [line]
         (if-let [evt (parse/parse-line line)]
