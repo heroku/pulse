@@ -20,6 +20,7 @@
   (printf "hermes H12/min  %d\n" (get snap "hermes_H12_per_minute" 0))
   (printf "hermes H13/min  %d\n" (get snap "hermes_H13_per_minute" 0))
   (printf "hermes H99/min  %d\n" (get snap "hermes_H99_per_minute" 0))
+  (printf "psmgr conv/sec  %d\n" (get snap "psmgr_converges_per_second" 0))
   (printf "slugc inv/min   %d\n" (get snap "slugc_invokes_per_minute" 0))
   (printf "slugc fail/min  %d\n" (get snap "slugc_fails_per_minute" 0))
   (printf "slugc err/min   %d\n" (get snap "slugc_errors_per_minute" 0))
@@ -54,6 +55,9 @@
       (engine/add-query service (str "select count(*) from devent.win:time(60 sec) where ((event_type? = 'hermes') and (cast(message?,string) regexp '.*Error " e ".*')) output every 1 second")
         (fn [[evt] _]
           (publish (str "hermes_" e "_per_minute") (get evt "count(*)")))))
+    (engine/add-query service (str "select count(*) from devent.win:time(10 sec) where ((event_type? = 'standard') and (cast(message?,string) regexp '.*converge_service.*')) output every 1 second")
+        (fn [[evt] _]
+          (publish (str "psmgr_converges_per_second") (long (/ (get evt "count(*)") 10.0)))))
     (doseq [[k p] {"invokes" "invoke"
                    "fails"   "(compile_error)|(locked_error)"
                    "errors"  "(publish_error)|(unexpected_error)"}]
