@@ -13,7 +13,8 @@
 (defn shell-lines [cmd-list handler]
   (let [rt (Runtime/getRuntime)
        proc (.exec rt ^"[Ljava.lang.String;" (into-array cmd-list))]
-    (with-open [out (-> (.getInputStream proc) (InputStreamReader.) (BufferedReader.))]
+    (with-open [out (-> (.getInputStream proc)
+                      (InputStreamReader.) (BufferedReader.))]
       (loop []
         (when-let [line (.readLine out)]
           (handler line)
