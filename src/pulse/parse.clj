@@ -27,7 +27,7 @@
       v))
 
 (def attrs-re
-  #"([a-zA-Z_]+)(=?)([a-zA-Z0-9._-]*)")
+  #"([a-zA-Z0-9_]+)(=?)([a-zA-Z0-9._-]*)")
 
 (defn parse-message-attrs [msg]
   (reduce

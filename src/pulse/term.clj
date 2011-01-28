@@ -41,6 +41,11 @@
   (printf "-----   -------------\n")
   (doseq [[d r] (get snap "nginx_errors_per_minute_top_domains" [])]
     (printf "%5d   %s\n" r d))
+  (printf "\n")
+  (printf "pub/m   exchange\n")
+  (printf "-----   -------------\n")
+  (doseq [[e r] (get snap "amqp_publishes_per_minute_top_exchanges" [])]
+    (printf "%5d   %s\n" r e))
   (flush))
 
 (def snap-a
@@ -58,10 +63,10 @@
     (engine/add-query service "select count(*) from devent.win:time(10 sec) where ((event_type? = 'nginx_access') and (http_host? != '127.0.0.1')) output every 1 second"
       (fn [[evt] _]
         (publish "nginx_requests_per_second" (long (/ (get evt "count(*)") 10.0)))))
-    (engine/add-query service "select http_domain?, count(*) from devent.win:time(10 sec) where ((event_type? = 'nginx_access') and (http_host? != '127.0.0.1')) group by http_domain? output snapshot every 1 second order by count(*) desc limit 10"
+    (engine/add-query service "select http_domain?, count(*) from devent.win:time(10 sec) where ((event_type? = 'nginx_access') and (http_host? != '127.0.0.1')) group by http_domain? output snapshot every 1 second order by count(*) desc limit 5"
       (fn [evts _]
         (publish "nginx_requests_per_second_top_domains" (map (fn [evt] [(get evt "http_domain?") (long (/ (get evt "count(*)") 10.0))]) evts))))
-    (engine/add-query service "select http_domain?, count(*) from devent.win:time(10 sec) where ((event_type? = 'nginx_access') and (http_host? != '127.0.0.1') and (cast(http_status?,long) >= 500)) group by http_domain? output snapshot every 1 second order by count(*) desc limit 10"
+    (engine/add-query service "select http_domain?, count(*) from devent.win:time(10 sec) where ((event_type? = 'nginx_access') and (http_host? != '127.0.0.1') and (cast(http_status?,long) >= 500)) group by http_domain? output snapshot every 1 second order by count(*) desc limit 5"
       (fn [evts _]
         (publish "nginx_errors_per_minute_top_domains" (map (fn [evt] [(get evt "http_domain?") (get evt "count(*)")]) evts))))
     (engine/add-query service "select count(*) from devent.win:time(60 sec) where (event_type? = 'nginx_error') output every 1 second"
@@ -81,7 +86,7 @@
     (engine/add-query service (str "select count(*) from devent.win:time(10 sec) where (converge_service? = true) output every 1 second")
         (fn [[evt] _]
           (publish (str "ps_converges_per_second") (long (/ (get evt "count(*)") 10.0)))))
-    (engine/add-query service "select count(*) from devent.win:time(60 sec) where ((amqp_publish = true) and (cast(exchange?,string) regexp '(ps\\.run|service\\.needed).*')) output every 1 second"
+    (engine/add-query service "select count(*) from devent.win:time(60 sec) where ((amqp_publish? = true) and (cast(exchange?,string) regexp '(ps\\.run|service\\.needed).*')) output every 1 second"
         (fn [[evt] _]
           (publish "ps_run_requests_per_minute" (get evt "count(*)"))))
     (engine/add-query service "select count(*) from devent.win:time(60 sec) where ((amqp_publish? = true) and (cast(exchange?,string) regexp 'ps\\.kill.*')) output every 1 second"
@@ -105,9 +110,12 @@
     (doseq [[k p] {"invokes" "(invoke? = true)"
                    "fails"   "((compile_error? = true) or (locked_error? = true))"
                    "errors"  "((publish_error? = true) or (unexpected_error? = true))"}]
-      (engine/add-query service (str "select count(*) from devent.win:time(60 sec) where ((slugc_bin = true) and " p ") output every 1 second")
+      (engine/add-query service (str "select count(*) from devent.win:time(60 sec) where ((slugc_bin? = true) and " p ") output every 1 second")
         (fn [[evt] _]
           (publish (str "slugc_" k "_per_minute") (get evt "count(*)")))))
+    (engine/add-query service "select exchange?, count(*) from devent.win:time(60 sec) where (amqp_publish? = true) group by exchange? output snapshot every 1 second order by count(*) desc limit 5"
+      (fn [evts _]
+        (publish "amqp_publishes_per_minute_top_exchanges" (map (fn [evt] [(get evt "exchange?") (get evt "count(*)")]) evts))))
     (pipe/stdin-lines
       (fn [line]
         (if-let [evt (parse/parse-line line)]
