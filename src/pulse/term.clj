@@ -75,37 +75,37 @@
         (fn [[evt] _]
           (publish (str "hermes_proxies_per_second") (long (/ (get evt "count(*)") 10.0)))))
     (doseq [e ["H10" "H11" "H12" "H13" "H99"]]
-      (engine/add-query service (str "select count(*) from devent.win:time(60 sec) where ((event_type? = 'hermes') and (cast(message?,string) regexp '.*Error " e ".*')) output every 1 second")
+      (engine/add-query service (str "select count(*) from devent.win:time(60 sec) where ((event_type? = 'hermes') and (Error? = true) and ("e "? = true)) output every 1 second")
         (fn [[evt] _]
           (publish (str "hermes_" e "_per_minute") (get evt "count(*)")))))
-    (engine/add-query service (str "select count(*) from devent.win:time(10 sec) where ((event_type? = 'standard') and (cast(message?,string) regexp '.*converge_service.*')) output every 1 second")
+    (engine/add-query service (str "select count(*) from devent.win:time(10 sec) where (converge_service? = true) output every 1 second")
         (fn [[evt] _]
           (publish (str "ps_converges_per_second") (long (/ (get evt "count(*)") 10.0)))))
-    (engine/add-query service "select count(*) from devent.win:time(60 sec) where ((cast(message?,string) regexp 'amqp_publish.*') and (cast(exchange?,string) regexp '(ps\\.run|service\\.needed).*')) output every 1 second"
+    (engine/add-query service "select count(*) from devent.win:time(60 sec) where ((amqp_publish = true) and (cast(exchange?,string) regexp '(ps\\.run|service\\.needed).*')) output every 1 second"
         (fn [[evt] _]
           (publish "ps_run_requests_per_minute" (get evt "count(*)"))))
-    (engine/add-query service "select count(*) from devent.win:time(60 sec) where ((cast(message?,string) regexp 'amqp_publish.*') and (cast(exchange?,string) regexp 'ps\\.kill.*')) output every 1 second"
+    (engine/add-query service "select count(*) from devent.win:time(60 sec) where ((amqp_publish? = true) and (cast(exchange?,string) regexp 'ps\\.kill.*')) output every 1 second"
         (fn [[evt] _]
           (publish "ps_stop_requests_per_minute" (get evt "count(*)"))))
-    (engine/add-query service "select count(*) from devent.win:time(60 sec) where ((cast(message?,string) regexp 'railgun_service.*ps_kill.*') and (reason? = 'load')) output every 1 second"
+    (engine/add-query service "select count(*) from devent.win:time(60 sec) where ((railgun_service? = true) and (ps_kill? = true) and (reason? = 'load')) output every 1 second"
         (fn [[evt] _]
           (publish "ps_kill_requests_per_minute" (get evt "count(*)"))))
-    (engine/add-query service "select count(*) from devent.win:time(60 sec) where (cast(message?,string) regexp 'railgun_ps_watch invoke_ps_run.*') output every 1 second"
+    (engine/add-query service "select count(*) from devent.win:time(60 sec) where ((railgun_ps_watch? = true) and (invoke_ps_run? = true)) output every 1 second"
         (fn [[evt] _]
           (publish "ps_runs_per_minute" (get evt "count(*)"))))
-    (engine/add-query service "select count(*) from devent.win:time(60 sec) where (cast(message?,string) regexp 'railgun_ps_watch handle_ps_return.*') output every 1 second"
+    (engine/add-query service "select count(*) from devent.win:time(60 sec) where ((railgun_ps_watch? = true) and (handle_ps_return? = true)) output every 1 second"
         (fn [[evt] _]
           (publish "ps_returns_per_minute" (get evt "count(*)"))))
-    (engine/add-query service "select count(*) from devent.win:time(60 sec) where (cast(message?,string) regexp 'railgun_ps_watch trap_exit.*') output every 1 second"
+    (engine/add-query service "select count(*) from devent.win:time(60 sec) where ((railgun_ps_watch? = true) and (trap_exit? = true)) output every 1 second"
         (fn [[evt] _]
           (publish "ps_traps_per_minute" (get evt "count(*)"))))
-    (engine/add-query service (str "select cast(lastever(total_count?),long) as count from devent where ((event_type? = 'standard') and (cast(message?,string) regexp '.*process_lost.*')) output first every 1 second")
+    (engine/add-query service (str "select cast(lastever(total_count?),long) as count from devent where (process_lost? = true) output first every 1 second")
         (fn [[evt] _]
           (publish "ps_lost" (get evt "count"))))
-    (doseq [[k p] {"invokes" "invoke"
-                   "fails"   "(compile_error)|(locked_error)"
-                   "errors"  "(publish_error)|(unexpected_error)"}]
-      (engine/add-query service (str "select count(*) from devent.win:time(60 sec) where ((event_type? = 'standard') and (cast(message?,string) regexp '.*slugc_bin.*" p ".*')) output every 1 second")
+    (doseq [[k p] {"invokes" "(invoke? = true)"
+                   "fails"   "((compile_error? = true) or (locked_error? = true))"
+                   "errors"  "((publish_error? = true) or (unexpected_error? = true))"}]
+      (engine/add-query service (str "select count(*) from devent.win:time(60 sec) where ((slugc_bin = true) and " p ") output every 1 second")
         (fn [[evt] _]
           (publish (str "slugc_" k "_per_minute") (get evt "count(*)")))))
     (pipe/stdin-lines

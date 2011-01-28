@@ -27,11 +27,14 @@
       v))
 
 (def attrs-re
-  #"([a-z_]+)=([a-zA-Z0-9._-]*)")
+  #"([a-zA-Z_]+)(=?)([a-zA-Z0-9._-]*)")
 
 (defn parse-message-attrs [msg]
   (reduce
-    (fn [h [_ k v]] (assoc h k (coerce-val v)))
+    (fn [h [_ k e v]]
+      (if (= "" e)
+        (assoc h k true)
+        (assoc h k (coerce-val v))))
     {}
     (re-seq attrs-re msg)))
 
