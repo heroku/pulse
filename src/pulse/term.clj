@@ -231,14 +231,12 @@
 
 (defn add-tails [service tails]
   (doseq [[slot host file] tails]
-    (if (#{"hermes" "varnish"} slot)
+    (if (#{"hermes" "face"} slot)
       (pipe/spawn (fn []
         (log "add-tail" slot host file)
          (pipe/shell-lines ["ssh" (str "root@" host) "tail" "-f" file]
            (fn [line]
-             (let [c (swap! count-a inc)]
-               (if (zero? (rem c 1000))
-                 (log c))))))))))
+             (engine/send-event service {"tick" true}))))))))
 
              ; (if-let [evt (parse/parse-line line)]
              ;   (let [evt-h (assoc evt "host" host)]
