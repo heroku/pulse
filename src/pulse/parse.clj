@@ -38,15 +38,16 @@
     {}
     (re-seq attrs-re msg)))
 
-(def time-formatter
-  (SimpleDateFormat. "MMM dd HH:mm:ss"))
+(defn parse-timestamp [s]
+  (let [f (SimpleDateFormat. "MMM dd HH:mm:ss")]
+    (.getTime (.parse f s))))
 
 (def standard-re
   #"^([a-zA-Z]{3} \d\d \d\d:\d\d:\d\d) ([a-z4-6]+)?\.(\d+)@([a-z.]+\.com) ([a-z]+)\[(\d+)\]: (.*)$")
 
 (defn parse-standard-line [l]
   (if-let [s-finds (re-find standard-re l)]
-    (let [timestamp-src (.getTime (.parse ^SimpleDateFormat time-formatter (get s-finds 1)))
+    (let [timestamp-src (parse-timestamp (get s-finds 1))
           slot (get s-finds 2)
           ion-id (Long/parseLong (get s-finds 3))
           cloud (get s-finds 4)
@@ -71,7 +72,7 @@
 
 (defn parse-nginx-access-line [l]
   (if-let [n-finds (re-find nginx-access-re l)]
-    (let [timestamp-src (.getTime (.parse ^SimpleDateFormat time-formatter (get n-finds 1)))
+    (let [timestamp-src (parse-timestamp (get n-finds 1))
           slot (get n-finds 2)
           ion-id (Long/parseLong (get n-finds 3))
           cloud (get n-finds 4)
@@ -99,7 +100,7 @@
 
 (defn parse-nginx-error-line [l]
   (if-let [n-finds (re-find nginx-error-re l)]
-    (let [timestamp-src (.getTime (.parse ^SimpleDateFormat time-formatter (get n-finds 1)))
+    (let [timestamp-src (parse-timestamp (get n-finds 1))
           slot (get n-finds 2)
           ion-id (Long/parseLong (get n-finds 3))
           cloud (get n-finds 4)
@@ -112,12 +113,34 @@
         "cloud" cloud
         "message" message})))
 
+(def varnish-re
+  #"^([a-zA-Z]{3} \d\d \d\d:\d\d:\d\d) ([a-z4-6]+)?\.(\d+)@([a-z.]+\.com) varnish\[(\d+)\]: [0-9\.]+ - - (.*)$")
+
+(defn parse-varnish-line [l]
+  (if-let [s-finds (re-find varnish-re l)]
+    (let [timestamp-src (parse-timestamp (get s-finds 1))
+          slot (get s-finds 2)
+          ion-id (Long/parseLong (get s-finds 3))
+          cloud (get s-finds 4)
+          pid (Long/parseLong (get s-finds 5))
+          message (get s-finds 6)
+          message-attrs (parse-message-attrs message)]
+      {"event_type" "varnish_access"
+       "level" "info"
+       "timestamp_src" timestamp-src
+       "slot" slot
+       "ion_id" ion-id
+       "cloud" cloud
+       "component" "varnish"
+       "pid" pid
+       "message" message})))
+
 (def hermes-re
   #"^([a-zA-Z]{3} \d\d \d\d:\d\d:\d\d) ([a-z4-6]+)?\.(\d+)@([a-z.]+\.com) ([a-z]+)\[(\d+)\]: \[hermes_proxy\] (.*)$")
 
 (defn parse-hermes-line [l]
   (if-let [s-finds (re-find hermes-re l)]
-    (let [timestamp-src (.getTime (.parse ^SimpleDateFormat time-formatter (get s-finds 1)))
+    (let [timestamp-src (parse-timestamp (get s-finds 1))
           slot (get s-finds 2)
           ion-id (Long/parseLong (get s-finds 3))
           cloud (get s-finds 4)
@@ -126,7 +149,7 @@
           message (get s-finds 7)
           message-attrs (parse-message-attrs message)]
     (merge
-      {"event_type" "hermes"
+      {"event_type" "hermes_access"
        "level" "info"
        "timestamp_src" timestamp-src
        "slot" slot
@@ -145,5 +168,6 @@
           (parse-hermes-line l)
           (parse-standard-line l)))
     (catch Exception e
-      (println "error parsing: " l)
+      (locking *out*
+        (prn "error" l))
       (throw e))))
