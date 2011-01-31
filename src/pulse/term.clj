@@ -217,7 +217,10 @@
         (map (fn [evt] [(get evt "exchange?") (get evt "count(*)")]) evts)))))
 
 (defn tail-file [slot]
-  (if (= slot "logplex") "/var/log/logplex" "/var/log/messages"))
+  (case slot
+    "logplex" "/var/log/logplex"
+    "splunk"  "/var/log/heroku/US/Pacific/log"
+    "/var/log/messages"))
 
 (defn parse-tails [path]
   (->> path
@@ -231,16 +234,15 @@
 
 (defn add-tails [service tails]
   (doseq [[slot host file] tails]
-    (if (#{"hermes" "face"} slot)
+    (if (#{"hermes" "varnish" "face" "splunk"} slot)
       (pipe/spawn (fn []
         (log "add-tail" slot host file)
-         (pipe/shell-lines ["ssh" (str "root@" host) "tail" "-f" file]
+         (pipe/shell-lines ["ssh" (str (if (= slot "splunk") "ubuntu" "root") "@" host) "tail" "-f" file]
            (fn [line]
              (engine/send-event service {"tick" true}))))))))
-
-             ; (if-let [evt (parse/parse-line line)]
-             ;   (let [evt-h (assoc evt "host" host)]
-             ;     (engine/send-event service evt-h))))))))))
+             ;(if-let [evt (parse/parse-line line)]
+             ;  (let [evt-h (assoc evt "host" host)]
+             ;    (engine/send-event service evt-h))))))))))
 
 (defn -main [docbrown-path]
   (let [service (engine/init-service)
