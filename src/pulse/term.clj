@@ -64,7 +64,7 @@
   (swap! snap-a assoc k v)
   (redraw @snap-a))
 
-(defn add-count-query [service name conds]
+(defn add-sec-count-query [service name conds]
   (engine/add-query service
     (str "select count(*)
           from hevent.win:time(10 sec)
@@ -82,22 +82,30 @@
     (fn [[evt] _]
       (publish name (get evt "count(*)")))))
 
+(defn add-last-count-query [service name conds attr]
+  (engine/add-query service
+   (str "select cast(lastever(" attr "?),long) as count from hevent
+            where " conds "
+            output first every 1 second")
+      (fn [[evt] _]
+        (publish name (get evt "count")))))
+
 (defn add-queries [service]
   (util/log "add_queries")
 
-  (add-count-query service "events_per_second"
+  (add-sec-count-query service "events_per_second"
     "true")
 
-  (add-count-query service "events_internal_per_second"
+  (add-sec-count-query service "events_internal_per_second"
     "((parsed? = true) and (cloud? = 'heroku.com'))")
 
-  (add-count-query service "events_external_per_second"
+  (add-sec-count-query service "events_external_per_second"
     "((parsed? = true) and (cloud? != 'heroku.com'))")
 
-  (add-count-query service "events_unparsed_per_second"
+  (add-sec-count-query service "events_unparsed_per_second"
     "(parsed? = false)")
 
-  (add-count-query service "nginx_requests_per_second"
+  (add-sec-count-query service "nginx_requests_per_second"
     "((event_type? = 'nginx_access') and (http_host? != '127.0.0.1'))")
 
   (engine/add-query service
@@ -132,10 +140,10 @@
       (str "((event_type? = 'nginx_access') and
              (cast(http_status?,long) = " s "))")))
 
-  (add-count-query service "varnish_requests_per_second"
+  (add-sec-count-query service "varnish_requests_per_second"
     "(event_type? = 'varnish_access')")
 
-  (add-count-query service "hermes_requests_per_second"
+  (add-sec-count-query service "hermes_requests_per_second"
     "((event_type? = 'hermes_access') and exists(domain?))")
 
   (doseq [e ["H10" "H11" "H12" "H13" "H99"]]
@@ -144,7 +152,7 @@
              (Error? = true) and
              (" e "? = true))")))
 
-  (add-count-query service "ps_converges_per_second"
+  (add-sec-count-query service "ps_converges_per_second"
     "(converge_service? = true)")
 
   (add-min-count-query service "ps_run_requests_per_minute"
@@ -169,12 +177,9 @@
   (add-min-count-query service "ps_traps_per_minute"
     "((railgun_ps_watch? = true) and (trap_exit? = true))")
 
-  (engine/add-query service
-    (str "select cast(lastever(total_count?),long) as count from hevent
-            where (process_lost? = true)
-            output first every 1 second")
-      (fn [[evt] _]
-        (publish "ps_lost" (get evt "count"))))
+  (add-last-count-query service "ps_lost"
+    "(process_lost? = true)"
+    "total_count")
 
   (doseq [[k p] {"invokes" "(invoke? = true)"
                  "fails"   "((compile_error? = true) or (locked_error? = true))"
