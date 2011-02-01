@@ -1,4 +1,4 @@
-(ns pulse.term
+(ns pulse.generator
   (:require [clojure.string :as str])
   (:require [pulse.util :as util])
   (:require [pulse.pipe :as pipe])
@@ -40,17 +40,17 @@
   (printf "\n")
   (printf "req/s   domain\n")
   (printf "-----   -------------\n")
-  (doseq [[d r] (get snap "nginx_requests_per_second_top_domains" [])]
+  (doseq [[d r] (get snap "nginx_requests_by_domain_per_second" [])]
     (printf "%5d   %s\n" r d))
   (printf "\n")
   (printf "err/m   domain\n")
   (printf "-----   -------------\n")
-  (doseq [[d r] (get snap "nginx_errors_per_minute_top_domains" [])]
+  (doseq [[d r] (get snap "nginx_errors_by_domain_per_minute" [])]
     (printf "%5d   %s\n" r d))
   (printf "\n")
   (printf "pub/m   exchange\n")
   (printf "-----   -------------\n")
-  (doseq [[e r] (get snap "amqp_publishes_per_minute_top_exchanges" [])]
+  (doseq [[e r] (get snap "amqp_publishes_by_exchange_per_minute" [])]
     (printf "%5d   %s\n" r e))
   (flush))
 
@@ -68,8 +68,8 @@
   (engine/add-query service
     (str "select count(*)
           from hevent.win:time(10 sec)
-          where " conds " "
-          "output every 1 second")
+          where " conds "
+          output every 1 second")
     (fn [[evt] _]
       (publish name (long (/ (get evt "count(*)") 10.0))))))
 
@@ -77,18 +77,43 @@
   (engine/add-query service
     (str "select count(*)
           from hevent.win:time(60 sec)
-          where " conds " "
-          "output every 1 second")
+          where " conds "
+          output every 1 second")
     (fn [[evt] _]
       (publish name (get evt "count(*)")))))
 
 (defn add-last-count-query [service name conds attr]
   (engine/add-query service
-   (str "select cast(lastever(" attr "?),long) as count from hevent
-            where " conds "
-            output first every 1 second")
+    (str "select cast(lastever(" attr "?),long) as count
+          from hevent
+          where " conds "
+          output first every 1 second")
       (fn [[evt] _]
         (publish name (get evt "count")))))
+
+(defn add-min-top-count-query [service name conds attr]
+  (engine/add-query service
+    (str "select " attr "? as attr, count(*) as count from hevent.win:time(60 sec)
+          where " conds "
+          group by " attr "?
+          output snapshot every 1 second
+          order by count desc
+          limit 5")
+    (fn [evts _]
+      (publish name
+        (map (fn [evt] [(get evt "attr") (get evt "count")]) evts)))))
+
+(defn add-sec-top-count-query [service name conds attr]
+  (engine/add-query service
+    (str "select " attr "? as attr, count(*) as count from hevent.win:time(10 sec)
+          where " conds "
+          group by " attr "?
+          output snapshot every 1 second
+          order by count desc
+          limit 5")
+    (fn [evts _]
+      (publish name
+        (map (fn [evt] [(get evt "attr") (long (/ (get evt "count") 10.0))]) evts)))))
 
 (defn add-queries [service]
   (util/log "add_queries")
@@ -108,29 +133,15 @@
   (add-sec-count-query service "nginx_requests_per_second"
     "((event_type? = 'nginx_access') and (http_host? != '127.0.0.1'))")
 
-  (engine/add-query service
-    "select http_domain?, count(*) from hevent.win:time(10 sec)
-       where ((event_type? = 'nginx_access') and (http_host? != '127.0.0.1'))
-       group by http_domain?
-       output snapshot every 1 second
-       order by count(*) desc
-       limit 5"
-    (fn [evts _]
-      (publish "nginx_requests_per_second_top_domains"
-        (map (fn [evt] [(get evt "http_domain?") (long (/ (get evt "count(*)") 10.0))]) evts))))
+  (add-sec-top-count-query service "nginx_requests_by_domain_per_second"
+    "((event_type? = 'nginx_access') and (http_host? != '127.0.0.1'))"
+    "http_domain")
 
-  (engine/add-query service
-    "select http_domain?, count(*) from hevent.win:time(10 sec)
-       where ((event_type? = 'nginx_access') and
-              (http_host? != '127.0.0.1') and
-              (cast(http_status?,long) >= 500))
-       group by http_domain?
-       output snapshot every 1 second
-       order by count(*) desc
-       limit 5"
-    (fn [evts _]
-      (publish "nginx_errors_per_minute_top_domains"
-        (map (fn [evt] [(get evt "http_domain?") (get evt "count(*)")]) evts))))
+  (add-min-top-count-query service "nginx_errors_by_domain_per_minute"
+    "((event_type? = 'nginx_access') and
+      (http_host? != '127.0.0.1') and
+      (cast(http_status?,long) >= 500))"
+    "http_domain")
 
   (add-min-count-query service "nginx_errors_per_minute"
     "(event_type? = 'nginx_error')")
@@ -187,16 +198,9 @@
     (add-min-count-query service (str "slugc_" k "_per_minute")
       (str "((slugc_bin? = true) and " p ")")))
 
-  (engine/add-query service
-    "select exchange?, count(*) from hevent.win:time(60 sec)
-       where (amqp_publish? = true)
-       group by exchange?
-       output snapshot every 1 second
-       order by count(*) desc
-       limit 5"
-    (fn [evts _]
-      (publish "amqp_publishes_per_minute_top_exchanges"
-        (map (fn [evt] [(get evt "exchange?") (get evt "count(*)")]) evts)))))
+  (add-min-top-count-query service "amqp_publishes_by_exchange_per_minute"
+    "(amqp_publish? = true)"
+    "exchange"))
 
 (defn add-tails [service forwarders]
   (util/log "add_tails")
