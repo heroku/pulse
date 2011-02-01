@@ -1,4 +1,4 @@
-(ns pulse.engine
+(ns pulse.esper
   (:import java.util.Properties)
   (:import (com.espertech.esper.client Configuration EventBean UpdateListener EPStatement EPServiceProvider EPServiceProviderManager))
   (:require [clojure.string :as str])
