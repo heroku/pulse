@@ -64,10 +64,11 @@
   ;(redraw @snap-a))
 
 (defn add-queries [service]
-  ;(util/log "add_queries")
+  (util/log "add_queries")
 
   (engine/add-query service
     "select count(*) from hevent.win:time(10 sec)
+       where true
        output every 1 second"
     (fn [[evt] _]
       (publish "events_per_second" (long (/ (get evt "count(*)") 10.0)))))
