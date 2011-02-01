@@ -1,5 +1,6 @@
 (ns pulse.term
   (:require [clojure.string :as str])
+  (:require [pulse.util :as util])
   (:require [pulse.pipe :as pipe])
   (:require [pulse.parse :as parse])
   (:require [pulse.engine :as engine]))
@@ -55,47 +56,45 @@
 (def snap-a
   (atom {}))
 
-(defn log [& args]
-  (locking *out*
-    (apply println args)))
-
 (defn show-rate [snap]
-  (log (get snap "events_per_second")))
+  (util/log "show_rate events_per_second=%d" (get snap "events_per_second" 0)))
 
 (defn publish [k v]
-  (swap! snap-a assoc k v)
-  (redraw @snap-a))
+  (swap! snap-a assoc k v))
+  ;(redraw @snap-a))
 
 (defn add-queries [service]
+  ;(util/log "add_queries")
+
   (engine/add-query service
-    "select count(*) from devent.win:time(10 sec)
+    "select count(*) from hevent.win:time(10 sec)
        output every 1 second"
     (fn [[evt] _]
       (publish "events_per_second" (long (/ (get evt "count(*)") 10.0)))))
 
   (engine/add-query service
-    "select count(*) from devent.win:time(10 sec)
+    "select count(*) from hevent.win:time(10 sec)
        where ((parsed? = true) and (cloud? != 'heroku.com'))
        output every 1 second"
     (fn [[evt] _]
       (publish "events_external_per_second" (long (/ (get evt "count(*)") 10.0)))))
 
   (engine/add-query service
-    "select count(*) from devent.win:time(10 sec)
+    "select count(*) from hevent.win:time(10 sec)
        where (parsed? = false)
        output every 1 second"
     (fn [[evt] _]
       (publish "events_unparsed_per_second" (long (/ (get evt "count(*)") 10.0)))))
 
   (engine/add-query service
-    "select count(*) from devent.win:time(10 sec)
+    "select count(*) from hevent.win:time(10 sec)
        where ((event_type? = 'nginx_access') and (http_host? != '127.0.0.1'))
        output every 1 second"
     (fn [[evt] _]
       (publish "nginx_requests_per_second" (long (/ (get evt "count(*)") 10.0)))))
 
   (engine/add-query service
-    "select http_domain?, count(*) from devent.win:time(10 sec)
+    "select http_domain?, count(*) from hevent.win:time(10 sec)
        where ((event_type? = 'nginx_access') and (http_host? != '127.0.0.1'))
        group by http_domain?
        output snapshot every 1 second
@@ -106,7 +105,7 @@
         (map (fn [evt] [(get evt "http_domain?") (long (/ (get evt "count(*)") 10.0))]) evts))))
 
   (engine/add-query service
-    "select http_domain?, count(*) from devent.win:time(10 sec)
+    "select http_domain?, count(*) from hevent.win:time(10 sec)
        where ((event_type? = 'nginx_access') and
               (http_host? != '127.0.0.1') and
               (cast(http_status?,long) >= 500))
@@ -119,7 +118,7 @@
         (map (fn [evt] [(get evt "http_domain?") (get evt "count(*)")]) evts))))
 
   (engine/add-query service
-    "select count(*) from devent.win:time(60 sec)
+    "select count(*) from hevent.win:time(60 sec)
        where (event_type? = 'nginx_error')
        output every 1 second"
     (fn [[evt] _]
@@ -127,7 +126,7 @@
 
   (doseq [s ["500" "502" "503" "504"]]
     (engine/add-query service
-      (str "select count(*) from devent.win:time(60 sec)
+      (str "select count(*) from hevent.win:time(60 sec)
               where ((event_type? = 'nginx_access') and
                      (cast(http_status?,long) = " s "))
               output every 1 second")
@@ -135,14 +134,14 @@
         (publish (str "nginx_" s "_per_minute") (get evt "count(*)")))))
 
   (engine/add-query service
-    (str "select count(*) from devent.win:time(10 sec)
+    (str "select count(*) from hevent.win:time(10 sec)
             where (event_type? = 'varnish_access')
             output every 1 second")
     (fn [[evt] _]
       (publish "varnish_requests_per_second" (long (/ (get evt "count(*)") 10.0)))))
 
   (engine/add-query service
-    (str "select count(*) from devent.win:time(10 sec)
+    (str "select count(*) from hevent.win:time(10 sec)
             where ((event_type? = 'hermes_access') and exists(domain?))
             output every 1 second")
     (fn [[evt] _]
@@ -150,7 +149,7 @@
 
   (doseq [e ["H10" "H11" "H12" "H13" "H99"]]
     (engine/add-query service
-      (str "select count(*) from devent.win:time(60 sec)
+      (str "select count(*) from hevent.win:time(60 sec)
               where ((event_type? = 'hermes_access') and
                      (Error? = true) and
                      ("e "? = true))
@@ -159,14 +158,14 @@
         (publish (str "hermes_" e "_per_minute") (get evt "count(*)")))))
 
   (engine/add-query service
-    (str "select count(*) from devent.win:time(10 sec)
+    (str "select count(*) from hevent.win:time(10 sec)
             where (converge_service? = true)
             output every 1 second")
     (fn [[evt] _]
       (publish "ps_converges_per_second" (long (/ (get evt "count(*)") 10.0)))))
 
   (engine/add-query service
-    "select count(*) from devent.win:time(60 sec)
+    "select count(*) from hevent.win:time(60 sec)
        where ((amqp_publish? = true) and
               (cast(exchange?,string) regexp '(ps\\.run|service\\.needed).*'))
        output every 1 second"
@@ -174,7 +173,7 @@
       (publish "ps_run_requests_per_minute" (get evt "count(*)"))))
 
   (engine/add-query service
-    "select count(*) from devent.win:time(60 sec)
+    "select count(*) from hevent.win:time(60 sec)
        where ((amqp_publish? = true) and
               (cast(exchange?,string) regexp 'ps\\.kill.*'))
        output every 1 second"
@@ -182,7 +181,7 @@
       (publish "ps_stop_requests_per_minute" (get evt "count(*)"))))
 
   (engine/add-query service
-    "select count(*) from devent.win:time(60 sec)
+    "select count(*) from hevent.win:time(60 sec)
        where ((railgun_service? = true) and
               (ps_kill? = true) and
               (reason? = 'load'))
@@ -191,28 +190,28 @@
       (publish "ps_kill_requests_per_minute" (get evt "count(*)"))))
 
   (engine/add-query service
-    "select count(*) from devent.win:time(60 sec)
+    "select count(*) from hevent.win:time(60 sec)
        where ((railgun_ps_watch? = true) and (invoke_ps_run? = true))
        output every 1 second"
     (fn [[evt] _]
       (publish "ps_runs_per_minute" (get evt "count(*)"))))
 
   (engine/add-query service
-    "select count(*) from devent.win:time(60 sec)
+    "select count(*) from hevent.win:time(60 sec)
        where ((railgun_ps_watch? = true) and (handle_ps_return? = true))
        output every 1 second"
       (fn [[evt] _]
         (publish "ps_returns_per_minute" (get evt "count(*)"))))
 
   (engine/add-query service
-    "select count(*) from devent.win:time(60 sec) where
+    "select count(*) from hevent.win:time(60 sec) where
        ((railgun_ps_watch? = true) and (trap_exit? = true))
        output every 1 second"
     (fn [[evt] _]
       (publish "ps_traps_per_minute" (get evt "count(*)"))))
 
   (engine/add-query service
-    (str "select cast(lastever(total_count?),long) as count from devent
+    (str "select cast(lastever(total_count?),long) as count from hevent
             where (process_lost? = true)
             output first every 1 second")
       (fn [[evt] _]
@@ -222,7 +221,7 @@
                  "fails"   "((compile_error? = true) or (locked_error? = true))"
                  "errors"  "((publish_error? = true) or (unexpected_error? = true))"}]
     (engine/add-query service
-      (str "select count(*) from devent.win:time(60 sec)
+      (str "select count(*) from hevent.win:time(60 sec)
               where ((slugc_bin? = true) and
                      " p ")
               output every 1 second")
@@ -230,7 +229,7 @@
         (publish (str "slugc_" k "_per_minute") (get evt "count(*)")))))
 
   (engine/add-query service
-    "select exchange?, count(*) from devent.win:time(60 sec)
+    "select exchange?, count(*) from hevent.win:time(60 sec)
        where (amqp_publish? = true)
        group by exchange?
        output snapshot every 1 second
@@ -240,35 +239,18 @@
       (publish "amqp_publishes_per_minute_top_exchanges"
         (map (fn [evt] [(get evt "exchange?") (get evt "count(*)")]) evts)))))
 
-(defn tail-file [slot]
-  (case slot
-    "logplex" "/var/log/logplex"
-    "splunk"  "/var/log/heroku/US/Pacific/log"
-    "/var/log/messages"))
+(defn add-tails [service forwarders]
+  (util/log "add_tails")
+  (doseq [forwarder forwarders]
+    (pipe/spawn (fn []
+      (util/log "add_tail forwarder=%s" forwarder)
+       (pipe/shell-lines ["ssh" (str "ubuntu@" forwarder) "sudo" "tail" "-f" "/var/log/heroku/US/Pacific/log"]
+         (fn [line]
+           (if-let [evt (parse/parse-line line)]
+             (engine/send-event service (assoc evt "line" line "parsed" true "forwarder" forwarder))
+             (engine/send-event service {"line" line "parsed" false "forwarder" forwarder}))))))))
 
-(defn parse-tails [path]
-  (->> path
-    (slurp)
-    (str/split-lines)
-    (map (fn [l] (str/split l #"\s+")))
-    (map (fn [[_ s _ h & _]] [s h (tail-file s)]))))
-
-(def count-a
-  (atom 0))
-
-(defn add-tails [service tails]
-  (doseq [[slot forwarder file] tails]
-    (if (#{"hermes" "varnish" "face" "splunk"} slot)
-      (pipe/spawn (fn []
-        (log "add-tail" slot forwarder file)
-         (pipe/shell-lines ["ssh" (str (if (= slot "splunk") "ubuntu" "root") "@" forwarder) "sudo" "tail" "-f" file]
-           (fn [line]
-             (if-let [evt (parse/parse-line line)]
-               (engine/send-event service (assoc evt "line" line "parsed" true "forwarder" forwarder))
-               (engine/send-event service {"line" line "parsed" false "forwarder" forwarder})))))))))
-
-(defn -main [docbrown-path]
-  (let [service (engine/init-service)
-        tails (parse-tails docbrown-path)]
+(defn -main [& forwarders]
+  (let [service (engine/init-service)]
     (add-queries service)
-    (add-tails service tails)))
+    (add-tails service forwarders)))

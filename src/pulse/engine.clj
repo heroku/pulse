@@ -1,16 +1,20 @@
 (ns pulse.engine
   (:import java.util.Properties)
-  (:import (com.espertech.esper.client Configuration EventBean UpdateListener EPStatement EPServiceProvider EPServiceProviderManager)))
+  (:import (com.espertech.esper.client Configuration EventBean UpdateListener EPStatement EPServiceProvider EPServiceProviderManager))
+  (:require [clojure.string :as str])
+  (:require [pulse.util :as util]))
 
 (defn init-service []
+  (util/log "init_service")
   (let [config (doto (Configuration.)
-                 (.addEventType "devent" (Properties.)))]
+                 (.addEventType "hevent" (Properties.)))]
     (EPServiceProviderManager/getDefaultProvider config)))
 
 (defn- extract-underlying [^EventBean eb]
   (-> (.getUnderlying eb) (into {})))
 
 (defn add-query [service query handler]
+  (util/log "add_query query='%s'" (str/replace query #"\s+" " "))
   (let [admin     (.getEPAdministrator service)
         statement (.createEPL admin query)
         listener  (proxy [UpdateListener] []
@@ -20,4 +24,4 @@
     (.addListener statement listener)))
 
 (defn send-event [service event]
-  (-> service (.getEPRuntime) (.sendEvent event "devent")))
+  (-> service (.getEPRuntime) (.sendEvent event "hevent")))
