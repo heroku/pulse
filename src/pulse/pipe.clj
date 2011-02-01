@@ -19,8 +19,3 @@
         (when-let [line (.readLine out)]
           (handler line)
           (recur))))))
-
-(defn spawn [f]
-  (let [t (Thread. ^Runnable f)]
-    (.start t)
-    t))

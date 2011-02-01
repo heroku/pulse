@@ -34,21 +34,6 @@
   (printf "slugc inv/min    %d\n" (get snap "slugc_invokes_per_minute" 0))
   (printf "slugc fail/min   %d\n" (get snap "slugc_fails_per_minute" 0))
   (printf "slugc err/min    %d\n" (get snap "slugc_errors_per_minute" 0))
-  (printf "\n")
-  (printf "req/s   domain\n")
-  (printf "-----   -------------\n")
-  (doseq [[d r] (get snap "nginx_requests_by_domain_per_second" [])]
-    (printf "%5d   %s\n" r d))
-  (printf "\n")
-  (printf "err/m   domain\n")
-  (printf "-----   -------------\n")
-  (doseq [[d r] (get snap "nginx_errors_by_domain_per_minute" [])]
-    (printf "%5d   %s\n" r d))
-  (printf "\n")
-  (printf "pub/m   exchange\n")
-  (printf "-----   -------------\n")
-  (doseq [[e r] (get snap "amqp_publishes_by_exchange_per_minute" [])]
-    (printf "%5d   %s\n" r e))
   (flush))
 
 (def rd
@@ -63,5 +48,4 @@
     (redraw @snap-a)))
 
 (defn -main []
-  (let [rd (redis/init {:url config/redis-url})]
-    (redis/subscribe rd ["stats"] receive)))
+  (redis/subscribe rd ["stats"] receive))

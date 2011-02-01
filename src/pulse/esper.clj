@@ -7,7 +7,7 @@
 (set! *warn-on-reflection* true)
 
 (defn init-service []
-  (util/log "init_service")
+  (util/log "esper init_service")
   (let [config (doto (Configuration.)
                  (.addEventType "hevent" (Properties.)))]
     (EPServiceProviderManager/getDefaultProvider config)))
@@ -15,8 +15,8 @@
 (defn- extract-underlying [^EventBean eb]
   (-> (.getUnderlying eb) (into {})))
 
-(defn add-query [service query handler]
-  (util/log "add_query query='%s'" (str/replace query #"\s+" " "))
+(defn add-query [^EPServiceProvider service query handler]
+  (util/log "esper add_query query='%s'" (str/replace query #"\s+" " "))
   (let [admin     (.getEPAdministrator service)
         statement (.createEPL admin query)
         listener  (proxy [UpdateListener] []
@@ -25,5 +25,5 @@
                                (map extract-underlying old-evts))))]
     (.addListener statement listener)))
 
-(defn send-event [service event]
+(defn send-event [^EPServiceProvider service event]
   (-> service (.getEPRuntime) (.sendEvent event "hevent")))
