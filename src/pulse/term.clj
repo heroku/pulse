@@ -9,6 +9,7 @@
 (defn redraw [snap]
   (printf "\u001B[2J\u001B[f")
   (printf "events/sec       %d\n" (get snap "events_per_second" 0))
+  (printf "external/sec     %d\n" (get snap "events_external_per_second"))
   (printf "unparsed/sec     %d\n" (get snap "events_unparsed_per_second" 0))
   (printf "nginx req/sec    %d\n" (get snap "nginx_requests_per_second" 0))
   (printf "nginx err/min    %d\n" (get snap "nginx_errors_per_minute" 0))
@@ -74,7 +75,14 @@
 
   (engine/add-query service
     "select count(*) from devent.win:time(10 sec)
-       where (unparsed? = true)
+       where ((parsed? = true) and (cloud? != 'heroku.com'))
+       output every 1 second"
+    (fn [[evt] _]
+      (publish "events_external_per_second" (long (/ (get evt "count(*)") 10.0)))))
+
+  (engine/add-query service
+    "select count(*) from devent.win:time(10 sec)
+       where (parsed? = false)
        output every 1 second"
     (fn [[evt] _]
       (publish "events_unparsed_per_second" (long (/ (get evt "count(*)") 10.0)))))
@@ -256,8 +264,8 @@
          (pipe/shell-lines ["ssh" (str (if (= slot "splunk") "ubuntu" "root") "@" forwarder) "sudo" "tail" "-f" file]
            (fn [line]
              (if-let [evt (parse/parse-line line)]
-               (engine/send-event service (assoc evt "forwarder" forwarder))
-               (engine/send-event service {"unparsed" true "line" line})))))))))
+               (engine/send-event service (assoc evt "line" line "parsed" true "forwarder" forwarder))
+               (engine/send-event service {"line" line "parsed" false "forwarder" forwarder})))))))))
 
 (defn -main [docbrown-path]
   (let [service (engine/init-service)
