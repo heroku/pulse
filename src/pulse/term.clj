@@ -10,6 +10,7 @@
 (defn redraw [snap]
   (printf "\u001B[2J\u001B[f")
   (printf "events/sec       %d\n" (get snap "events_per_second" 0))
+  (printf "internal/sec     %d\n" (get snap "events_internal_per_second"))
   (printf "external/sec     %d\n" (get snap "events_external_per_second"))
   (printf "unparsed/sec     %d\n" (get snap "events_unparsed_per_second" 0))
   (printf "nginx req/sec    %d\n" (get snap "nginx_requests_per_second" 0))
@@ -60,39 +61,35 @@
   (util/log "show_rate events_per_second=%d" (get snap "events_per_second" 0)))
 
 (defn publish [k v]
-  (swap! snap-a assoc k v))
-  ;(redraw @snap-a))
+  (swap! snap-a assoc k v)
+  (redraw @snap-a))
+
+(defn add-count-query [service name conds]
+  (engine/add-query service
+    (str "select count(*)
+          from hevent.win:time(10 sec)
+          where " conds " "
+          "output every 1 second")
+    (fn [[evt] _]
+      (publish name (long (/ (get evt "count(*)") 10.0))))))
 
 (defn add-queries [service]
   (util/log "add_queries")
 
-  (engine/add-query service
-    "select count(*) from hevent.win:time(10 sec)
-       where true
-       output every 1 second"
-    (fn [[evt] _]
-      (publish "events_per_second" (long (/ (get evt "count(*)") 10.0)))))
+  (add-count-query service "events_per_second"
+    "true")
 
-  (engine/add-query service
-    "select count(*) from hevent.win:time(10 sec)
-       where ((parsed? = true) and (cloud? != 'heroku.com'))
-       output every 1 second"
-    (fn [[evt] _]
-      (publish "events_external_per_second" (long (/ (get evt "count(*)") 10.0)))))
+  (add-count-query service "events_internal_per_second"
+    "((parsed? = true) and (cloud? = 'heroku.com'))")
 
-  (engine/add-query service
-    "select count(*) from hevent.win:time(10 sec)
-       where (parsed? = false)
-       output every 1 second"
-    (fn [[evt] _]
-      (publish "events_unparsed_per_second" (long (/ (get evt "count(*)") 10.0)))))
+  (add-count-query service "events_external_per_second"
+    "((parsed? = true) and (cloud? != 'heroku.com'))")
 
-  (engine/add-query service
-    "select count(*) from hevent.win:time(10 sec)
-       where ((event_type? = 'nginx_access') and (http_host? != '127.0.0.1'))
-       output every 1 second"
-    (fn [[evt] _]
-      (publish "nginx_requests_per_second" (long (/ (get evt "count(*)") 10.0)))))
+  (add-count-query service "events_unparsed_per_second"
+    "(parsed? = false)")
+
+  (add-count-query service "nginx_requests_per_second"
+    "((event_type? = 'nginx_access') and (http_host? != '127.0.0.1'))")
 
   (engine/add-query service
     "select http_domain?, count(*) from hevent.win:time(10 sec)
@@ -134,19 +131,11 @@
       (fn [[evt] _]
         (publish (str "nginx_" s "_per_minute") (get evt "count(*)")))))
 
-  (engine/add-query service
-    (str "select count(*) from hevent.win:time(10 sec)
-            where (event_type? = 'varnish_access')
-            output every 1 second")
-    (fn [[evt] _]
-      (publish "varnish_requests_per_second" (long (/ (get evt "count(*)") 10.0)))))
+  (add-count-query service "varnish_requests_per_second"
+    "(event_type? = 'varnish_access')")
 
-  (engine/add-query service
-    (str "select count(*) from hevent.win:time(10 sec)
-            where ((event_type? = 'hermes_access') and exists(domain?))
-            output every 1 second")
-    (fn [[evt] _]
-      (publish "hermes_requests_per_second" (long (/ (get evt "count(*)") 10.0)))))
+  (add-count-query service "hermes_requests_per_second"
+    "((event_type? = 'hermes_access') and exists(domain?))")
 
   (doseq [e ["H10" "H11" "H12" "H13" "H99"]]
     (engine/add-query service
@@ -158,12 +147,8 @@
       (fn [[evt] _]
         (publish (str "hermes_" e "_per_minute") (get evt "count(*)")))))
 
-  (engine/add-query service
-    (str "select count(*) from hevent.win:time(10 sec)
-            where (converge_service? = true)
-            output every 1 second")
-    (fn [[evt] _]
-      (publish "ps_converges_per_second" (long (/ (get evt "count(*)") 10.0)))))
+  (add-count-query service "ps_converges_per_second"
+    "(converge_service? = true)")
 
   (engine/add-query service
     "select count(*) from hevent.win:time(60 sec)
