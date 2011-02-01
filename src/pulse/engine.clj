@@ -4,6 +4,8 @@
   (:require [clojure.string :as str])
   (:require [pulse.util :as util]))
 
+(set! *warn-on-reflection* true)
+
 (defn init-service []
   (util/log "init_service")
   (let [config (doto (Configuration.)
