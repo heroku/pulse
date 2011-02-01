@@ -10,8 +10,8 @@
 (defn redraw [snap]
   (printf "\u001B[2J\u001B[f")
   (printf "events/sec       %d\n" (get snap "events_per_second" 0))
-  (printf "internal/sec     %d\n" (get snap "events_internal_per_second"))
-  (printf "external/sec     %d\n" (get snap "events_external_per_second"))
+  (printf "internal/sec     %d\n" (get snap "events_internal_per_second" 0))
+  (printf "external/sec     %d\n" (get snap "events_external_per_second" 0))
   (printf "unparsed/sec     %d\n" (get snap "events_unparsed_per_second" 0))
   (printf "nginx req/sec    %d\n" (get snap "nginx_requests_per_second" 0))
   (printf "nginx err/min    %d\n" (get snap "nginx_errors_per_minute" 0))
@@ -73,6 +73,15 @@
     (fn [[evt] _]
       (publish name (long (/ (get evt "count(*)") 10.0))))))
 
+(defn add-min-count-query [service name conds]
+  (engine/add-query service
+    (str "select count(*)
+          from hevent.win:time(60 sec)
+          where " conds " "
+          "output every 1 second")
+    (fn [[evt] _]
+      (publish name (get evt "count(*)")))))
+
 (defn add-queries [service]
   (util/log "add_queries")
 
@@ -115,21 +124,13 @@
       (publish "nginx_errors_per_minute_top_domains"
         (map (fn [evt] [(get evt "http_domain?") (get evt "count(*)")]) evts))))
 
-  (engine/add-query service
-    "select count(*) from hevent.win:time(60 sec)
-       where (event_type? = 'nginx_error')
-       output every 1 second"
-    (fn [[evt] _]
-      (publish "nginx_errors_per_minute" (get evt "count(*)"))))
+  (add-min-count-query service "nginx_errors_per_minute"
+    "(event_type? = 'nginx_error')")
 
   (doseq [s ["500" "502" "503" "504"]]
-    (engine/add-query service
-      (str "select count(*) from hevent.win:time(60 sec)
-              where ((event_type? = 'nginx_access') and
-                     (cast(http_status?,long) = " s "))
-              output every 1 second")
-      (fn [[evt] _]
-        (publish (str "nginx_" s "_per_minute") (get evt "count(*)")))))
+    (add-min-count-query service (str "nginx_" s "_per_minute")
+      (str "((event_type? = 'nginx_access') and
+             (cast(http_status?,long) = " s "))")))
 
   (add-count-query service "varnish_requests_per_second"
     "(event_type? = 'varnish_access')")
@@ -138,63 +139,35 @@
     "((event_type? = 'hermes_access') and exists(domain?))")
 
   (doseq [e ["H10" "H11" "H12" "H13" "H99"]]
-    (engine/add-query service
-      (str "select count(*) from hevent.win:time(60 sec)
-              where ((event_type? = 'hermes_access') and
-                     (Error? = true) and
-                     ("e "? = true))
-              output every 1 second")
-      (fn [[evt] _]
-        (publish (str "hermes_" e "_per_minute") (get evt "count(*)")))))
+    (add-min-count-query service (str "hermes_" e "_per_minute")
+      (str "((event_type? = 'hermes_access') and
+             (Error? = true) and
+             (" e "? = true))")))
 
   (add-count-query service "ps_converges_per_second"
     "(converge_service? = true)")
 
-  (engine/add-query service
-    "select count(*) from hevent.win:time(60 sec)
-       where ((amqp_publish? = true) and
-              (cast(exchange?,string) regexp '(ps\\.run|service\\.needed).*'))
-       output every 1 second"
-    (fn [[evt] _]
-      (publish "ps_run_requests_per_minute" (get evt "count(*)"))))
+  (add-min-count-query service "ps_run_requests_per_minute"
+    "((amqp_publish? = true) and
+      (cast(exchange?,string) regexp '(ps\\.run|service\\.needed).*'))")
 
-  (engine/add-query service
-    "select count(*) from hevent.win:time(60 sec)
-       where ((amqp_publish? = true) and
-              (cast(exchange?,string) regexp 'ps\\.kill.*'))
-       output every 1 second"
-    (fn [[evt] _]
-      (publish "ps_stop_requests_per_minute" (get evt "count(*)"))))
+  (add-min-count-query service "ps_stop_requests_per_minute"
+    "((amqp_publish? = true) and
+      (cast(exchange?,string) regexp 'ps\\.kill.*'))")
 
-  (engine/add-query service
-    "select count(*) from hevent.win:time(60 sec)
-       where ((railgun_service? = true) and
-              (ps_kill? = true) and
-              (reason? = 'load'))
-       output every 1 second"
-    (fn [[evt] _]
-      (publish "ps_kill_requests_per_minute" (get evt "count(*)"))))
+  (add-min-count-query service "ps_kill_requests_per_minute"
+    "((railgun_service? = true) and
+      (ps_kill? = true) and
+      (reason? = 'load'))")
 
-  (engine/add-query service
-    "select count(*) from hevent.win:time(60 sec)
-       where ((railgun_ps_watch? = true) and (invoke_ps_run? = true))
-       output every 1 second"
-    (fn [[evt] _]
-      (publish "ps_runs_per_minute" (get evt "count(*)"))))
+  (add-min-count-query service "ps_runs_per_minute"
+    "((railgun_ps_watch? = true) and (invoke_ps_run? = true))")
 
-  (engine/add-query service
-    "select count(*) from hevent.win:time(60 sec)
-       where ((railgun_ps_watch? = true) and (handle_ps_return? = true))
-       output every 1 second"
-      (fn [[evt] _]
-        (publish "ps_returns_per_minute" (get evt "count(*)"))))
+  (add-min-count-query service "ps_returns_per_minute"
+    "((railgun_ps_watch? = true) and (handle_ps_return? = true))")
 
-  (engine/add-query service
-    "select count(*) from hevent.win:time(60 sec) where
-       ((railgun_ps_watch? = true) and (trap_exit? = true))
-       output every 1 second"
-    (fn [[evt] _]
-      (publish "ps_traps_per_minute" (get evt "count(*)"))))
+  (add-min-count-query service "ps_traps_per_minute"
+    "((railgun_ps_watch? = true) and (trap_exit? = true))")
 
   (engine/add-query service
     (str "select cast(lastever(total_count?),long) as count from hevent
@@ -206,13 +179,8 @@
   (doseq [[k p] {"invokes" "(invoke? = true)"
                  "fails"   "((compile_error? = true) or (locked_error? = true))"
                  "errors"  "((publish_error? = true) or (unexpected_error? = true))"}]
-    (engine/add-query service
-      (str "select count(*) from hevent.win:time(60 sec)
-              where ((slugc_bin? = true) and
-                     " p ")
-              output every 1 second")
-      (fn [[evt] _]
-        (publish (str "slugc_" k "_per_minute") (get evt "count(*)")))))
+    (add-min-count-query service (str "slugc_" k "_per_minute")
+      (str "((slugc_bin? = true) and " p ")")))
 
   (engine/add-query service
     "select exchange?, count(*) from hevent.win:time(60 sec)
