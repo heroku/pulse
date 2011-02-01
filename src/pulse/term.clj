@@ -9,13 +9,15 @@
 (defn redraw [snap]
   (printf "\u001B[2J\u001B[f")
   (printf "events/sec       %d\n" (get snap "events_per_second" 0))
+  (printf "unparsed/sec     %d\n" (get snap "events_unparsed_per_second" 0))
   (printf "nginx req/sec    %d\n" (get snap "nginx_requests_per_second" 0))
   (printf "nginx err/min    %d\n" (get snap "nginx_errors_per_minute" 0))
   (printf "nginx 500/min    %d\n" (get snap "nginx_500_per_minute" 0))
   (printf "nginx 502/min    %d\n" (get snap "nginx_502_per_minute" 0))
   (printf "nginx 503/min    %d\n" (get snap "nginx_503_per_minute" 0))
   (printf "nginx 504/min    %d\n" (get snap "nginx_504_per_minute" 0))
-  (printf "hermes prx/sec   %d\n" (get snap "hermes_proxies_per_second" 0))
+  (printf "varnish req/sec  %d\n" (get snap "varnish_requests_per_second" 0))
+  (printf "hermes req/sec   %d\n" (get snap "hermes_requests_per_second" 0))
   (printf "hermes H10/min   %d\n" (get snap "hermes_H10_per_minute" 0))
   (printf "hermes H11/min   %d\n" (get snap "hermes_H11_per_minute" 0))
   (printf "hermes H12/min   %d\n" (get snap "hermes_H12_per_minute" 0))
@@ -61,7 +63,7 @@
 
 (defn publish [k v]
   (swap! snap-a assoc k v)
-  (show-rate @snap-a))
+  (redraw @snap-a))
 
 (defn add-queries [service]
   (engine/add-query service
@@ -69,6 +71,13 @@
        output every 1 second"
     (fn [[evt] _]
       (publish "events_per_second" (long (/ (get evt "count(*)") 10.0)))))
+
+  (engine/add-query service
+    "select count(*) from devent.win:time(10 sec)
+       where (unparsed? = true)
+       output every 1 second"
+    (fn [[evt] _]
+      (publish "events_unparsed_per_second" (long (/ (get evt "count(*)") 10.0)))))
 
   (engine/add-query service
     "select count(*) from devent.win:time(10 sec)
@@ -119,10 +128,17 @@
 
   (engine/add-query service
     (str "select count(*) from devent.win:time(10 sec)
+            where (event_type? = 'varnish_access')
+            output every 1 second")
+    (fn [[evt] _]
+      (publish "varnish_requests_per_second" (long (/ (get evt "count(*)") 10.0)))))
+
+  (engine/add-query service
+    (str "select count(*) from devent.win:time(10 sec)
             where ((event_type? = 'hermes_access') and exists(domain?))
             output every 1 second")
     (fn [[evt] _]
-      (publish "hermes_proxies_per_second" (long (/ (get evt "count(*)") 10.0)))))
+      (publish "hermes_requests_per_second" (long (/ (get evt "count(*)") 10.0)))))
 
   (doseq [e ["H10" "H11" "H12" "H13" "H99"]]
     (engine/add-query service
@@ -233,16 +249,15 @@
   (atom 0))
 
 (defn add-tails [service tails]
-  (doseq [[slot host file] tails]
+  (doseq [[slot forwarder file] tails]
     (if (#{"hermes" "varnish" "face" "splunk"} slot)
       (pipe/spawn (fn []
-        (log "add-tail" slot host file)
-         (pipe/shell-lines ["ssh" (str (if (= slot "splunk") "ubuntu" "root") "@" host) "tail" "-f" file]
+        (log "add-tail" slot forwarder file)
+         (pipe/shell-lines ["ssh" (str (if (= slot "splunk") "ubuntu" "root") "@" forwarder) "sudo" "tail" "-f" file]
            (fn [line]
-             (engine/send-event service {"tick" true}))))))))
-             ;(if-let [evt (parse/parse-line line)]
-             ;  (let [evt-h (assoc evt "host" host)]
-             ;    (engine/send-event service evt-h))))))))))
+             (if-let [evt (parse/parse-line line)]
+               (engine/send-event service (assoc evt "forwarder" forwarder))
+               (engine/send-event service {"unparsed" true "line" line})))))))))
 
 (defn -main [docbrown-path]
   (let [service (engine/init-service)
