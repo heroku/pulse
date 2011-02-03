@@ -2,232 +2,304 @@
   (:require [clojure.string :as str])
   (:require [clj-json.core :as json])
   (:require [clj-redis.client :as redis])
-  (:require [pulse.config :as config])
+  (:require [pulse.conf :as conf])
   (:require [pulse.util :as util])
+  (:require [pulse.queue :as queue])
   (:require [pulse.pipe :as pipe])
-  (:require [pulse.parse :as parse])
-  (:require [pulse.esper :as esper])
-  (:import java.util.concurrent.ArrayBlockingQueue))
+  (:require [pulse.parse :as parse]))
 
 (set! *warn-on-reflection* true)
 
-(def service
-  (esper/init-service))
-
 (def rd
-  (redis/init {:url config/redis-url}))
+  (redis/init {:url conf/redis-url}))
 
 (def publish-queue
-  (ArrayBlockingQueue. 100))
+  (queue/init 100))
 
-(def publish-dropped
-  (atom 0))
+(def process-queue
+  (queue/init 10000))
 
-(defn init-publisher []
-  (util/spawn
-    (fn []
-      (util/log "gen init_publisher")
-      (loop []
-        (let [[k v] (.take ^ArrayBlockingQueue publish-queue)]
-           (util/log "gen publish pub_key=stats stats_key=%s stats_val='%s'" k v)
-           (redis/publish rd "stats" (json/generate-string [k v])))
-        (recur)))))
+(defn update [m k f]
+  (assoc m k (f (get m k))))
 
-(defn publish [k v]
-  (if-not (.offer ^ArrayBlockingQueue publish-queue [k v])
-    (swap! publish-dropped inc)))
+(defn safe-inc [n]
+  (inc (or n 0)))
 
-(defn add-sec-count-query [name conds]
-  (esper/add-query service
-    (str "select rate(10) as rt
-          from hevent
-          where " conds "
-          output snapshot every 1 second")
-    (fn [[evt] _]
-      (if-let [rt (get evt "rt")]
-        (publish name (long rt))))))
+(def calcs
+  (atom []))
 
-(defn add-min-count-query [name conds]
-  (esper/add-query service
-    (str "select rate(60) as rt
-          from hevent
-          where " conds "
-          output snapshot every 1 second")
-    (fn [[evt] _]
-      (if-let [rt (get evt "rt")]
-        (publish name (long (* rt 60.0)))))))
+(def ticks
+  (atom []))
 
-(defn add-last-count-query [name conds attr]
-  (esper/add-query service
-    (str "select cast(lastever(" attr "?),long) as count
-          from hevent
-          where " conds "
-          output first every 1 second")
-      (fn [[evt] _]
-        (publish name (get evt "count")))))
+(defn init-stat [s-key calc tick]
+  (util/log "gen init_stat stat-key=%s" s-key)
+  (swap! calcs conj calc)
+  (swap! ticks conj tick))
 
-(defn add-sec-top-count-query [name conds attr]
-  (esper/add-query service
-    (str "select " attr "? as attr, count(*) as count from hevent.win:time(10 sec)
-          where " conds "
-          group by " attr "?
-          output snapshot every 1 second
-          order by count desc
-          limit 5")
-    (fn [evts _]
-      (publish name
-        (map (fn [evt] [(get evt "attr") (long (/ (get evt "count") 10.0))]) evts)))))
+(defn init-count-stat [s-key v-time b-time t-fn]
+  (let [sec-counts-a (atom [0 {}])]
+    (init-stat s-key
+      (fn [evt]
+        (if (t-fn evt)
+          (swap! sec-counts-a
+            (fn [[sec sec-counts]]
+              [sec (update sec-counts sec safe-inc)]))))
+      (fn []
+        (let [[sec sec-counts] @sec-counts-a
+              count (reduce + (vals sec-counts))
+              r (long (/ count (/ b-time v-time)))]
+          (queue/offer publish-queue [s-key r])
+          (swap! sec-counts-a
+            (fn [[sec sec-counts]]
+              [(inc sec) (dissoc sec-counts (- sec b-time))])))))))
 
-(defn add-min-top-count-query [name conds attr]
-  (esper/add-query service
-    (str "select " attr "? as attr, count(*) as count from hevent.win:time(60 sec)
-          where " conds "
-          group by " attr "?
-          output snapshot every 1 second
-          order by count desc
-          limit 5")
-    (fn [evts _]
-      (publish name
-        (map (fn [evt] [(get evt "attr") (get evt "count")]) evts)))))
+(defn init-count-sec-stat [s-key t-fn]
+  (init-count-stat s-key 1 10 t-fn))
 
-(defn add-queries []
-  (util/log "gen add_queries")
+(defn init-count-min-stat [s-key t-fn]
+  (init-count-stat s-key 60 60 t-fn))
 
-  (add-sec-count-query "events_per_second"
-    "true")
+(defn init-count-top-stat [s-key v-time b-time k-size t-fn k-fn]
+  (let [sec-key-counts-a (atom [0 {}])]
+    (init-stat s-key
+      (fn [evt]
+        (if (t-fn evt)
+          (let [k (k-fn evt)]
+            (swap! sec-key-counts-a
+              (fn [[sec sec-key-counts]]
+                [sec (update-in sec-key-counts [sec k] safe-inc)])))))
+      (fn []
+        (let [[sec sec-key-counts] @sec-key-counts-a
+              counts (apply merge-with + (vals sec-key-counts))
+              sorted (sort-by (fn [[k kc]] (- kc)) counts)
+              highs  (take k-size sorted)
+              normed (map (fn [[k kc]] [k (long (/ kc (/ b-time v-time)))]) highs)]
+          (queue/offer publish-queue [s-key normed])
+          (swap! sec-key-counts-a
+            (fn [[sec sec-key-counts]]
+              [(inc sec) (dissoc sec-key-counts (- sec b-time))])))))))
 
-  (add-sec-count-query "events_internal_per_second"
-    "((parsed? = true) and (cloud? = 'heroku.com'))")
+(defn init-count-top-sec-stat [s-key t-fn k-fn]
+  (init-count-top-stat s-key 1 10 5 t-fn k-fn))
 
-  (add-sec-count-query "events_external_per_second"
-    "((parsed? = true) and (cast(cloud?,string) != 'heroku.com'))")
+(defn init-count-top-min-stat [s-key t-fn k-fn]
+  (init-count-top-stat s-key 60 60 5 t-fn k-fn))
 
-  (add-sec-count-query "events_unparsed_per_second"
-    "(parsed? = false)")
+(defn init-last-stat [s-key t-fn v-fn]
+  (let [last-a (atom nil)]
+    (init-stat s-key
+      (fn [evt]
+        (if (t-fn evt)
+          (let [v (v-fn evt)]
+            (swap! last-a (constantly v)))))
+      (fn []
+        (let [v @last-a]
+          (queue/offer publish-queue [s-key v]))))))
 
-  (add-sec-count-query "nginx_requests_per_second"
-    "((event_type? = 'nginx_access') and
-      (cast(http_host?,string) != '127.0.0.1'))")
+(defn init-stats []
+  (util/log "gen init_stats")
 
-  (add-sec-top-count-query "nginx_requests_by_domain_per_second"
-     "((event_type? = 'nginx_access') and (cast(http_host?,string) != '127.0.0.1'))"
-     "http_domain")
+  (init-count-sec-stat "events_per_second"
+    (fn [evt] true))
 
-  (add-min-count-query "nginx_errors_per_minute"
-    "(event_type? = 'nginx_error')")
+  (init-count-sec-stat "events_internal_per_second"
+    (fn [evt] (= (:cloud evt) "heroku.com")))
 
-  (add-min-top-count-query "nginx_errors_by_domain_per_minute"
-    "((event_type? = 'nginx_access') and
-      (http_host? != '127.0.0.1') and
-      (cast(http_status?,long) >= 500))"
-    "http_domain")
+  (init-count-sec-stat "events_external_per_second"
+    (fn [evt] (and (:cloud evt) (not= (:cloud evt) "heroku.com"))))
 
-  (doseq [s ["500" "502" "503" "504"]]
-    (add-min-count-query (str "nginx_" s "_per_minute")
-      (str "((event_type? = 'nginx_access') and
-             (cast(http_status?,long) = " s "))")))
+  (init-count-sec-stat "events_unparsed_per_second"
+    (fn [evt] (not (:parsed evt))))
 
-  (add-sec-count-query "varnish_requests_per_second"
-    "(event_type? = 'varnish_access')")
+  (init-count-sec-stat "nginx_requests_per_second"
+    (fn [evt] (and (= (:cloud evt) "heroku.com")
+                   (= (:event_type evt) "nginx_access")
+                   (not= (:http_host evt) "127.0.0.1"))))
 
-  (add-sec-count-query "hermes_requests_per_second"
-    "((event_type? = 'hermes_access') and exists(domain?))")
+  (init-count-top-sec-stat "nginx_requests_by_domain_per_second"
+    (fn [evt]  (and (= (:cloud evt) "heroku.com")
+                    (= (:event_type evt) "nginx_access")
+                    (not= (:http_host evt) "127.0.0.1")))
+    (fn [evt] (:http_domain evt)))
+
+  (init-count-min-stat "nginx_errors_per_minute"
+    (fn [evt] (and (= (:cloud evt) "heroku.com")
+                   (= (:event_type evt) "nginx_error"))))
+
+  (init-count-top-min-stat "nginx_50x_by_domain_per_minute"
+    (fn [evt] (and (= (:cloud evt) "heroku.com")
+                   (= (:event_type evt) "nginx_access")
+                   (not= (:http_host evt) "127.0.0.1")
+                   (>= (:http_status evt) 500)))
+    (fn [evt] (:http_domain evt)))
+
+ (doseq [s [500 502 503 504]]
+    (init-count-min-stat (str "nginx_" s "_per_minute")
+      (fn [evt] (and (= (:cloud evt) "heroku.com")
+                     (= (:event_type evt) "nginx_access")
+                     (not= (:http_host evt) "127.0.0.1")
+                     (= (:http_status evt) s)))))
+
+  (init-count-sec-stat "varnish_requests_per_second"
+    (fn [evt] (and (= (:cloud evt) "heroku.com")
+                   (= (:event_type evt) "varnish_access"))))
+
+  (init-count-sec-stat "hermes_requests_per_second"
+    (fn [evt] (and (= (:cloud evt) "heroku.com")
+                   (= (:event_type evt) "hermes_access")
+                   (:domain evt))))
 
   (doseq [e ["H10" "H11" "H12" "H13" "H99"]]
-    (add-min-count-query (str "hermes_" e "_per_minute")
-      (str "((event_type? = 'hermes_access') and
-             (Error? = true) and
-             (" e "? = true))")))
+    (init-count-min-stat (str "hermes_" e "_per_minute")
+      (fn [evt] (and (= (:cloud evt) "heroku.com")
+                     (= (:event_type evt) "hermes_access")
+                     (:Error evt)
+                     (get evt (keyword e))))))
 
-  (add-sec-count-query "ps_converges_per_second"
-    "(converge_service? = true)")
+  (init-count-sec-stat "ps_converges_per_second"
+    (fn [evt] (and (= (:cloud evt) "heroku.com")
+                   (:converge_service evt))))
 
-  (add-min-count-query "ps_run_requests_per_minute"
-    "((amqp_publish? = true) and
-      (cast(exchange?,string) regexp '(ps\\.run|service\\.needed).*'))")
+  (init-count-min-stat "ps_run_requests_per_minute"
+    (fn [evt] (and (= (:cloud evt) "heroku.com")
+                   (:amqp_publish evt)
+                   (:exchange evt)
+                   (re-find #"(ps\.run)|(service\.needed)" (:exchange evt)))))
 
-  (add-min-count-query "ps_stop_requests_per_minute"
-    "((amqp_publish? = true) and
-      (cast(exchange?,string) regexp 'ps\\.kill.*'))")
+  (init-count-min-stat "ps_stop_requests_per_minute"
+    (fn [evt] (and (= (:cloud evt) "heroku.com")
+                   (:amqp_publish evt)
+                   (:exchange evt)
+                   (re-find #"ps\.kill\.\d+" (:exchange evt)))))
 
-  (add-min-count-query "ps_kill_requests_per_minute"
-    "((railgun_service? = true) and
-      (ps_kill? = true) and
-      (reason? = 'load'))")
+  (init-count-min-stat "ps_kll_requests_per_minute"
+    (fn [evt] (and (= (:cloud evt) "heroku.com")
+                   (:railgun_service evt)
+                   (:ps_kill evt)
+                   (= (:reason evt) "load"))))
 
-  (add-min-count-query "ps_runs_per_minute"
-    "((railgun_ps_watch? = true) and (invoke_ps_run? = true))")
+  (init-count-min-stat "ps_runs_per_minute"
+    (fn [evt] (and (= (:cloud evt) "heroku.com")
+                   (:railgun_ps_watch evt)
+                   (:invoke_ps_run evt))))
 
-  (add-min-count-query "ps_returns_per_minute"
-    "((railgun_ps_watch? = true) and (handle_ps_return? = true))")
+  (init-count-min-stat "ps_returns_per_minute"
+    (fn [evt] (and (= (:cloud evt) "heroku.com")
+                   (:railgun_ps_watch evt)
+                   (:handle_ps_return evt))))
 
-  (add-min-count-query "ps_traps_per_minute"
-    "((railgun_ps_watch? = true) and (trap_exit? = true))")
+  (init-count-min-stat "ps_traps_per_minute"
+    (fn [evt] (and (= (:cloud evt) "heroku.com")
+                   (:railgun_ps_watch evt)
+                   (:trap_exit evt))))
 
-  (add-last-count-query "ps_lost"
-    "(process_lost? = true)"
-    "total_count")
+  (init-last-stat "ps_lost"
+    (fn [evt] (:process_lost evt))
+    (fn [evt] (:total_count evt)))
 
-  (doseq [[k p] {"invokes" "(invoke? = true)"
-                 "fails"   "((compile_error? = true) or (locked_error? = true))"
-                 "errors"  "((publish_error? = true) or (unexpected_error? = true))"}]
-    (add-min-count-query (str "slugc_" k "_per_minute")
-      (str "((slugc_bin? = true) and " p ")")))
+  (doseq [[k p] [["invokes" (fn [evt] (:invoke evt))]
+                 ["fails"   (fn [evt] (or (:compile_error evt)
+                                          (:locked_error evt)))]
+                 ["errors"  (fn [evt] (or (:publish_error evt)
+                                          (:unexpected_error evt)))]]]
+    (init-count-min-stat (str "slugc_" k "_per_minute")
+      (fn [evt] (and (= (:cloud evt) "heroku.com")
+                     (:slugc_bin evt)
+                     (p evt)))))
 
-  (add-min-top-count-query "amqp_publishes_by_exchange_per_minute"
-    "(amqp_publish? = true)"
-    "exchange")
-)
+  (init-count-sec-stat "amqp_publishes_per_second"
+    (fn [evt] (and (= (:cloud evt) "heroku.com")
+                   (:amqp_publish evt))))
 
-(def submit-queue
-  (ArrayBlockingQueue. 20000))
+  (init-count-sec-stat "amqp_receives_per_second"
+    (fn [evt] (and (= (:cloud evt) "heroku.com")
+                   (:amqp_message evt)
+                   (= (:action evt) "received"))))
 
-(def submit-dropped
-  (atom 0))
+  (init-count-min-stat "amqp_timeouts_per_minute"
+    (fn [evt] (and (= (:cloud evt) "heroku.com")
+                   (:amqp_message evt)
+                   (= (:action evt) "timeout"))))
 
-(defn init-submitter []
-  (dotimes [i 2]
-    (util/spawn
+  (init-count-top-sec-stat "amqp_publishes_by_exchange_per_second"
+    (fn [evt] (and (= (:cloud evt) "heroku.com")
+                   (:amqp_publish evt)))
+    (fn [evt] (:exchange evt)))
+
+  (init-count-top-sec-stat "amqp_receives_by_exchange_per_second"
+    (fn [evt] (and (= (:cloud evt) "heroku.com")
+                   (:amqp_message evt)
+                   (= (:action evt) "received")))
+    (fn [evt] (:exchange evt)))
+
+  (init-count-top-min-stat "amqp_timeout_by_exchange_per_minute"
+    (fn [evt] (and (= (:cloud evt) "heroku.com")
+                   (:amqp_message evt)
+                   (= (:action evt) "timeout")))
+    (fn [evt] (:exchange evt))))
+
+(defn calc [evt]
+  (doseq [calc @calcs]
+    (calc evt)))
+
+(defn init-ticker []
+  (util/log "gen init_ticker")
+  (let [start (System/currentTimeMillis)]
+    (util/spawn-tick 1000
       (fn []
-        (util/log "gen init_submitter index=%d" i)
-        (loop []
-          (let [line (.take ^ArrayBlockingQueue submit-queue)]
-            (if-let [evt (parse/parse-line line)]
-              (esper/send-event service (assoc evt "line" line "parsed" true))
-              (esper/send-event service {"line" line "parsed" false}))
-            (recur)))))))
+        (util/log "gen tick elapsed=%d" (- (System/currentTimeMillis) start))
+        (doseq [tick @ticks]
+          (tick))
+        (queue/offer publish-queue ["redraw" true])))))
 
-(def tail-read
-  (atom 0))
+(defn parse [line forwarder-host]
+  (if-let [evt (parse/parse-line line)]
+    (assoc evt :line line :forwarder_host forwarder-host :parsed true)
+    {:line line :forwarder_host forwarder-host :parsed false}))
 
-(defn add-tails []
-  (util/log "gen add_tails")
-  (doseq [host config/splunk-hosts]
+(defn init-tailers []
+  (util/log "gen init_tailers")
+  (doseq [forwarder-host conf/forwarder-hosts]
+    (util/log "gen init_tailer forwarder_host=%s" forwarder-host)
     (util/spawn (fn []
-      (util/log "gen add_tail host=%s" host)
-       (pipe/shell-lines ["ssh" (str "ubuntu@" host) "sudo" "tail" "-f" "/var/log/heroku/US/Pacific/log"]
+       (pipe/shell-lines ["ssh" (str "ubuntu@" forwarder-host) "sudo" "tail" "-f" "/var/log/heroku/US/Pacific/log"]
          (fn [line]
-           (swap! tail-read inc)
-           (if-not (.offer ^ArrayBlockingQueue submit-queue line)
-             (swap! submit-dropped inc))))))))
+           (queue/offer process-queue [line forwarder-host])))))))
+
+(defn init-processors []
+  (util/log "gen init_processors")
+  (dotimes [i 2]
+    (util/log "gen init_processor index=%d" i)
+    (util/spawn-loop
+      (fn []
+        (let [[line forwarder] (queue/take process-queue)]
+          (calc (parse line forwarder)))))))
+
+(defn init-publishers []
+  (util/log "gen init_publishers")
+  (dotimes [i 8]
+    (util/log "gen init_publisher index=%d" i)
+    (util/spawn-loop
+      (fn []
+        (let [[k v] (queue/take publish-queue)]
+           (util/log "gen publish pub_key=stats stat-key=%s" k)
+           (redis/publish rd "stats" (json/generate-string [k v])))))))
 
 (defn init-watcher []
+  (util/log "gen init_watcher")
   (let [start (System/currentTimeMillis)]
-    (util/spawn
+    (util/spawn-tick 1000
       (fn []
-        (util/log "gen init_watcher")
-        (loop []
-          (Thread/sleep 1000)
-          (let [elapsed (/ (- (System/currentTimeMillis) start) 1000.0)
-                submit-depth  (.size ^ArrayBlockingQueue submit-queue)
-                publish-depth (.size ^ArrayBlockingQueue publish-queue)]
-            (util/log "gen watcher elapsed=%.3f tail_read=%d submit_depth=%d submit_dropped=%d publish_depth=%d publish_dropped=%d"
-              elapsed @tail-read submit-depth @submit-dropped publish-depth @publish-dropped)
-            (recur)))))))
+        (let [elapsed (/ (- (System/currentTimeMillis) start) 1000.0)
+              [r-pushed r-dropped r-depth] (queue/stats process-queue)
+              [u-pushed u-dropped u-depth] (queue/stats publish-queue)]
+          (util/log "gen watch elapsed=%.3f process_pushed=%d process_dropped=%d process_depth=%d publish_pushed=%d publish_dropped=%d publish_depth=%d"
+            elapsed r-pushed r-dropped r-depth u-pushed u-dropped u-depth))))))
 
 (defn -main []
+  (init-stats)
+  (init-ticker)
   (init-watcher)
-  (init-publisher)
-  (init-submitter)
-  (add-queries)
-  (add-tails))
+  (init-publishers)
+  (init-processors)
+  (init-tailers))

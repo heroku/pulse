@@ -33,9 +33,7 @@
 (defn parse-message-attrs [msg]
   (reduce
     (fn [h [_ k e v]]
-      (if (= "" e)
-        (assoc h k true)
-        (assoc h k (coerce-val v))))
+      (assoc h (keyword k) (if (= "" e) true (coerce-val v))))
     {}
     (re-seq attrs-re msg)))
 
@@ -60,16 +58,16 @@
           message (get s-finds 10)
           message-attrs (parse-message-attrs message)]
     (merge
-      {"event_type" "standard"
-       "timestamp_src" timestamp-src
-       "host" host
-       "facility" facility
-       "level" level
-       "component" component
-       "pid" pid
-       "slot" slot
-       "ion_id" ion-id
-       "cloud" cloud}
+      {:event_type "standard"
+       :timestamp_src timestamp-src
+       :host host
+       :facility facility
+       :level level
+       :component component
+       :pid pid
+       :slot slot
+       :ion_id ion-id
+       :cloud cloud}
       message-attrs))))
 
 (def nginx-access-re
@@ -90,21 +88,21 @@
           http-bytes (Long/parseLong (get n-finds 11))
           http-protocol (get n-finds 12)
           http-status (Long/parseLong (get n-finds 13))]
-       {"event_type" "nginx_access"
-        "timestamp_src" timestamp-src
-        "host" host
-        "facility" facility
-        "level" level
-        "component" "nginx"
-        "slot" slot
-        "ion_id" ion-id
-        "cloud" cloud
-        "http_domain" http-domain
-        "http_url" http-url
-        "http_version" http-version
-        "http_bytes" http-bytes
-        "http_protocol" http-protocol
-        "http_status" http-status})))
+       {:event_type "nginx_access"
+        :timestamp_src timestamp-src
+        :host host
+        :facility facility
+        :level level
+        :component "nginx"
+        :slot slot
+        :ion_id ion-id
+        :cloud cloud
+        :http_domain http-domain
+        :http_url http-url
+        :http_version http-version
+        :http_bytes http-bytes
+        :http_protocol http-protocol
+        :http_status http-status})))
 
 (def nginx-error-line
   "2011-01-31T16:42:35-08:00 10.122.131.19 local5.crit nginx - face64.45038@heroku.com - 2011/01/31 16:42:35 [error] 7850#0: *3802501751 upstream sent no valid HTTP/1.0 header while reading response header from upstream, client: 72.167.191.7, server: _, request: \"POST /sessions HTTP/1.1\", upstream: \"http://10.102.7.182:8001/sessions\", host: \"senubo-dev.heroku.com\"")
@@ -122,15 +120,15 @@
           ion-id (Long/parseLong (get n-finds 6))
           cloud (get n-finds 7)
           message (get n-finds 8)]
-       {"event_type" "nginx_error"
-        "timestamp_src" timestamp-src
-        "facility" facility
-        "level" level
-        "component" "nginx"
-        "slot" slot
-        "ion_id" ion-id
-        "cloud" cloud
-        "message" message})))
+       {:event_type "nginx_error"
+        :timestamp_src timestamp-src
+        :facility facility
+        :level level
+        :component "nginx"
+        :slot slot
+        :ion_id ion-id
+        :cloud cloud
+        :message message})))
 
 (def varnish-re
   #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d-08:00) ([0-9\.]+) ([a-z0-7]+)\.([a-z]+) varnish\[(\d+)\] - ([a-z4-6]+)?\.(\d+)@([a-z.]+\.com) - [0-9\.]+ - - (.*)$")
@@ -146,16 +144,16 @@
           ion-id (Long/parseLong (get v-finds 7))
           cloud (get v-finds 8)
           message (get v-finds 9)]
-       {"event_type" "varnish_access"
-        "timestamp_src" timestamp-src
-        "facility" facility
-        "level" level
-        "component" "varnish"
-        "pid" pid
-        "slot" slot
-        "ion_id" ion-id
-        "cloud" cloud
-        "message" message})))
+       {:event_type "varnish_access"
+        :timestamp_src timestamp-src
+        :facility facility
+        :level level
+        :component "varnish"
+        :pid pid
+        :slot slot
+        :ion_id ion-id
+        :cloud cloud
+        :message message})))
 
 
 (def hermes-re
@@ -174,16 +172,16 @@
           message (get s-finds 9)
           message-attrs (parse-message-attrs message)]
       (merge
-        {"event_type" "hermes_access"
-         "timestamp_src" timestamp-src
-         "host" host
-         "facility" facility
-         "level" level
-         "component" "hermes"
-         "pid" pid
-         "slot" slot
-         "ion_id" ion-id
-         "cloud" cloud}
+        {:event_type "hermes_access"
+         :timestamp_src timestamp-src
+         :host host
+         :facility facility
+         :level level
+         :component "hermes"
+         :pid pid
+         :slot slot
+         :ion_id ion-id
+         :cloud cloud}
         message-attrs))))
 
 (defn parse-line [l]

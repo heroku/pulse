@@ -3,11 +3,11 @@
   (:use ring.middleware.file-info)
   (:use ring.adapter.jetty-async)
   (:require [clj-redis.client :as redis])
-  (:require [pulse.config :as config])
+  (:require [pulse.conf :as conf])
   (:require [pulse.util :as util]))
 
 (def rd
-  (redis/init {:url config/redis-url}))
+  (redis/init {:url conf/redis-url}))
 
 (def stats-connections
   (atom #{}))
@@ -47,5 +47,5 @@
       (emit {:type :message :data stat-json}))))
 
 (defn -main []
-  (run-jetty-async #'app {:port config/port :join? false})
+  (run-jetty-async #'app {:port conf/port :join? false})
   (redis/subscribe rd ["stats"] receive))
