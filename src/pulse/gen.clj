@@ -255,7 +255,7 @@
         (util/log "gen tick elapsed=%d" (- (System/currentTimeMillis) start))
         (doseq [tick @ticks]
           (tick))
-        (queue/offer publish-queue ["redraw" true])))))
+        (queue/offer publish-queue ["render" true])))))
 
 (defn init-tailers []
   (util/log "gen init_tailers")

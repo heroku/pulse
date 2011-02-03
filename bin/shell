@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+source .env
+exec ssh -A -t root@$PULSE_HOST "cd /opt/pulse; REDIS_URL=$REDIS_URL FORWARDER_HOSTS=$FORWARDER_HOSTS /bin/bash"
