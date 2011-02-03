@@ -4,4 +4,4 @@
 (def env (System/getenv))
 (def port (Integer/parseInt (get env "PORT" "8080")))
 (def redis-url (get env "REDIS_URL"))
-(def forwarders (if-let [f (get env "FORWARDERS")] (str/split f #",")))
+(def splunk-hosts (if-let [s (get env "SPLUNK_HOSTS")] (str/split s #",")))
