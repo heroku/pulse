@@ -47,8 +47,8 @@
       (fn []
         (let [[sec sec-counts] @sec-counts-a
               count (reduce + (vals sec-counts))
-              r (long (/ count (/ b-time v-time)))]
-          (queue/offer publish-queue [s-key r])
+              normed (long (/ count (/ b-time v-time)))]
+          (queue/offer publish-queue [s-key normed])
           (swap! sec-counts-a
             (fn [[sec sec-counts]]
               [(inc sec) (dissoc sec-counts (- sec b-time))])))))))
@@ -238,6 +238,11 @@
                    (= (:action evt) "timeout")))
     (fn [evt] (:exchange evt))))
 
+(defn parse [line forwarder-host]
+  (if-let [evt (parse/parse-line line)]
+    (assoc evt :line line :forwarder_host forwarder-host :parsed true)
+    {:line line :forwarder_host forwarder-host :parsed false}))
+
 (defn calc [evt]
   (doseq [calc @calcs]
     (calc evt)))
@@ -251,11 +256,6 @@
         (doseq [tick @ticks]
           (tick))
         (queue/offer publish-queue ["redraw" true])))))
-
-(defn parse [line forwarder-host]
-  (if-let [evt (parse/parse-line line)]
-    (assoc evt :line line :forwarder_host forwarder-host :parsed true)
-    {:line line :forwarder_host forwarder-host :parsed false}))
 
 (defn init-tailers []
   (util/log "gen init_tailers")

@@ -1,42 +1,8 @@
 <html><head>
     <title>WebSocket Chat</title>
-    <script type='text/javascript'>
-      if (!window.WebSocket) { alert("WebSocket not supported by this browser"); }
-      function $() { return document.getElementById(arguments[0]); }
-
-      var ws = new WebSocket("ws://localhost:8080/stats");
-      ws.onopen = function() {
-        console.log("onopen");
-      };
-      ws.onclose = function() {
-        console.log("onclose");
-      };
-      ws.onmessage = function(m) {
-        console.log("onmessage " + m);
-        if (m.data) {
-          var stat = JSON.parse(m.data);
-          console.log("stat " + stat);
-          var stat_key = stat[0];
-          var stat_val = stat[1];
-          if (stat_key == "events_per_second") {
-            $("events_per_second").innerHTML = stat_val;
-          }
-          if (stat_key == "nginx_requests_per_second") {
-            $("nginx_requests_per_second").innerHTML = stat_val;
-          }
-          // var stats=$("stats");
-          // var statSpan = document.createElement("span");
-          // statSpan.innerHTML = m.data;
-          // var lineBreak = document.createElement("br");
-          // stats.appendChild(statSpan);
-          // stats.appendChild(lineBreak);
-          // stats.scrollTop = stats.scrollHeight - stats.clientHeight;
-        }
-      };
-      ws.onerror = function(e) {
-        console.log("onerror " + e);
-      };
-    </script>
+    <script type="text/javascript" src="javascripts/jquery-1.5.js"></script>
+    <script type="text/javascript" src="javascripts/jquery.sparkline.js"></script>
+    <script type="text/javascript" src="javascripts/pulse.js"></script>
   </head>
   <body>
     events/sec: <span id="events_per_second">?</span> <br>
