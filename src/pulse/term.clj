@@ -10,7 +10,7 @@
    ["external/sec"    "events_external_per_second"]
    ["unparsed/sec"    "events_unparsed_per_second"]
    ["nginx req/sec"   "nginx_requests_per_second"]
-   ["nginx_err/min"   "nginx_errors_per_minute"]
+   ["nginx err/min"   "nginx_errors_per_minute"]
    ["nginx 500/min"   "nginx_500_per_minute"]
    ["nginx 502/min"   "nginx_502_per_minute"]
    ["nginx 503/min"   "nginx_503_per_minute"]
