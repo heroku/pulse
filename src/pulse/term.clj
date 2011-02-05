@@ -37,11 +37,15 @@
    ["amqp rec/sec"    "amqp_receives_per_second"]
    ["amqp tim/min"    "amqp_timeouts_per_minute"]])
 
-(def tables
+(def tables-l
   [["req/s" "domain"   "nginx_requests_by_domain_per_second"]
    ["50x/m" "domain"   "nginx_50x_by_domain_per_minute"]
    ["pub/s" "exchange" "amqp_publishes_by_exchange_per_second"]
    ["rec/s" "exchange" "amqp_receives_by_exchange_per_second"]])
+
+(def tables-r
+  [["log/s" "app"  "logs_by_app_per_second"]
+   ["evt/s" "host" "events_by_tail_host_per_second"]])
 
 (defn render-start []
   (printf "\u001B[2J\u001B[f"))
@@ -59,12 +63,13 @@
   (render-start)
   (doseq [[[stat-label stat-key] idx] (indexed scalars)]
     (render-at idx 0 (format "%5d  %s" (get snap stat-key 0) stat-label)))
-  (doseq [[[stat-label-rate stat-label-key  stat-key] idx] (indexed tables)]
-    (let [base-row (* idx 8)]
-      (render-at (+ base-row 0) 30 (format "%5s   %s" stat-label-rate stat-label-key))
-      (render-at (+ base-row 1) 30 (format "-----   -------------"))
-      (doseq [[[key rate] rate-idx] (indexed (get snap stat-key []))]
-        (render-at (+ base-row 2 rate-idx) 30 (format "%5d   %s" rate key)))))
+  (doseq [[tables offset] [[tables-l 30] [tables-r 70]]]
+    (doseq [[[stat-label-rate stat-label-key  stat-key] idx] (indexed tables)]
+      (let [base-row (* idx 8)]
+        (render-at (+ base-row 0) offset (format "%5s   %s" stat-label-rate stat-label-key))
+        (render-at (+ base-row 1) offset (format "-----   -------------"))
+        (doseq [[[key rate] rate-idx] (indexed (get snap stat-key []))]
+          (render-at (+ base-row 2 rate-idx) offset (format "%5d   %s" rate key))))))
   (render-finish))
 
 (def rd

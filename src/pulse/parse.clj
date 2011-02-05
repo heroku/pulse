@@ -70,6 +70,20 @@
        :cloud cloud}
       message-attrs))))
 
+
+(def logplex-re
+  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d-08:00) (logplex_.*)$")
+
+(defn parse-logplex-line [l]
+  (if-let [s-finds (re-find logplex-re l)]
+    (let [timestamp-src (parse-timestamp (get s-finds 1))
+          message-attrs (parse-message-attrs (get s-finds 2))]
+    (merge
+      {:event_type "logplex"
+       :timestamp_src timestamp-src
+       :component "logplex"}
+      message-attrs))))
+
 (def nginx-access-re
   #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d-08:00) ([0-9\.]+) ([a-z0-7]+)\.([a-z]+) nginx - ([a-z4-6]+)?\.(\d+)@([a-z.]+\.com) - \d\d\/[a-zA-z]{3}\/\d\d\d\d:\d\d:\d\d:\d\d -0800 \| ([a-zA-Z0-9\.\-]+) \| [A-Z]{3,6} (\S+) HTTP\/(...) \| [0-9\.]+ \| (\d+) \| (https?) \| (\d+)$")
 
@@ -191,6 +205,7 @@
           (parse-nginx-error-line l)
           (parse-hermes-line l)
           (parse-varnish-line l)
+          (parse-logplex-line l)
           (parse-standard-line l)))
     (catch Exception e
       (locking *out*

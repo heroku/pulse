@@ -17,7 +17,7 @@
   (queue/init 100))
 
 (def process-queue
-  (queue/init 10000))
+  (queue/init 20000))
 
 (defn update [m k f]
   (assoc m k (f (get m k))))
@@ -57,7 +57,7 @@
   (init-count-stat s-key 1 10 t-fn))
 
 (defn init-count-min-stat [s-key t-fn]
-  (init-count-stat s-key 60 60 t-fn))
+  (init-count-stat s-key 60 70 t-fn))
 
 (defn init-count-top-stat [s-key v-time b-time k-size t-fn k-fn]
   (let [sec-key-counts-a (atom [0 {}])]
@@ -83,7 +83,28 @@
   (init-count-top-stat s-key 1 10 5 t-fn k-fn))
 
 (defn init-count-top-min-stat [s-key t-fn k-fn]
-  (init-count-top-stat s-key 60 60 5 t-fn k-fn))
+  (init-count-top-stat s-key 60 70 5 t-fn k-fn))
+
+(defn init-sum-top-stat [s-key v-time b-time k-size t-fn k-fn c-fn]
+  (let [sec-key-counts-a (atom [0 {}])]
+    (init-stat s-key
+      (fn [evt]
+        (if (t-fn evt)
+          (let [k (k-fn evt)]
+            (swap! sec-key-counts-a
+              (fn [[sec sec-key-counts]]
+                [sec (update-in sec-key-counts [sec k]
+                       (fn [c] (+ (or c 0) (c-fn evt))))])))))
+      (fn []
+        (let [[sec sec-key-counts] @sec-key-counts-a
+              counts (apply merge-with + (vals sec-key-counts))
+              sorted (sort-by (fn [[k kc]] (- kc)) counts)
+              highs  (take k-size sorted)
+              normed (map (fn [[k kc]] [k (long (/ kc (/ b-time v-time)))]) highs)]
+          (queue/offer publish-queue [s-key normed])
+          (swap! sec-key-counts-a
+            (fn [[sec sec-key-counts]]
+              [(inc sec) (dissoc sec-key-counts (- sec b-time))])))))))
 
 (defn init-last-stat [s-key t-fn v-fn]
   (let [last-a (atom nil)]
@@ -101,6 +122,10 @@
 
   (init-count-sec-stat "events_per_second"
     (fn [evt] true))
+
+ (init-count-top-stat "events_by_tail_host_per_second" 1 10 14
+    (fn [evt] true)
+    (fn [evt] (:tail_host evt)))
 
   (init-count-sec-stat "events_internal_per_second"
     (fn [evt] (= (:cloud evt) "heroku.com")))
@@ -236,12 +261,18 @@
     (fn [evt] (and (= (:cloud evt) "heroku.com")
                    (:amqp_message evt)
                    (= (:action evt) "timeout")))
-    (fn [evt] (:exchange evt))))
+    (fn [evt] (:exchange evt)))
 
-(defn parse [line forwarder-host]
+  (init-sum-top-stat "logs_by_app_per_second" 1 70 5
+    (fn [evt] (and (= (:event_type evt) "logplex")
+                   (:logplex_channel_stats evt)))
+    (fn [evt] (:app_id evt))
+    (fn [evt] (:message_processed evt))))
+
+(defn parse [line tail-host]
   (if-let [evt (parse/parse-line line)]
-    (assoc evt :line line :forwarder_host forwarder-host :parsed true)
-    {:line line :forwarder_host forwarder-host :parsed false}))
+    (assoc evt :line line :tail_host tail-host :parsed true)
+    {:line line :tail_host tail-host :parsed false}))
 
 (defn calc [evt]
   (doseq [calc @calcs]
@@ -259,12 +290,18 @@
 
 (defn init-tailers []
   (util/log "gen init_tailers")
-  (doseq [forwarder-host conf/forwarder-hosts]
-    (util/log "gen init_tailer forwarder_host=%s" forwarder-host)
+  (doseq [tail-host conf/forwarder-hosts]
+    (util/log "gen init_tailer type=syslog tail_host=%s" tail-host)
     (util/spawn (fn []
-       (pipe/shell-lines ["ssh" (str "ubuntu@" forwarder-host) "sudo" "tail" "-f" "/var/log/heroku/US/Pacific/log"]
+       (pipe/shell-lines ["ssh" (str "ubuntu@" tail-host) "sudo" "tail" "-n" "0" "-f" "/var/log/heroku/US/Pacific/log"]
          (fn [line]
-           (queue/offer process-queue [line forwarder-host])))))))
+           (queue/offer process-queue [line tail-host]))))))
+  (doseq [tail-host conf/logplex-hosts]
+    (util/log "gen init_tailer type=logplex tail_host=%s" tail-host)
+    (util/spawn (fn []
+       (pipe/shell-lines ["ssh" (str "root@" tail-host) "tail" "-n" "0" "-f" "/var/log/logplex"]
+         (fn [line]
+           (queue/offer process-queue [line tail-host])))))))
 
 (defn init-processors []
   (util/log "gen init_processors")
