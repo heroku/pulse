@@ -2,6 +2,7 @@
   (:use ring.middleware.file)
   (:use ring.middleware.file-info)
   (:use ring.adapter.jetty-async)
+  (:require [clj-json.core :as json])
   (:require [clj-redis.client :as redis])
   (:require [pulse.conf :as conf])
   (:require [pulse.util :as util]))
@@ -41,8 +42,10 @@
     (static-handler req)))
 
 (defn receive [_ stat-json]
-  (let [emits @stats-connections]
-    (util/log "web receive num_connections=%d" (count emits))
+  (let [[stat-key _] (json/parse-string stat-json)
+        emits @stats-connections]
+    (if (= stat-key "render")
+      (util/log "web render num_connections=%d" (count emits)))
     (doseq [emit emits]
       (emit {:type :message :data stat-json}))))
 
