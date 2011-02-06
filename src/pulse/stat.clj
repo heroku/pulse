@@ -1,4 +1,4 @@
-(ns pulse.gen
+(ns pulse.stat
   (:require [clojure.string :as str])
   (:require [clj-json.core :as json])
   (:require [clj-redis.client :as redis])
@@ -32,7 +32,7 @@
   (atom []))
 
 (defn init-stat [s-key calc tick]
-  (util/log "gen init_stat stat-key=%s" s-key)
+  (util/log "stat init_stat stat-key=%s" s-key)
   (swap! calcs conj calc)
   (swap! ticks conj tick))
 
@@ -118,7 +118,7 @@
           (queue/offer publish-queue [s-key v]))))))
 
 (defn init-stats []
-  (util/log "gen init_stats")
+  (util/log "stat init_stats")
 
   (init-count-sec-stat "events_per_second"
     (fn [evt] true))
@@ -279,58 +279,58 @@
     (calc evt)))
 
 (defn init-ticker []
-  (util/log "gen init_ticker")
+  (util/log "stat init_ticker")
   (let [start (System/currentTimeMillis)]
     (util/spawn-tick 1000
       (fn []
-        (util/log "gen tick elapsed=%d" (- (System/currentTimeMillis) start))
+        (util/log "stat tick elapsed=%d" (- (System/currentTimeMillis) start))
         (doseq [tick @ticks]
           (tick))
         (queue/offer publish-queue ["render" true])))))
 
 (defn init-tailers []
-  (util/log "gen init_tailers")
+  (util/log "stat init_tailers")
   (doseq [tail-host conf/forwarder-hosts]
-    (util/log "gen init_tailer type=syslog tail_host=%s" tail-host)
+    (util/log "stat init_tailer type=syslog tail_host=%s" tail-host)
     (util/spawn (fn []
        (pipe/shell-lines ["ssh" (str "ubuntu@" tail-host) "sudo" "tail" "-n" "0" "-f" "/var/log/heroku/US/Pacific/log"]
          (fn [line]
            (queue/offer process-queue [line tail-host]))))))
   (doseq [tail-host conf/logplex-hosts]
-    (util/log "gen init_tailer type=logplex tail_host=%s" tail-host)
+    (util/log "stat init_tailer type=logplex tail_host=%s" tail-host)
     (util/spawn (fn []
        (pipe/shell-lines ["ssh" (str "root@" tail-host) "tail" "-n" "0" "-f" "/var/log/logplex"]
          (fn [line]
            (queue/offer process-queue [line tail-host])))))))
 
 (defn init-processors []
-  (util/log "gen init_processors")
+  (util/log "stat init_processors")
   (dotimes [i 2]
-    (util/log "gen init_processor index=%d" i)
+    (util/log "stat init_processor index=%d" i)
     (util/spawn-loop
       (fn []
         (let [[line forwarder] (queue/take process-queue)]
           (calc (parse line forwarder)))))))
 
 (defn init-publishers []
-  (util/log "gen init_publishers")
+  (util/log "stat init_publishers")
   (dotimes [i 8]
-    (util/log "gen init_publisher index=%d" i)
+    (util/log "stat init_publisher index=%d" i)
     (util/spawn-loop
       (fn []
         (let [[k v] (queue/take publish-queue)]
-           (util/log "gen publish pub_key=stats stat-key=%s" k)
+           (util/log "stat publish pub_key=stats stat-key=%s" k)
            (redis/publish rd "stats" (json/generate-string [k v])))))))
 
 (defn init-watcher []
-  (util/log "gen init_watcher")
+  (util/log "stat init_watcher")
   (let [start (System/currentTimeMillis)]
     (util/spawn-tick 1000
       (fn []
         (let [elapsed (/ (- (System/currentTimeMillis) start) 1000.0)
               [r-pushed r-dropped r-depth] (queue/stats process-queue)
               [u-pushed u-dropped u-depth] (queue/stats publish-queue)]
-          (util/log "gen watch elapsed=%.3f process_pushed=%d process_dropped=%d process_depth=%d publish_pushed=%d publish_dropped=%d publish_depth=%d"
+          (util/log "stat watch elapsed=%.3f process_pushed=%d process_dropped=%d process_depth=%d publish_pushed=%d publish_dropped=%d publish_depth=%d"
             elapsed r-pushed r-dropped r-depth u-pushed u-dropped u-depth))))))
 
 (defn -main []
