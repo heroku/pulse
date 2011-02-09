@@ -25,7 +25,8 @@ Real-time Heroku operations dashboard.
 
 ## Running web app on Heroku:
 
-    $ heroku create --stack cedar
+    $ heroku create --stack cedar opspulse
+    $ heroku addons:add ssl:piggyback
     $ heroku addons:add redistogo:small
     $ heroku routes:create
     $ heroku config:add FORWARDER_HOSTS=$FORWARDER_HOSTS LOGPLEX_HOST=$LOGPLEX_HOSTS
@@ -35,4 +36,4 @@ Real-time Heroku operations dashboard.
     $ heroku scale web 1
     $ heroku scale sock 1
     $ heroku routes:attach <route-url> sock.1
-    $ heroku open
+    $ open https://opspulse.heroku.com

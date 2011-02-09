@@ -1,6 +1,8 @@
 (ns pulse.web
   (:use ring.middleware.file)
   (:use ring.middleware.file-info)
+  (:use ring.middleware.basic-auth)
+  (:use ring.middleware.stacktrace)
   (:use ring.adapter.jetty-async)
   (:use hiccup.core)
   (:require [clj-json.core :as json])
@@ -64,10 +66,16 @@
    :headers {"Content-Type" "text/html"}
    :body (view)})
 
+(defn web-auth? [& creds]
+  (or (not conf/web-auth)
+      (= conf/web-auth creds)))
+
 (def static-handler
   (-> view-handler
     (wrap-file "public")
-    (wrap-file-info)))
+    (wrap-file-info)
+    (wrap-basic-auth web-auth?)
+    (wrap-stacktrace)))
 
 (defonce rd
   (redis/init {:url conf/redis-url}))
