@@ -2,10 +2,10 @@
 
 Real-time Heroku operations dashboard.
 
-## Running `stat` producer process in EC2:
+## Running `engine` producer process in EC2:
 
     $ bin/shell
-    $ clj -m pulse.stat
+    $ clj -m pulse.engine
 
 ## Subscribing to raw stats feed:
 
