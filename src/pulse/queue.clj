@@ -8,7 +8,7 @@
 (defn init [size]
   [(ArrayBlockingQueue. size) (AtomicLong. 0) (AtomicLong. 0)])
 
-(defn offer [[^ArrayBlockingQueue q p d] e]
+(defn offer [[^ArrayBlockingQueue q ^AtomicLong p ^AtomicLong d] e]
   (if (.offer q e)
     (.getAndIncrement p)
     (.getAndIncrement d)))
@@ -16,5 +16,5 @@
 (defn take [[^ArrayBlockingQueue q]]
   (.take q))
 
-(defn stats [[^ArrayBlockingQueue q p d]]
+(defn stats [[^ArrayBlockingQueue q ^AtomicLong p ^AtomicLong d]]
   [(.get p) (.get d) (.size q)])
