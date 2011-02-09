@@ -1,4 +1,4 @@
-(ns pulse.stat
+(ns pulse.engine
   (:require [clojure.string :as str])
   (:require [clj-json.core :as json])
   (:require [clj-redis.client :as redis])
@@ -29,7 +29,7 @@
   (atom []))
 
 (defn init-stat [s-key calc tick]
-  (util/log "stat init_stat stat-key=%s" s-key)
+  (util/log "engine init_stat stat-key=%s" s-key)
   (swap! calcs conj calc)
   (swap! ticks conj tick))
 
@@ -45,7 +45,7 @@
         (let [[sec sec-counts] @sec-counts-a
               count (reduce + (vals sec-counts))
               normed (long (/ count (/ b-time v-time)))]
-          (queue/offer publish-queue [s-key normed])
+          (queue/offer publish-queue ["stats" [s-key normed]])
           (swap! sec-counts-a
             (fn [[sec sec-counts]]
               [(inc sec) (dissoc sec-counts (- sec b-time))])))))))
@@ -71,7 +71,7 @@
               sorted (sort-by (fn [[k kc]] (- kc)) counts)
               highs  (take k-size sorted)
               normed (map (fn [[k kc]] [k (long (/ kc (/ b-time v-time)))]) highs)]
-          (queue/offer publish-queue [s-key normed])
+          (queue/offer publish-queue ["stats" [s-key normed]])
           (swap! sec-key-counts-a
             (fn [[sec sec-key-counts]]
               [(inc sec) (dissoc sec-key-counts (- sec b-time))])))))))
@@ -98,7 +98,7 @@
               sorted (sort-by (fn [[k kc]] (- kc)) counts)
               highs  (take k-size sorted)
               normed (map (fn [[k kc]] [k (long (/ kc (/ b-time v-time)))]) highs)]
-          (queue/offer publish-queue [s-key normed])
+          (queue/offer publish-queue ["stats" [s-key normed]])
           (swap! sec-key-counts-a
             (fn [[sec sec-key-counts]]
               [(inc sec) (dissoc sec-key-counts (- sec b-time))])))))))
@@ -112,10 +112,10 @@
             (swap! last-a (constantly v)))))
       (fn []
         (let [v @last-a]
-          (queue/offer publish-queue [s-key v]))))))
+          (queue/offer publish-queue ["stats" [s-key v]]))))))
 
 (defn init-stats []
-  (util/log "stat init_stats")
+  (util/log "engine init_stats")
 
   (init-count-sec-stat "events_per_second"
     (fn [evt] true))
@@ -270,6 +270,13 @@
     (fn [evt] (:app_id evt))
     (fn [evt] (:message_processed evt))))
 
+(defn init-errors []
+  (util/log "engine init_errors")
+  (swap! calcs conj
+    (fn [evt]
+      (when (and (= (:cloud evt) "heroku.com") (= (:level evt) "err"))
+        (queue/offer publish-queue ["errors" (:line evt)])))))
+
 (defn parse [line tail-host]
   (if-let [evt (parse/parse-line line)]
     (assoc evt :line line :tail_host tail-host :parsed true)
@@ -280,64 +287,62 @@
     (calc evt)))
 
 (defn init-ticker []
-  (util/log "stat init_ticker")
+  (util/log "engine init_ticker")
   (let [start (System/currentTimeMillis)]
     (util/spawn-tick 1000
       (fn []
-        (util/log "stat tick elapsed=%d" (- (System/currentTimeMillis) start))
-        (doseq [tick @ticks]
-          (tick))
-        (queue/offer publish-queue ["render" true])))))
+        (doseq [tick @ticks] (tick))
+        (queue/offer publish-queue ["stats" ["render" true]])))))
 
 (defn init-tailers []
-  (util/log "stat init_tailers")
+  (util/log "engine init_tailers")
   (doseq [tail-host conf/forwarder-hosts]
-    (util/log "stat init_tailer type=syslog tail_host=%s" tail-host)
+    (util/log "engine init_tailer type=syslog tail_host=%s" tail-host)
     (util/spawn (fn []
        (pipe/shell-lines ["ssh" (str "ubuntu@" tail-host) "sudo" "tail" "-n" "0" "-f" "/var/log/heroku/US/Pacific/log"]
          (fn [line]
            (queue/offer process-queue [line tail-host]))))))
   (doseq [tail-host conf/logplex-hosts]
-    (util/log "stat init_tailer type=logplex tail_host=%s" tail-host)
+    (util/log "engine init_tailer type=logplex tail_host=%s" tail-host)
     (util/spawn (fn []
        (pipe/shell-lines ["ssh" (str "root@" tail-host) "tail" "-n" "0" "-f" "/var/log/logplex"]
          (fn [line]
            (queue/offer process-queue [line tail-host])))))))
 
 (defn init-processors []
-  (util/log "stat init_processors")
+  (util/log "engine init_processors")
   (dotimes [i 2]
-    (util/log "stat init_processor index=%d" i)
+    (util/log "engine init_processor index=%d" i)
     (util/spawn-loop
       (fn []
         (let [[line forwarder] (queue/take process-queue)]
           (calc (parse line forwarder)))))))
 
 (defn init-publishers []
-  (util/log "stat init_publishers")
+  (util/log "engine init_publishers")
   (dotimes [i 8]
-    (util/log "stat init_publisher index=%d" i)
+    (util/log "engine init_publisher index=%d" i)
     (util/spawn-loop
       (fn []
-        (let [[k v] (queue/take publish-queue)]
-           (util/log "stat publish pub_key=stats stat-key=%s" k)
-           (redis/publish rd "stats" (json/generate-string [k v])))))))
+        (let [[ch msg] (queue/take publish-queue)]
+          (redis/publish rd ch (json/generate-string msg)))))))
 
 (defn init-watcher []
-  (util/log "stat init_watcher")
+  (util/log "engine init_watcher")
   (let [start (System/currentTimeMillis)]
     (util/spawn-tick 1000
       (fn []
         (let [elapsed (/ (- (System/currentTimeMillis) start) 1000.0)
               [r-pushed r-dropped r-depth] (queue/stats process-queue)
               [u-pushed u-dropped u-depth] (queue/stats publish-queue)]
-          (util/log "stat watch elapsed=%.3f process_pushed=%d process_dropped=%d process_depth=%d publish_pushed=%d publish_dropped=%d publish_depth=%d"
+          (util/log "engine watch elapsed=%.3f process_pushed=%d process_dropped=%d process_depth=%d publish_pushed=%d publish_dropped=%d publish_depth=%d"
             elapsed r-pushed r-dropped r-depth u-pushed u-dropped u-depth)
-          (queue/offer publish-queue ["depth_process" r-depth])
-          (queue/offer publish-queue ["depth_publish" u-depth]))))))
+          (queue/offer publish-queue ["stats" ["depth_process" r-depth]])
+          (queue/offer publish-queue ["stats" ["depth_publish" u-depth]]))))))
 
 (defn -main []
   (init-stats)
+  (init-errors)
   (init-ticker)
   (init-watcher)
   (init-publishers)
