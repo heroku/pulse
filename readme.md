@@ -20,7 +20,8 @@ Real-time Heroku operations dashboard.
 ## Running web app locally:
 
     $ lein deps
-    $ foreman start -c web=1
+    $ export REDIS_URL=<redis-url>
+    $ clj -m pulse.web
 
 ## Running web app on Heroku:
 
@@ -29,6 +30,9 @@ Real-time Heroku operations dashboard.
     $ heroku routes:create
     $ heroku config:add FORWARDER_HOSTS=$FORWARDER_HOSTS LOGPLEX_HOST=$LOGPLEX_HOSTS
     $ heroku config:add WEBSOCKET_URL=ws://<route-ip>:<route-port>/stats
+    $ heroku config:add WEB_AUTH=<user>:<pass>
     $ git push heroku master
     $ heroku scale web 1
     $ heroku scale sock 1
+    $ heroku routes:attach <route-url> sock.1
+    $ heroku open
