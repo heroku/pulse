@@ -331,7 +331,9 @@
               [r-pushed r-dropped r-depth] (queue/stats process-queue)
               [u-pushed u-dropped u-depth] (queue/stats publish-queue)]
           (util/log "stat watch elapsed=%.3f process_pushed=%d process_dropped=%d process_depth=%d publish_pushed=%d publish_dropped=%d publish_depth=%d"
-            elapsed r-pushed r-dropped r-depth u-pushed u-dropped u-depth))))))
+            elapsed r-pushed r-dropped r-depth u-pushed u-dropped u-depth)
+          (queue/offer publish-queue ["depth_process" r-depth])
+          (queue/offer publish-queue ["depth_publish" u-depth]))))))
 
 (defn -main []
   (init-stats)

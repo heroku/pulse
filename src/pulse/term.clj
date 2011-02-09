@@ -5,11 +5,7 @@
   (:require [pulse.util :as util]))
 
 (def scalars
-  [["events/sec"      "events_per_second"]
-   ["internal/sec"    "events_internal_per_second"]
-   ["external/sec"    "events_external_per_second"]
-   ["unparsed/sec"    "events_unparsed_per_second"]
-   ["nginx req/sec"   "nginx_requests_per_second"]
+  [["nginx req/sec"   "nginx_requests_per_second"]
    ["nginx err/min"   "nginx_errors_per_minute"]
    ["nginx 500/min"   "nginx_500_per_minute"]
    ["nginx 502/min"   "nginx_502_per_minute"]
@@ -22,6 +18,12 @@
    ["hermes H12/min"  "hermes_H12_per_minute"]
    ["hermes H13/min"  "hermes_H13_per_minute"]
    ["hermes H99/min"  "hermes_H99_per_minute"]
+   ["amqp pub/sec"    "amqp_publishes_per_second"]
+   ["amqp rec/sec"    "amqp_receives_per_second"]
+   ["amqp tim/min"    "amqp_timeouts_per_minute"]
+   ["slugc inv/min"   "slugc_invokes_per_minute"]
+   ["slugc fail/min"  "slugc_fails_per_minute"]
+   ["slugc err/min"   "slugc_errors_per_minute"]
    ["ps converge/sec" "ps_converges_per_second"]
    ["ps run req/min"  "ps_run_requests_per_minute"]
    ["ps stop req/min" "ps_stop_requests_per_minute"]
@@ -30,12 +32,12 @@
    ["ps return/min"   "ps_returns_per_minute"]
    ["ps trap/min"     "ps_traps_per_minute"]
    ["ps lost"         "ps_lost"]
-   ["slugc inv/min"   "slugc_invokes_per_minute"]
-   ["slugc fail/min"  "slugc_fails_per_minute"]
-   ["slugc err/min"   "slugc_errors_per_minute"]
-   ["amqp pub/sec"    "amqp_publishes_per_second"]
-   ["amqp rec/sec"    "amqp_receives_per_second"]
-   ["amqp tim/min"    "amqp_timeouts_per_minute"]])
+   ["events/sec"      "events_per_second"]
+   ["internal/sec"    "events_internal_per_second"]
+   ["external/sec"    "events_external_per_second"]
+   ["unparsed/sec"    "events_unparsed_per_second"]
+   ["process depth"   "depth_process"]
+   ["publish depth"   "depth_publish"]])
 
 (def tables-l
   [["req/s" "domain"   "nginx_requests_by_domain_per_second"]

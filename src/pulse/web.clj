@@ -35,7 +35,9 @@
    [["events/sec"      "events_per_second"]
     ["internal/sec"    "events_internal_per_second"]
     ["external/sec"    "events_external_per_second"]
-    ["unparsed/sec"    "events_unparsed_per_second"]]])
+    ["unparsed/sec"    "events_unparsed_per_second"]
+    ["process depth"   "depth_process"]
+    ["publish depth"   "depth_publish"]]])
 
 (defn view []
   (html
