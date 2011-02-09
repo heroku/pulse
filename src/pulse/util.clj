@@ -23,3 +23,6 @@
   (locking *out*
     (apply printf (str fmt "\n") args)
     (flush)))
+
+(defn update [m k f]
+  (assoc m k (f (get m k))))

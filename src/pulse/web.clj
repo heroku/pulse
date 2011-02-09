@@ -72,8 +72,11 @@
 (defonce rd
   (redis/init {:url conf/redis-url}))
 
-(defonce stats-connections
+(defonce stats-conns-a
   (atom #{}))
+
+(defonce stats-buffs-a
+  (atom {}))
 
 (defn stats-handler [req]
   {:async :websocket
@@ -84,19 +87,26 @@
            (= type :connect)
              (do
                (util/log "web connect")
-               (swap! stats-connections conj emit))
+               (swap! stats-conns-a conj emit))
            (= type :disconnect)
              (do
                (util/log "web disconnect")
-               (swap! stats-connections disj emit)))))})
+               (swap! stats-conns-a disj emit)))))})
+
+(defn buff-append [buff val limit]
+  (if (< (count buff) limit)
+    (conj buff val)
+    (conj (subvec buff 1 limit) val)))
 
 (defn receive [_ stat-json]
-  (let [[stat-key _] (json/parse-string stat-json)
-        emits @stats-connections]
+  (let [[stat-key stat-val] (json/parse-string stat-json)]
     (if (= stat-key "render")
-      (util/log "web render num_connections=%d" (count emits)))
-    (doseq [emit emits]
-      (emit {:type :message :data stat-json}))))
+      (let [stats-conns @stats-conns-a]
+        (util/log "web render num_conns=%d" (count stats-conns))
+        (doseq [[stat-key stat-buff] @stats-buffs-a]
+          (doseq [stats-conn stats-conns]
+            (stats-conn {:type :message :data (json/generate-string [stat-key stat-buff])}))))
+      (swap! stats-buffs-a util/update stat-key #(buff-append % stat-val 100)))))
 
 (defn app [{:keys [uri] :as req}]
   (if (= uri "/stats")

@@ -46,8 +46,9 @@
    ["rec/s" "exchange" "amqp_receives_by_exchange_per_second"]])
 
 (def tables-r
-  [["log/s" "app"  "logs_by_app_per_second"]
-   ["evt/s" "host" "events_by_tail_host_per_second"]])
+  [["log/s" "app"   "logs_by_app_per_second"]
+   ["evt/s" "level" "events_by_level_per_second"]
+   ["evt/s" "host"  "events_by_tail_host_per_second"]])
 
 (defn render-start []
   (printf "\u001B[2J\u001B[f"))

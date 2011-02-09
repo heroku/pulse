@@ -19,9 +19,6 @@
 (def process-queue
   (queue/init 20000))
 
-(defn update [m k f]
-  (assoc m k (f (get m k))))
-
 (defn safe-inc [n]
   (inc (or n 0)))
 
@@ -43,7 +40,7 @@
         (if (t-fn evt)
           (swap! sec-counts-a
             (fn [[sec sec-counts]]
-              [sec (update sec-counts sec safe-inc)]))))
+              [sec (util/update sec-counts sec safe-inc)]))))
       (fn []
         (let [[sec sec-counts] @sec-counts-a
               count (reduce + (vals sec-counts))
@@ -126,6 +123,10 @@
  (init-count-top-stat "events_by_tail_host_per_second" 1 10 14
     (fn [evt] true)
     (fn [evt] (:tail_host evt)))
+
+  (init-count-top-sec-stat "events_by_level_per_second"
+    (fn [evt] (and (= (:cloud evt) "heroku.com") (:level evt)))
+    (fn [evt] (:level evt)))
 
   (init-count-sec-stat "events_internal_per_second"
     (fn [evt] (= (:cloud evt) "heroku.com")))
