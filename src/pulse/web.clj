@@ -95,7 +95,7 @@
 
 (defn buff-append [buff val limit]
   (if (< (count buff) limit)
-    (conj buff val)
+    (conj (or buff []) val)
     (conj (subvec buff 1 limit) val)))
 
 (defn receive [_ stat-json]
