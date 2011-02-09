@@ -17,7 +17,7 @@
   (queue/init 100))
 
 (def process-queue
-  (queue/init 20000))
+  (queue/init 10000))
 
 (defn safe-inc [n]
   (inc (or n 0)))
@@ -120,7 +120,7 @@
   (init-count-sec-stat "events_per_second"
     (fn [evt] true))
 
- (init-count-top-stat "events_by_tail_host_per_second" 1 10 14
+  (init-count-top-stat "events_by_tail_host_per_second" 1 10 14
     (fn [evt] true)
     (fn [evt] (:tail_host evt)))
 
@@ -159,7 +159,7 @@
                    (>= (:http_status evt) 500)))
     (fn [evt] (:http_domain evt)))
 
- (doseq [s [500 502 503 504]]
+  (doseq [s [500 502 503 504]]
     (init-count-min-stat (str "nginx_" s "_per_minute")
       (fn [evt] (and (= (:cloud evt) "heroku.com")
                      (= (:event_type evt) "nginx_access")
