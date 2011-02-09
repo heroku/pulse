@@ -113,6 +113,7 @@
     (stats-handler req)
     (static-handler req)))
 
-(defn -main []
+(defn -main [& [no-sock]]
   (run-jetty-async #'app {:port conf/port :join? false})
-  (redis/subscribe rd ["stats"] receive))
+  (if-not no-sock
+    (redis/subscribe rd ["stats"] receive)))
