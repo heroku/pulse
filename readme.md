@@ -25,7 +25,7 @@ Real-time Heroku operations dashboard.
 
 ## Running web app on Heroku:
 
-    $ heroku create --stack cedar opspulse
+    $ heroku create opspulse --stack cedar
     $ heroku addons:add ssl:piggyback
     $ heroku addons:add redistogo:small
     $ heroku routes:create
