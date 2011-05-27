@@ -2,38 +2,30 @@
 
 Real-time Heroku operations dashboard.
 
-## Running `engine` producer process in EC2:
 
-    $ bin/shell
-    $ clj -m pulse.engine
+# Running locally:
 
-## Subscribing to raw stats feed:
-
-    $ export REDIS_URL=<redis-url>
-    $ redis-cliu subscribe stats
-
-## Running `term` consumer process locally:
-
-    $ export REDIS_URL=<redis-url>
-    $ clj -m pulse.term
-
-## Running web app locally:
-
+    $ cp .env.sample .env
+    $ mate .env
+    $ source .env
     $ lein deps
-    $ export REDIS_URL=<redis-url>
-    $ clj -m pulse.web
+    $ foreman start
 
-## Running web app on Heroku:
 
-    $ heroku create opspulse --stack cedar
+## Running as Heroku app:
+
+    $ heroku create pulse-production --stack cedar
     $ heroku addons:add ssl:piggyback
     $ heroku addons:add redistogo:small
-    $ heroku routes:create
-    $ heroku config:add FORWARDER_HOSTS=$FORWARDER_HOSTS LOGPLEX_HOST=$LOGPLEX_HOSTS
-    $ heroku config:add WEBSOCKET_URL=ws://<route-ip>:<route-port>/stats
-    $ heroku config:add WEB_AUTH=<user>:<pass>
+    $ heroku config:add FORWARDER_HOSTS="..."
     $ git push heroku master
-    $ heroku scale web 1
-    $ heroku scale sock 1
-    $ heroku routes:attach <route-url> sock.1
-    $ open https://opspulse.heroku.com
+    $ heroku scale web 0 engine 5
+
+
+## Viewing stats:
+
+    $ curl -o redis-cliu https://gist.github.com/...
+    $ chmod +x redis-cliu  
+    $ ./redis-cliu subscribe stats
+
+    $ clj -m pulse.term
