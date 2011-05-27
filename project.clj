@@ -1,6 +1,6 @@
 (defproject pulse "0.0.1"
   :dependencies [
-    [org.clojure/clojure "1.3.0-alpha4"]
+    [org.clojure/clojure "1.3.0-alpha8"]
     [clj-redis "0.0.8"]
     [clj-json "0.3.1"]
     [hiccup "0.3.4"]

@@ -44,10 +44,10 @@
 
 (defn parse-timestamp [s]
   (let [f (SimpleDateFormat. "yyyy-MM-dd'T'HH:mm:ssZ")]
-    (.getTime (.parse f (str/replace s "-08:00" "-0800")))))
+    (.getTime (.parse f (str/replace s #":\d\d$" "00")))))
 
 (def standard-re
-  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d-08:00) ([0-9\.]+) ([a-z0-7]+)\.([a-z]+) ([a-z\-\_]+)\[(\d+)\] - ([a-z4-6]+)?\.(\d+)@([a-z.]+\.com) - (.*)$")
+  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d-\d\d:00) ([0-9\.]+) ([a-z0-7]+)\.([a-z]+) ([a-z\-\_]+)\[(\d+)\] - ([a-z4-6]+)?\.(\d+)@([a-z.]+\.com) - (.*)$")
 
 (defn parse-standard-line [l]
   (let [m (re-matcher standard-re l)]
@@ -67,7 +67,7 @@
 
 
 (def logplex-re
-  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d-08:00) (logplex_.*)$")
+  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d-\d\d:00) (logplex_.*)$")
 
 (defn parse-logplex-line [l]
   (let [m (re-matcher logplex-re l)]
@@ -79,7 +79,7 @@
         (parse-message-attrs (.group m 2))))))
 
 (def nginx-access-re
-  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d-08:00) ([0-9\.]+) ([a-z0-7]+)\.([a-z]+) nginx - ([a-z4-6]+)?\.(\d+)@([a-z.]+\.com) - \d\d\/[a-zA-z]{3}\/\d\d\d\d:\d\d:\d\d:\d\d -0800 \| ([a-zA-Z0-9\.\-]+) \| [A-Z]{3,6} (\S+) HTTP\/(...) \| [0-9\.]+ \| (\d+) \| (https?) \| (\d+)$")
+  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d-\d\d:00) ([0-9\.]+) ([a-z0-7]+)\.([a-z]+) nginx - ([a-z4-6]+)?\.(\d+)@([a-z.]+\.com) - \d\d\/[a-zA-z]{3}\/\d\d\d\d:\d\d:\d\d:\d\d -\d\d00 \| ([a-zA-Z0-9\.\-]+) \| [A-Z]{3,6} (\S+) HTTP\/(...) \| [0-9\.]+ \| (\d+) \| (https?) \| (\d+)$")
 
 (defn parse-nginx-access-line [l]
   (let [m (re-matcher nginx-access-re l)]
@@ -101,10 +101,10 @@
         :http_status (Long/parseLong (.group m 13))})))
 
 (def nginx-error-line
-  "2011-01-31T16:42:35-08:00 10.122.131.19 local5.crit nginx - face64.45038@heroku.com - 2011/01/31 16:42:35 [error] 7850#0: *3802501751 upstream sent no valid HTTP/1.0 header while reading response header from upstream, client: 72.167.191.7, server: _, request: \"POST /sessions HTTP/1.1\", upstream: \"http://10.102.7.182:8001/sessions\", host: \"senubo-dev.heroku.com\"")
+  "2011-01-31T16:42:35-07:00 10.122.131.19 local5.crit nginx - face64.45038@heroku.com - 2011/01/31 16:42:35 [error] 7850#0: *3802501751 upstream sent no valid HTTP/1.0 header while reading response header from upstream, client: 72.167.191.7, server: _, request: \"POST /sessions HTTP/1.1\", upstream: \"http://10.102.7.182:8001/sessions\", host: \"senubo-dev.heroku.com\"")
 
 (def nginx-error-re
-  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d-08:00) ([0-9\.]+) ([a-z0-7]+)\.([a-z]+) nginx - ([a-z4-6]+)?\.(\d+)@([a-z.]+\.com) - .* \[error\] (.*)$")
+  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d-\d\d:00) ([0-9\.]+) ([a-z0-7]+)\.([a-z]+) nginx - ([a-z4-6]+)?\.(\d+)@([a-z.]+\.com) - .* \[error\] (.*)$")
 
 (defn parse-nginx-error-line [l]
   (let [m (re-matcher nginx-error-re l)]
@@ -121,7 +121,7 @@
         :message (.group m 8)})))
 
 (def varnish-re
-  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d-08:00) ([0-9\.]+) ([a-z0-7]+)\.([a-z]+) varnish\[(\d+)\] - ([a-z4-6]+)?\.(\d+)@([a-z.]+\.com) - [0-9\.]+ - - (.*)$")
+  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d-\d\d:00) ([0-9\.]+) ([a-z0-7]+)\.([a-z]+) varnish\[(\d+)\] - ([a-z4-6]+)?\.(\d+)@([a-z.]+\.com) - [0-9\.]+ - - (.*)$")
 
 (defn parse-varnish-line [l]
   (let [m (re-matcher varnish-re l)]
@@ -139,7 +139,7 @@
         :message (.group m 9)})))
 
 (def hermes-re
-  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d-08:00) ([0-9\.]+) ([a-z0-7]+)\.([a-z]+) hermes\[(\d+)\] - ([a-z4-6]+)?\.(\d+)@([a-z.]+\.com) - \[hermes_proxy\] (.*)$")
+  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d-\d\d:00) ([0-9\.]+) ([a-z0-7]+)\.([a-z]+) hermes\[(\d+)\] - ([a-z4-6]+)?\.(\d+)@([a-z.]+\.com) - \[hermes_proxy\] (.*)$")
 
 (defn parse-hermes-line [l]
   (let [m (re-matcher hermes-re l)]

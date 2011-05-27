@@ -1,5 +1,6 @@
 (ns pulse.util
-  (:import (java.util.concurrent Executors TimeUnit)))
+  (:import (java.util.concurrent Executors TimeUnit))
+  (:import (java.net URI)))
 
 (set! *warn-on-reflection* true)
 
@@ -30,3 +31,9 @@
 (defn re-match? [re s]
   (let [m (re-matcher re s)]
     (.find m)))
+
+(defn url-parse [url]
+  (let [u (URI. url)]
+    {:host (.getHost u)
+     :port (.getPort u)
+     :auth (.getRawUserInfo u)}))

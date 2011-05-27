@@ -294,20 +294,15 @@
         (doseq [tick @ticks] (tick))
         (queue/offer publish-queue ["stats" ["render" true]])))))
 
-(defn init-tailers []
-  (util/log "engine init_tailers")
-  (doseq [tail-host conf/forwarder-hosts]
-    (util/log "engine init_tailer type=syslog tail_host=%s" tail-host)
-    (util/spawn (fn []
-       (pipe/shell-lines ["ssh" (str "ubuntu@" tail-host) "sudo" "tail" "-n" "0" "-f" "/var/log/heroku/US/Pacific/log"]
-         (fn [line]
-           (queue/offer process-queue [line tail-host]))))))
-  (doseq [tail-host conf/logplex-hosts]
-    (util/log "engine init_tailer type=logplex tail_host=%s" tail-host)
-    (util/spawn (fn []
-       (pipe/shell-lines ["ssh" (str "root@" tail-host) "tail" "-n" "0" "-f" "/var/log/logplex"]
-         (fn [line]
-           (queue/offer process-queue [line tail-host])))))))
+(defn init-bleeders []
+  (util/log "engine init_bleeders")
+  (doseq [aorta-url conf/aorta-urls]
+    (let [{aorta-host :host} (util/url-parse aorta-url)]
+      (util/log "engine init_bleeder aorta_host=%s" aorta-host)
+      (util/spawn (fn []
+         (pipe/bleed-lines aorta-url
+           (fn [line]
+             (queue/offer process-queue [line aorta-host]))))))))
 
 (defn init-processors []
   (util/log "engine init_processors")
@@ -347,4 +342,4 @@
   (init-watcher)
   (init-publishers)
   (init-processors)
-  (init-tailers))
+  (init-bleeders))
