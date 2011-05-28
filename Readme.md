@@ -21,7 +21,7 @@ Real-time Heroku operations dashboard.
     $ heroku addons:upgrade releases:advanced
     $ heroku config:add AORTA_URLS="..."
     $ git push heroku master
-    $ heroku scale web 0 engine 5
+    $ heroku scale receiver 5 merger 1 web 2
 
 
 ## Viewing stats:

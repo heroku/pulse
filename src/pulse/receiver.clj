@@ -1,4 +1,4 @@
-(ns pulse.engine
+(ns pulse.receiver
   (:require [clojure.string :as str])
   (:require [clj-json.core :as json])
   (:require [clj-redis.client :as redis])
@@ -11,7 +11,7 @@
 (set! *warn-on-reflection* true)
 
 (defn log [msg & args]
-  (apply util/log (str "engine " msg) args))
+  (apply util/log (str "receiver " msg) args))
 
 (def rd
   (redis/init {:url conf/redis-url}))
