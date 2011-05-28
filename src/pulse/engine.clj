@@ -270,13 +270,6 @@
     (fn [evt] (:app_id evt))
     (fn [evt] (:message_processed evt))))
 
-(defn init-errors []
-  (util/log "engine init_errors")
-  (swap! calcs conj
-    (fn [evt]
-      (when (and (= (:cloud evt) "heroku.com") (= (:level evt) "err"))
-        (queue/offer publish-queue ["errors" (:line evt)])))))
-
 (defn parse [line aorta-host]
   (if-let [evt (parse/parse-line line)]
     (assoc evt :line line :aorta_host aorta-host :parsed true)
@@ -337,7 +330,6 @@
 
 (defn -main []
   (init-stats)
-  (init-errors)
   (init-ticker)
   (init-watcher)
   (init-publishers)
