@@ -6,12 +6,6 @@
 
 (set! *warn-on-reflection* true)
 
-(defn stdin-lines [handler]
-  (loop []
-    (when-let [line (.readLine ^LineNumberingPushbackReader *in*)]
-      (handler line)
-      (recur))))
-
 (defn bleed-lines [aorta-url handler]
   (let [{:keys [^String host ^Integer port auth]} (util/url-parse aorta-url)]
     (loop []
@@ -31,12 +25,3 @@
           (util/log "pipe exception host=%s" host)))
       (Thread/sleep 100)
       (recur))))
-
-(defn shell-lines [cmd-list handler]
-  (let [rt (Runtime/getRuntime)
-       proc (.exec rt ^"[Ljava.lang.String;" (into-array cmd-list))]
-    (with-open [in (-> (.getInputStream proc) (InputStreamReader.) (BufferedReader.))]
-      (loop []
-        (when-let [line (.readLine in)]
-          (handler line)
-          (recur))))))
