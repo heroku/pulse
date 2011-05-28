@@ -172,7 +172,7 @@
     (fn [evt] (and (= (:cloud evt) "heroku.com")
                    (:amqp_publish evt)
                    (:exchange evt)
-                   (re-find #"(ps\.run)|(service\.needed)" (:exchange evt)))))
+                   (= "ps.run" (:exchange evt)))))
 
   (init-count-min-stat "ps_stop_requests_per_minute"
     (fn [evt] (and (= (:cloud evt) "heroku.com")
