@@ -87,14 +87,12 @@
 
 (defn init-last-stat [s-key t-fn v-fn]
   (let [last-a (atom nil)]
-    (init-stat s-key
+    (swap! calcs conj
       (fn [evt]
         (if (t-fn evt)
-          (let [v (v-fn evt)]
-            (swap! last-a (constantly v)))))
-      (fn []
-        (let [v @last-a]
-          (queue/offer publish-queue ["stats" [s-key v]]))))))
+          (let [v (v-fn evt)
+                t (util/millis)]
+            (queue/offer publish-queue ["stats.receiver" {"type" "last" "key" s-key "value" v "time" t}])))))))
 
 (defn init-stats []
   (log "init_stats")
