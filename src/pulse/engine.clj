@@ -286,16 +286,6 @@
       (fn []
         (doseq [tick @ticks] (tick))))))
 
-(defn init-bleeders []
-  (util/log "engine init_bleeders")
-  (doseq [aorta-url conf/aorta-urls]
-    (let [{aorta-host :host} (util/url-parse aorta-url)]
-      (util/log "engine init_bleeder aorta_host=%s" aorta-host)
-      (util/spawn (fn []
-         (pipe/bleed-lines aorta-url
-           (fn [line]
-             (queue/offer process-queue [line aorta-host]))))))))
-
 (defn init-processors []
   (util/log "engine init_processors")
   (dotimes [i 2]
@@ -331,6 +321,16 @@
           (util/log "engine watch elapsed=%.3f process_depth=%d process_pushed=%d process_popped=%d process_dropped=%d process_rate=% publish_depth=%d publish_pushed=%d publish_popped=%d publish_dropped=%d publish_rate=%d"
             elapsed process-depth process-pushed process-popped process-dropped process-rate
                     publish-depth publish-pushed publish-popped publish-dropped publish-rate))))))
+
+(defn init-bleeders []
+  (util/log "engine init_bleeders")
+  (doseq [aorta-url conf/aorta-urls]
+    (let [{aorta-host :host} (util/url-parse aorta-url)]
+      (util/log "engine init_bleeder aorta_host=%s" aorta-host)
+      (util/spawn (fn []
+         (pipe/bleed-lines aorta-url
+           (fn [line]
+             (queue/offer process-queue [line aorta-host]))))))))
 
 (defn -main []
   (init-stats)
