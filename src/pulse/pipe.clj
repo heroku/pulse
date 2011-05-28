@@ -14,16 +14,21 @@
 
 (defn bleed-lines [aorta-url handler]
   (let [{:keys [^String host ^Integer port auth]} (util/url-parse aorta-url)]
-    (with-open [socket (Socket. host port)
-                in     (-> (.getInputStream socket) (InputStreamReader.) (BufferedReader.))
-                out    (-> (.getOutputStream socket) (PrintWriter.))]
-      (.println out auth) (.flush out)
-      (loop []
-        (if-let [line (.readLine in)]
-          (do
-            (handler line)
-            (recur))
-          (throw (Exception. "pipe eof")))))))
+    (loop []
+      (util/log "pipe connect host=%s" host)
+      (with-open [socket (Socket. host port)
+                  in     (-> (.getInputStream socket) (InputStreamReader.) (BufferedReader.))
+                  out    (-> (.getOutputStream socket) (PrintWriter.))]
+        (.println out auth)
+        (.flush out)
+        (loop []
+          (if-let [line (.readLine in)]
+            (do
+              (handler line)
+              (recur))
+            (do
+              (util/log "pipe disconnect host=%s" host)
+              (Thread/sleep 1000))))))))
 
 (defn shell-lines [cmd-list handler]
   (let [rt (Runtime/getRuntime)
