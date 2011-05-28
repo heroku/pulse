@@ -6,15 +6,17 @@
 (set! *warn-on-reflection* true)
 
 (defn init [size]
-  [(ArrayBlockingQueue. size) (AtomicLong. 0) (AtomicLong. 0)])
+  [(ArrayBlockingQueue. size) (AtomicLong. 0) (AtomicLong. 0) (AtomicLong. 0)])
 
-(defn offer [[^ArrayBlockingQueue q ^AtomicLong p ^AtomicLong d] e]
-  (if (.offer q e)
-    (.getAndIncrement p)
-    (.getAndIncrement d)))
+(defn offer [[^ArrayBlockingQueue queue ^AtomicLong pushed _ ^AtomicLong dropped] elem]
+  (if (.offer queue elem)
+    (.getAndIncrement pushed)
+    (.getAndIncrement dropped)))
 
-(defn take [[^ArrayBlockingQueue q]]
-  (.take q))
+(defn take [[^ArrayBlockingQueue queue _ ^AtomicLong popped _]]
+  (let [elem (.take queue)]
+    (.getAndIncrement popped)
+    elem))
 
-(defn stats [[^ArrayBlockingQueue q ^AtomicLong p ^AtomicLong d]]
-  [(.get p) (.get d) (.size q)])
+(defn stats [[^ArrayBlockingQueue queue ^AtomicLong pushed ^AtomicLong popped ^AtomicLong dropped]]
+  [(.size queue) (.get pushed) (.get popped) (.get dropped)])

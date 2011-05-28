@@ -281,7 +281,7 @@
 
 (defn init-ticker []
   (util/log "engine init_ticker")
-  (let [start (System/currentTimeMillis)]
+  (let [start (util/millis)]
     (util/spawn-tick 1000
       (fn []
         (doseq [tick @ticks] (tick))
@@ -317,16 +317,21 @@
 
 (defn init-watcher []
   (util/log "engine init_watcher")
-  (let [start (System/currentTimeMillis)]
+  (let [start (utils/millis)
+        process-popped-prev (atom 0)
+        publish-popped-prev (atom 0)]
     (util/spawn-tick 1000
       (fn []
-        (let [elapsed (/ (- (System/currentTimeMillis) start) 1000.0)
-              [r-pushed r-dropped r-depth] (queue/stats process-queue)
-              [u-pushed u-dropped u-depth] (queue/stats publish-queue)]
-          (util/log "engine watch elapsed=%.3f process_pushed=%d process_dropped=%d process_depth=%d publish_pushed=%d publish_dropped=%d publish_depth=%d"
-            elapsed r-pushed r-dropped r-depth u-pushed u-dropped u-depth)
-          (queue/offer publish-queue ["stats" ["depth_process" r-depth]])
-          (queue/offer publish-queue ["stats" ["depth_publish" u-depth]]))))))
+        (let [elapsed (-> (util/millis) (- start) (/ 1000.0))
+              [process-depth process-pushed process-popped process-dropped] (queue/stats process-queue)
+              [publish-depth publish-pushed publish-popped publish-dropped] (queue/stats publish-queue)
+              process-rate (- process-popped process-popped-prev)
+              publish-rate (- publish-popped published-popped-prev)]
+          (swap! process-popped-prev (constantly process-popped))
+          (swap! publish-popped-prev (constantly publish-popped))
+          (util/log "engine watch elapsed=%.3f process_depth=%d process_pushed=%d process_popped=%d process_dropped=%d process_rate=% publish_depth=%d publish_pushed=%d publish_popped=%d publish_dropped=%d publish_rate=%d"
+            elapsed process-depth process-pushed process-popped process-dropped process-rate
+                    publish-depth publish-pushed publish-popped publish-dropped publish-rate))))))
 
 (defn -main []
   (init-stats)

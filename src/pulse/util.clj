@@ -33,3 +33,6 @@
     {:host (.getHost u)
      :port (.getPort u)
      :auth (.getRawUserInfo u)}))
+
+(defn millis []
+  (System/currentTimeMillis))
