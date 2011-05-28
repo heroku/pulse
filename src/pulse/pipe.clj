@@ -29,7 +29,7 @@
         (util/log "pipe eof host=%s" host)
         (catch ConnectException e
           (util/log "pipe exception host=%s" host)))
-      (Thread/sleep 1000)
+      (Thread/sleep 100)
       (recur))))
 
 (defn shell-lines [cmd-list handler]
