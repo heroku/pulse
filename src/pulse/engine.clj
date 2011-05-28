@@ -280,7 +280,10 @@
 (defn parse [line tail-host]
   (if-let [evt (parse/parse-line line)]
     (assoc evt :line line :tail_host tail-host :parsed true)
-    {:line line :tail_host tail-host :parsed false}))
+    (do
+      ;(locking *out*
+      ;  (prn line))
+      {:line line :tail_host tail-host :parsed false})))
 
 (defn calc [evt]
   (doseq [calc @calcs]

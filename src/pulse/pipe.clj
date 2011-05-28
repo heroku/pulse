@@ -20,7 +20,6 @@
       (.println out auth) (.flush out)
       (loop []
         (when-let [line (.readLine in)]
-          (prn line)
           (handler line)
           (recur))))))
 

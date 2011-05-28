@@ -47,7 +47,7 @@
     (.getTime (.parse f (str/replace s #":\d\d$" "00")))))
 
 (def standard-re
-  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d-\d\d:00) ([0-9\.]+) ([a-z0-7]+)\.([a-z]+) ([a-z\-\_]+)\[(\d+)\] - ([a-z4-6]+)?\.(\d+)@([a-z.]+\.com) - (.*)$")
+  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d-\d\d:00) ([0-9\.]+) ([a-z0-7]+)\.([a-z]+) ([a-z\-\_]+)\[(\d+)\] - ([a-z4-6-]+)?\.(\d+)@([a-z.]+\.com) - (.*)$")
 
 (defn parse-standard-line [l]
   (let [m (re-matcher standard-re l)]
@@ -79,7 +79,8 @@
         (parse-message-attrs (.group m 2))))))
 
 (def nginx-access-re
-  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d-\d\d:00) ([0-9\.]+) ([a-z0-7]+)\.([a-z]+) nginx - ([a-z4-6]+)?\.(\d+)@([a-z.]+\.com) - \d\d\/[a-zA-z]{3}\/\d\d\d\d:\d\d:\d\d:\d\d -\d\d00 \| ([a-zA-Z0-9\.\-]+) \| [A-Z]{3,6} (\S+) HTTP\/(...) \| [0-9\.]+ \| (\d+) \| (https?) \| (\d+)$")
+     ;timestamp_src                              ;host      ;facility    ;level           ;slot        ;ion_id ;cloud                                                                 ;http_domain                     ;http_url   ;http_version     ;http_bytes ;http_proto ;http_status               
+  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d-\d\d:00) ([0-9\.]+) ([a-z0-7]+)\.([a-z]+) nginx - ([a-z4-6-]+)?\.(\d+)@([a-z.]+\.com) - \d\d\/[a-zA-z]{3}\/\d\d\d\d:\d\d:\d\d:\d\d -\d\d00 \| ([a-zA-Z0-9\.\-\:]+) \| [A-Z]{3,6} (\S+) HTTP\/(...) \| [0-9\.]+ \| (\d+) \| (https?) \| (\d+)$")
 
 (defn parse-nginx-access-line [l]
   (let [m (re-matcher nginx-access-re l)]
@@ -100,8 +101,45 @@
         :http_protocol (.group m 12)
         :http_status (Long/parseLong (.group m 13))})))
 
-(def nginx-error-line
-  "2011-01-31T16:42:35-07:00 10.122.131.19 local5.crit nginx - face64.45038@heroku.com - 2011/01/31 16:42:35 [error] 7850#0: *3802501751 upstream sent no valid HTTP/1.0 header while reading response header from upstream, client: 72.167.191.7, server: _, request: \"POST /sessions HTTP/1.1\", upstream: \"http://10.102.7.182:8001/sessions\", host: \"senubo-dev.heroku.com\"")
+(def nginx-access2-re
+     ;timestamp_src                              ;host      ;facility    ;level           ;slot        ;ion_id ;cloud                                                                                       ;http_bytes ;http_proto ;http_status               
+  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d-\d\d:00) ([0-9\.]+) ([a-z0-7]+)\.([a-z]+) nginx - ([a-z4-6-]+)?\.(\d+)@([a-z.]+\.com) - \d\d\/[a-zA-z]{3}\/\d\d\d\d:\d\d:\d\d:\d\d -\d\d00 \| - \| - \| [0-9\.]+ \| (\d+) \| (https?) \| (\d+)$")
+
+(defn parse-nginx-access2-line [l]
+  (let [m (re-matcher nginx-access2-re l)]
+    (if (.find m)
+       {:event_type "nginx_access"
+        :timestamp_src (parse-timestamp (.group m 1))
+        :host (.group m 2)
+        :facility (.group m 3)
+        :level (.group m 4)
+        :component "nginx"
+        :slot (.group m 5)
+        :ion_id (Long/parseLong (.group m 6))
+        :cloud (.group m 7)
+        :http_bytes (Long/parseLong (.group m 8))
+        :http_protocol (.group m 9)
+        :http_status (Long/parseLong (.group m 10))})))
+
+(defn parse-nginx-access-line [l]
+  (let [m (re-matcher nginx-access-re l)]
+    (if (.find m)
+       {:event_type "nginx_access"
+        :timestamp_src (parse-timestamp (.group m 1))
+        :host (.group m 2)
+        :facility (.group m 3)
+        :level (.group m 4)
+        :component "nginx"
+        :slot (.group m 5)
+        :ion_id (Long/parseLong (.group m 6))
+        :cloud (.group m 7)
+        :http_domain (.group m 8)
+        :http_url (.group m 9)
+        :http_version (.group m 10)
+        :http_bytes (Long/parseLong (.group m 11))
+        :http_protocol (.group m 12)
+        :http_status (Long/parseLong (.group m 13))})))
+
 
 (def nginx-error-re
   #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d-\d\d:00) ([0-9\.]+) ([a-z0-7]+)\.([a-z]+) nginx - ([a-z4-6]+)?\.(\d+)@([a-z.]+\.com) - .* \[error\] (.*)$")
@@ -161,6 +199,7 @@
   (try
     (if-not (tail-line? l)
       (or (parse-nginx-access-line l)
+          (parse-nginx-access2-line l)
           (parse-nginx-error-line l)
           (parse-hermes-line l)
           (parse-varnish-line l)
