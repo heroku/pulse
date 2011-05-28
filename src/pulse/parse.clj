@@ -46,8 +46,11 @@
   (let [f (SimpleDateFormat. "yyyy-MM-dd'T'HH:mm:ssZ")]
     (.getTime (.parse f (str/replace s #":\d\d$" "00")))))
 
+(defn parse-long [s]
+  (if s (Long/parseLong s)))
+
 (def standard-re
-  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d-\d\d:00) ([0-9\.]+) ([a-z0-7]+)\.([a-z]+) ([a-z\-\_]+)\[(\d+)\] - ([a-z4-6-]+)?\.(\d+)@([a-z.]+\.com) - (.*)$")
+  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d[\-\+]\d\d:00) ([0-9\.]+) ([a-z0-7]+)\.([a-z]+) ([a-z\-\_]+)(\[(\d+)\])? - ([a-z4-6-]+)?\.(\d+)@([a-z.]+\.com) - (.*)$")
 
 (defn parse-standard-line [l]
   (let [m (re-matcher standard-re l)]
@@ -59,12 +62,24 @@
          :facility (.group m 3)
          :level (.group m 4)
          :component (.group m 5)
-         :pid (Long/parseLong (.group m 6))
-         :slot (.group m 7)
-         :ion_id (Long/parseLong (.group m 8))
-         :cloud (.group m 9)}
-        (parse-message-attrs (.group m 10))))))
+         :pid (parse-long (.group m 7))
+         :slot (.group m 8)
+         :ion_id (Long/parseLong (.group m 9))
+         :cloud (.group m 10)}
+        (parse-message-attrs (.group m 11))))))
 
+(def raw-re
+  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d[\-\+]\d\d:00) ([0-9\.]+) ([a-z0-7]+)\.([a-z]+) (.*)$")
+
+(defn parse-raw-line [l]
+  (let [m (re-matcher raw-re l)]
+    (if (.find m)
+      {:event_type "raw"
+       :timestamp_src (parse-timestamp (.group m 1))
+       :host (.group m 2)
+       :facility (.group m 3)
+       :level (.group m 4)
+       :message (.group m 5)})))
 
 (def logplex-re
   #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d-\d\d:00) (logplex_.*)$")
@@ -204,7 +219,8 @@
           (parse-hermes-line l)
           (parse-varnish-line l)
           (parse-logplex-line l)
-          (parse-standard-line l)))
+          (parse-standard-line l)
+          (parse-raw-line l)))
     (catch Exception e
       (util/log "parse error %s" l)
       (throw e))))

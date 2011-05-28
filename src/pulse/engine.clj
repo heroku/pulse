@@ -206,13 +206,13 @@
 
   (init-count-min-stat "ps_runs_per_minute"
     (fn [evt] (and (= (:cloud evt) "heroku.com")
-                   (:railgun_ps_watch evt)
-                   (:invoke_ps_run evt))))
+                   (:ps_watch evt)
+                   (= (:event evt) "start"))))
 
   (init-count-min-stat "ps_returns_per_minute"
     (fn [evt] (and (= (:cloud evt) "heroku.com")
-                   (:railgun_ps_watch evt)
-                   (:handle_ps_return evt))))
+                   (:ps_watch evt)
+                   (= (:event evt) "return"))))
 
   (init-count-min-stat "ps_traps_per_minute"
     (fn [evt] (and (= (:cloud evt) "heroku.com")
@@ -281,8 +281,8 @@
   (if-let [evt (parse/parse-line line)]
     (assoc evt :line line :tail_host tail-host :parsed true)
     (do
-      ;(locking *out*
-      ;  (prn line))
+      (locking *out*
+        (prn line))
       {:line line :tail_host tail-host :parsed false})))
 
 (defn calc [evt]
