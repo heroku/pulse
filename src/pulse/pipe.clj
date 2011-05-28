@@ -19,9 +19,11 @@
                 out    (-> (.getOutputStream socket) (PrintWriter.))]
       (.println out auth) (.flush out)
       (loop []
-        (when-let [line (.readLine in)]
-          (handler line)
-          (recur))))))
+        (if-let [line (.readLine in)]
+          (do
+            (handler line)
+            (recur))
+          (throw (Exception. "pipe eof")))))))
 
 (defn shell-lines [cmd-list handler]
   (let [rt (Runtime/getRuntime)
