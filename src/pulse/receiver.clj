@@ -200,7 +200,8 @@
                    (:trap_exit evt))))
 
   (init-last-stat "ps_lost"
-    (fn [evt] (:process_lost evt))
+    (fn [evt] (and (= (:cloud evt) "heroku.com")
+                   (:process_lost evt)))
     (fn [evt] (:total_count evt)))
 
   (doseq [[k p] [["invokes" (fn [evt] (:invoke evt))]
