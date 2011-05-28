@@ -1,2 +1,2 @@
-web:      clj -m pulse.web
-engine:   clj -m pulse.engine
+web:      lein run -m pulse.web
+engine:   lein run -m pulse.engine
