@@ -92,7 +92,7 @@
         (if (t-fn evt)
           (let [v (v-fn evt)
                 t (util/millis)]
-            (queue/offer publish-queue ["stats.receiver" {"type" "last" "key" s-key "value" v "time" t}])))))))
+            (queue/offer publish-queue ["stats.receiver" {"type" "last" "key" s-key "value" v "time" t "node" util/node}])))))))
 
 (defn init-stats []
   (log "init_stats")
