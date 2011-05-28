@@ -284,8 +284,7 @@
   (let [start (util/millis)]
     (util/spawn-tick 1000
       (fn []
-        (doseq [tick @ticks] (tick))
-        (queue/offer publish-queue ["stats" ["render" true]])))))
+        (doseq [tick @ticks] (tick))))))
 
 (defn init-bleeders []
   (util/log "engine init_bleeders")
