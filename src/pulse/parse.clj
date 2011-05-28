@@ -190,15 +190,14 @@
 
 (defn parse-line [l]
   (try
-    (if-not (tail-line? l)
-      (or (parse-nginx-access-line l)
-          (parse-nginx-access2-line l)
-          (parse-nginx-error-line l)
-          (parse-hermes-line l)
-          (parse-varnish-line l)
-          (parse-logplex-line l)
-          (parse-standard-line l)
-          (parse-raw-line l)))
+    (or (parse-nginx-access-line l)
+        (parse-nginx-access2-line l)
+        (parse-nginx-error-line l)
+        (parse-hermes-line l)
+        (parse-varnish-line l)
+        (parse-logplex-line l)
+        (parse-standard-line l)
+        (parse-raw-line l))
     (catch Exception e
       (util/log "parse error %s" l)
       (throw e))))

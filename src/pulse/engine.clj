@@ -10,6 +10,9 @@
 
 (set! *warn-on-reflection* true)
 
+(defn log [msg & args]
+  (apply util/log (str "engine " msg) args))
+
 (def rd
   (redis/init {:url conf/redis-url}))
 
@@ -29,7 +32,7 @@
   (atom []))
 
 (defn init-stat [s-key calc tick]
-  (util/log "engine init_stat stat-key=%s" s-key)
+  (log "init_stat stat-key=%s" s-key)
   (swap! calcs conj calc)
   (swap! ticks conj tick))
 
@@ -115,7 +118,7 @@
           (queue/offer publish-queue ["stats" [s-key v]]))))))
 
 (defn init-stats []
-  (util/log "engine init_stats")
+  (log "init_stats")
 
   (init-count-sec-stat "events_per_second"
     (fn [evt] true))
@@ -280,33 +283,33 @@
     (calc evt)))
 
 (defn init-ticker []
-  (util/log "engine init_ticker")
+  (log "init_ticker")
   (let [start (util/millis)]
     (util/spawn-tick 1000
       (fn []
         (doseq [tick @ticks] (tick))))))
 
 (defn init-processors []
-  (util/log "engine init_processors")
+  (log "init_processors")
   (dotimes [i 2]
-    (util/log "engine init_processor index=%d" i)
+    (log "init_processor index=%d" i)
     (util/spawn-loop
       (fn []
         (let [[line forwarder] (queue/take process-queue)]
           (calc (parse line forwarder)))))))
 
 (defn init-publishers []
-  (util/log "engine init_publishers")
+  (log "init_publishers")
   (dotimes [i 8]
-    (util/log "engine init_publisher index=%d" i)
+    (log "init_publisher index=%d" i)
     (util/spawn-loop
       (fn []
         (let [[ch msg] (queue/take publish-queue)]
           (redis/publish rd ch (json/generate-string msg)))))))
 
 (defn init-watcher []
-  (util/log "engine init_watcher")
-  (let [start (utils/millis)
+  (log "init_watcher")
+  (let [start (util/millis)
         process-popped-prev (atom 0)
         publish-popped-prev (atom 0)]
     (util/spawn-tick 1000
@@ -314,19 +317,19 @@
         (let [elapsed (-> (util/millis) (- start) (/ 1000.0))
               [process-depth process-pushed process-popped process-dropped] (queue/stats process-queue)
               [publish-depth publish-pushed publish-popped publish-dropped] (queue/stats publish-queue)
-              process-rate (- process-popped process-popped-prev)
-              publish-rate (- publish-popped published-popped-prev)]
+              process-rate (- process-popped @process-popped-prev)
+              publish-rate (- publish-popped @publish-popped-prev)]
           (swap! process-popped-prev (constantly process-popped))
           (swap! publish-popped-prev (constantly publish-popped))
-          (util/log "engine watch elapsed=%.3f process_depth=%d process_pushed=%d process_popped=%d process_dropped=%d process_rate=% publish_depth=%d publish_pushed=%d publish_popped=%d publish_dropped=%d publish_rate=%d"
+          (log "watch elapsed=%.3f process_depth=%d process_pushed=%d process_popped=%d process_dropped=%d process_rate=%d publish_depth=%d publish_pushed=%d publish_popped=%d publish_dropped=%d publish_rate=%d"
             elapsed process-depth process-pushed process-popped process-dropped process-rate
                     publish-depth publish-pushed publish-popped publish-dropped publish-rate))))))
 
 (defn init-bleeders []
-  (util/log "engine init_bleeders")
+  (log "init_bleeders")
   (doseq [aorta-url conf/aorta-urls]
     (let [{aorta-host :host} (util/url-parse aorta-url)]
-      (util/log "engine init_bleeder aorta_host=%s" aorta-host)
+      (log "init_bleeder aorta_host=%s" aorta-host)
       (util/spawn (fn []
          (pipe/bleed-lines aorta-url
            (fn [line]
