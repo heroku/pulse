@@ -120,9 +120,9 @@
   (init-count-sec-stat "events_per_second"
     (fn [evt] true))
 
-  (init-count-top-stat "events_by_tail_host_per_second" 1 10 14
+  (init-count-top-stat "events_by_aorta_host_per_second" 1 10 14
     (fn [evt] true)
-    (fn [evt] (:tail_host evt)))
+    (fn [evt] (:aorta_host evt)))
 
   (init-count-top-sec-stat "events_by_level_per_second"
     (fn [evt] (and (= (:cloud evt) "heroku.com") (:level evt)))
@@ -277,10 +277,10 @@
       (when (and (= (:cloud evt) "heroku.com") (= (:level evt) "err"))
         (queue/offer publish-queue ["errors" (:line evt)])))))
 
-(defn parse [line tail-host]
+(defn parse [line aorta-host]
   (if-let [evt (parse/parse-line line)]
-    (assoc evt :line line :tail_host tail-host :parsed true)
-    {:line line :tail_host tail-host :parsed false}))
+    (assoc evt :line line :aorta_host aorta-host :parsed true)
+    {:line line :aorta_host aorta-host :parsed false}))
 
 (defn calc [evt]
   (doseq [calc @calcs]
