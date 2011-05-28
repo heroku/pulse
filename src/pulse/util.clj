@@ -28,10 +28,6 @@
 (defn update [m k f]
   (assoc m k (f (get m k))))
 
-(defn re-match? [re s]
-  (let [m (re-matcher re s)]
-    (.find m)))
-
 (defn url-parse [url]
   (let [u (URI. url)]
     {:host (.getHost u)

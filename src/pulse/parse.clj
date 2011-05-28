@@ -5,11 +5,9 @@
 
 (set! *warn-on-reflection* true)
 
-(def tail-re
-  #"^==>")
-
-(defn tail-line? [l]
-  (or (= "" l) (util/re-match? tail-re l)))
+(defn re-match? [re s]
+  (let [m (re-matcher re s)]
+    (.find m)))
 
 (def long-re
   #"^-?[0-9]{1,18}$")
@@ -19,9 +17,9 @@
 
 (defn coerce-val [v]
   (cond
-    (util/re-match? long-re v)
+    (re-match? long-re v)
       (Long/parseLong v)
-    (util/re-match? double-re v)
+    (re-match? double-re v)
       (Double/parseDouble v)
     (= "" v)
       nil
