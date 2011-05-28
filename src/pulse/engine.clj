@@ -244,7 +244,7 @@
     (fn [evt] (and (= (:cloud evt) "heroku.com")
                    (:amqp_message evt)
                    (= (:action evt) "timeout")))
-    (fn [evt] (:exchange evt)))
+    (fn [evt] (:exchange evt))))
 
 (defn parse [line aorta-host]
   (if-let [evt (parse/parse-line line)]
