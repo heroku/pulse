@@ -1,9 +1,0 @@
-#!/usr/bin/env bash
-
-source .env
-while true
-do
-  echo "sync code"
-  rsync -v -a --delete ~/state/heroku/pulse/ root@$PULSE_HOST:/opt/pulse/
-  sleep 1
-done
