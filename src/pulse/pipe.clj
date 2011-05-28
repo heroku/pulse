@@ -2,7 +2,7 @@
   (:require [pulse.util :as util])
   (:import (clojure.lang LineNumberingPushbackReader))
   (:import (java.io InputStreamReader BufferedReader PrintWriter))
-  (:import (java.net Socket)))
+  (:import (java.net Socket ConnectException)))
 
 (set! *warn-on-reflection* true)
 
@@ -16,19 +16,21 @@
   (let [{:keys [^String host ^Integer port auth]} (util/url-parse aorta-url)]
     (loop []
       (util/log "pipe connect host=%s" host)
-      (with-open [socket (Socket. host port)
-                  in     (-> (.getInputStream socket) (InputStreamReader.) (BufferedReader.))
-                  out    (-> (.getOutputStream socket) (PrintWriter.))]
-        (.println out auth)
-        (.flush out)
-        (loop []
-          (if-let [line (.readLine in)]
-            (do
+      (try
+        (with-open [socket (Socket. host port)
+                    in     (-> (.getInputStream socket) (InputStreamReader.) (BufferedReader.))
+                    out    (-> (.getOutputStream socket) (PrintWriter.))]
+          (.println out auth)
+          (.flush out)
+          (loop []
+            (when-let [line (.readLine in)]
               (handler line)
-              (recur))
-            (do
-              (util/log "pipe disconnect host=%s" host)
-              (Thread/sleep 1000))))))))
+              (recur))))
+        (util/log "pipe eof host=%s" host)
+        (catch ConnectException e
+          (util/log "pipe exception host=%s" host)))
+      (Thread/sleep 1000)
+      (recur))))
 
 (defn shell-lines [cmd-list handler]
   (let [rt (Runtime/getRuntime)
