@@ -85,27 +85,6 @@
 (defn init-count-top-min-stat [s-key t-fn k-fn]
   (init-count-top-stat s-key 60 70 5 t-fn k-fn))
 
-(defn init-sum-top-stat [s-key v-time b-time k-size t-fn k-fn c-fn]
-  (let [sec-key-counts-a (atom [0 {}])]
-    (init-stat s-key
-      (fn [evt]
-        (if (t-fn evt)
-          (let [k (k-fn evt)]
-            (swap! sec-key-counts-a
-              (fn [[sec sec-key-counts]]
-                [sec (update-in sec-key-counts [sec k]
-                       (fn [c] (+ (or c 0) (c-fn evt))))])))))
-      (fn []
-        (let [[sec sec-key-counts] @sec-key-counts-a
-              counts (apply merge-with + (vals sec-key-counts))
-              sorted (sort-by (fn [[k kc]] (- kc)) counts)
-              highs  (take k-size sorted)
-              normed (map (fn [[k kc]] [k (long (/ kc (/ b-time v-time)))]) highs)]
-          (queue/offer publish-queue ["stats" [s-key normed]])
-          (swap! sec-key-counts-a
-            (fn [[sec sec-key-counts]]
-              [(inc sec) (dissoc sec-key-counts (- sec b-time))])))))))
-
 (defn init-last-stat [s-key t-fn v-fn]
   (let [last-a (atom nil)]
     (init-stat s-key
@@ -266,12 +245,6 @@
                    (:amqp_message evt)
                    (= (:action evt) "timeout")))
     (fn [evt] (:exchange evt)))
-
-  (init-sum-top-stat "logs_by_app_per_second" 1 70 5
-    (fn [evt] (and (= (:event_type evt) "logplex")
-                   (:logplex_channel_stats evt)))
-    (fn [evt] (:app_id evt))
-    (fn [evt] (:message_processed evt))))
 
 (defn parse [line aorta-host]
   (if-let [evt (parse/parse-line line)]
