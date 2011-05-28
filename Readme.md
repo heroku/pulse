@@ -17,7 +17,9 @@ Real-time Heroku operations dashboard.
     $ heroku create pulse-production --stack cedar
     $ heroku addons:add ssl:piggyback
     $ heroku addons:add redistogo:small
-    $ heroku config:add FORWARDER_HOSTS="..."
+    $ heroku addons:upgrade logging:advanced
+    $ heroku addons:upgrade releases:advanced
+    $ heroku config:add AORTA_URLS="..."
     $ git push heroku master
     $ heroku scale web 0 engine 5
 
@@ -28,4 +30,4 @@ Real-time Heroku operations dashboard.
     $ chmod +x redis-cliu  
     $ ./redis-cliu subscribe stats
 
-    $ clj -m pulse.term
+    $ lein run -m pulse.term
