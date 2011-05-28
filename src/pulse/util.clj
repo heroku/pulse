@@ -1,6 +1,7 @@
 (ns pulse.util
   (:import (java.util.concurrent Executors TimeUnit))
-  (:import (java.net URI)))
+  (:import (java.net URI))
+  (:import (java.util UUID)))
 
 (set! *warn-on-reflection* true)
 
@@ -44,3 +45,6 @@
 
 (defn millis []
   (System/currentTimeMillis))
+
+(def node
+  (str (UUID/randomUUID)))
