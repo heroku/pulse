@@ -51,7 +51,7 @@
               data-str (try
                          (json/generate-string data)
                          (catch Exception e
-                           (log ("publish event=error data=%s" (pr-str data)))
+                           (log "publish event=error data=%s" (pr-str data))
                            (throw e)))]
           (redis/publish redis chan data-str)))))))
 
