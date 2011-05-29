@@ -31,11 +31,8 @@
 
 (defn log [fmt & args]
   (locking *out*
-    (apply printf (str fmt "\n") args)
+    (apply printf (str "pulse " fmt "\n") args)
     (flush)))
-
-(defn update [m k f]
-  (assoc m k (f (get m k))))
 
 (defn url-parse [url]
   (let [u (URI. url)]
