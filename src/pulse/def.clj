@@ -48,9 +48,11 @@
    :merge-emit
      (fn [windows]
        (let [now (util/millis)
-             recent-windows (filter (fn [[window-start _ _]] (>= window-start (- now 10000))) windows)
-             current-count (reduce + (map (fn [[_ _ window-count]] window-count) recent-windows))]
-         [recent-windows current-count]))})
+             recent-windows (filter (fn [[window-start _ _]] (>= window-start (- now 11000))) windows)
+             complete-windows (filter (fn [[window-start _ _]] (< window-start (- now 1000))) recent-windows)
+             complete-count (reduce + (map (fn [[_ _ window-count]] window-count) complete-windows))
+             complete-rate (/ complete-count 10.0)]
+         [recent-windows complete-rate]))})
 
 (def events-by-aorta-host
   {:receive-init
@@ -71,9 +73,13 @@
    :merge-emit
      (fn [windows]
         (let [now (util/millis)
-              recent-windows (filter (fn [[window-start _ _]] (>= window-start (- now 10000))) windows)
-              current-counts (apply merge-with + (map (fn [[_ _ window-counts]] window-counts) recent-windows))]
-          [recent-windows current-counts]))})
+              recent-windows (filter (fn [[window-start _ _]] (>= window-start (- now 11000))) windows)
+              complete-windows (filter (fn [[window-start _ _]] (< window-start (- now 1000))) recent-windows)
+              complete-counts (apply merge-with + (map (fn [[_ _ window-counts]] window-counts) complete-windows))
+              complete-sorted-counts (sort-by (fn [[k kc]] (- kc)) complete-counts)
+              complete-high-counts (take 10 complete-sorted-counts)
+              complete-rates (map (fn [[k kc]] [k (/ kc 10.0)]) complete-high-counts)]
+          [recent-windows complete-rates]))})
 
 (def all
   [["ps_lost" ps-lost]
