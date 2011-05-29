@@ -175,6 +175,18 @@
   (per-minute
     (fn [evt] (and (heroku? evt) (:ps_watch evt) (:ps_run evt) (= (:event evt) "start")))))
 
+(defstat ps-returns-per-minute
+  (per-minute
+    (fn [evt] (and (heroku? evt) (:ps_watch evt) (:ps_run evt) (= (:event evt) "exit")))))
+
+(defstat ps-stop-requests-per-minute
+  (per-minute
+    (fn [evt] (and (heroku? evt) (:amqp_publish evt) (re-find #"ps\.kill\.\d+" (:exchange evt))))))
+
+(defstat ps-stops-per-minute
+  (per-minute
+    (fn [evt] (and (heroku? evt) (:ps_watch evt) (:trap_exit evt)))))
+
 (defstat ps-converges-per-second
   (per-second
     (fn [evt] (and (heroku? evt) (:service evt) (:transition evt)))))
@@ -201,5 +213,8 @@
    amqp-timeouts-per-minute-by-exchange
    ps-run-requests-per-minute
    ps-runs-per-minute
+   ps-returns-per-minute
+   ps-stop-requests-per-minute
+   ps-stops-per-minute
    ps-converges-per-second
    ps-lost-last])
