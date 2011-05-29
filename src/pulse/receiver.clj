@@ -37,7 +37,7 @@
      (util/spawn-loop (fn []
        (let [[aorta-host line] (queue/take apply-queue)
              event (parse aorta-host line)]
-         (doseq [[_ stat-def stat-state] stats]
+         (doseq [[stat-def stat-state] stats]
            (stat/receive-apply stat-def stat-state event)))))))
 
 (defn -main []
