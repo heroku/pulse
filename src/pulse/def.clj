@@ -1,4 +1,5 @@
 (ns pulse.def
+  (:refer-clojure :exclude [last])
   (:require [pulse.util :as util]))
 
 (defn update [m k f]
@@ -6,6 +7,9 @@
 
 (defn safe-inc [n]
   (inc (or n 0)))
+
+(defn heroku? [evt]
+  (= (:cloud evt) "heroku.com"))
 
 (def events
   {:receive-init
@@ -140,27 +144,32 @@
               complete-rates (map (fn [[k kc]] [k (/ kc 10.0)]) complete-high-counts)]
           [recent-windows complete-rates]))})
 
-(def ps-lost
+(defn last [pred-fn val-fn]
   {:receive-init
      (fn []
        nil)
    :receive-apply
-     (fn [last-lost event]
-       (if (and (= (:cloud event) "heroku.com") (:process_lost event))
-         (:total_count event)
-         last-lost))
+     (fn [last-val event]
+       (if (pred-fn event)
+         (val-fn event)
+         last-val))
    :receive-emit
-     (fn [last-lost]
-       last-lost)
+     (fn [last-val]
+       last-val)
    :merge-init
      (fn []
        nil)
    :merge-apply
-     (fn [last-lost received]
-       (or received last-lost))
+     (fn [last-val received]
+       (or received last-val))
    :merge-emit
-     (fn [last-lost]
-       [last-lost last-lost])})
+     (fn [last-val]
+       [last-val last-val])})
+
+(def ps-lost-last
+  (last
+    (fn [evt] (and (heroku? evt) (:process_lost evt)))
+    (fn [evt] (:total_count evt))))
 
 (def all
   [["events_per_second" events]
@@ -168,4 +177,4 @@
    ["events_per_second_by_aorta_host" events-per-second-by-aorta-host]
    ["events_per_second_by_event_type" events-per-second-by-event-type]
    ["events_per_second_by_cloud" events-per-second-by-cloud]
-   ["ps_lost" ps-lost]])
+   ["ps_lost_last" ps-lost-last]])
