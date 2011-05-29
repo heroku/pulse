@@ -54,6 +54,33 @@
              complete-rate (/ complete-count 10.0)]
          [recent-windows complete-rate]))})
 
+(def events-per-second-by-parsed
+  {:receive-init
+     (fn []
+       [(util/millis) {}])
+   :receive-apply
+     (fn [[window-start window-counts] event]
+       [window-start (update window-counts (str (:parsed event)) safe-inc) window-counts])
+   :receive-emit
+     (fn [[window-start window-counts]]
+       [window-start (util/millis) window-counts])
+   :merge-init
+     (fn []
+       [])
+   :merge-apply
+     (fn [windows window]
+       (conj windows window))
+   :merge-emit
+     (fn [windows]
+        (let [now (util/millis)
+              recent-windows (filter (fn [[window-start _ _]] (>= window-start (- now 11000))) windows)
+              complete-windows (filter (fn [[window-start _ _]] (< window-start (- now 1000))) recent-windows)
+              complete-counts (apply merge-with + (map (fn [[_ _ window-counts]] window-counts) complete-windows))
+              complete-sorted-counts (sort-by (fn [[k kc]] (- kc)) complete-counts)
+              complete-high-counts (take 10 complete-sorted-counts)
+              complete-rates (map (fn [[k kc]] [k (/ kc 10.0)]) complete-high-counts)]
+          [recent-windows complete-rates]))})
+
 (def events-per-second-by-aorta-host
   {:receive-init
      (fn []
@@ -112,5 +139,6 @@
 (def all
   [["ps_lost" ps-lost]
    ["events_per_second" events]
+   ["events_per_second_by_parsed" events-per-second-by-parsed]
    ["events_per_second_by_aorta_host" events-per-second-by-aorta-host]
    ["events_per_second_by_type" events-per-second-by-type]])
