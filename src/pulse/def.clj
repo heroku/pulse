@@ -24,7 +24,7 @@
        nil)
    :merge-apply
      (fn [last-lost received]
-       received)
+       (or received last-lost))
    :merge-emit
      (fn [last-lost]
        [last-lost last-lost])})
