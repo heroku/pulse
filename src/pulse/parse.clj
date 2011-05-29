@@ -115,7 +115,7 @@
         :http_status (Long/parseLong (.group m 13))})))
 
 (def nginx-access2-re
-     ;timestamp_src                              ;host      ;facility    ;level           ;slot        ;ion_id ;cloud                                                                                       ;http_bytes ;http_proto ;http_status               
+     ;timestamp_src                              ;host      ;facility    ;level           ;slot        ;ion_id ;cloud                                                                                   ;http_bytes ;http_proto ;http_status               
   #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d-\d\d:00) ([0-9\.]+) ([a-z0-7]+)\.([a-z]+) nginx - ([a-z4-6-]+)?\.(\d+)@([a-z.]+\.com) - \d\d\/[a-zA-z]{3}\/\d\d\d\d:\d\d:\d\d:\d\d -\d\d00 \| - \| - \| [0-9\.]+ \| (\d+) \| (https?) \| (\d+)$")
 
 (defn parse-nginx-access2-line [l]
