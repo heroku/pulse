@@ -105,6 +105,11 @@
     (fn [evt] true)
     (fn [evt] (or (:event_type evt) "none"))))
 
+(def events-per-second-by-level
+  (rate-by-key
+    (fn [evt] true)
+    (fn [evt] (or (:level evt) "none"))))
+
 (def events-per-second-by-cloud
   (rate-by-key
     (fn [evt] true)
@@ -120,5 +125,6 @@
    ["events_per_second_by_parsed" events-per-second-by-parsed]
    ["events_per_second_by_aorta_host" events-per-second-by-aorta-host]
    ["events_per_second_by_event_type" events-per-second-by-event-type]
+   ["events_per_second_by_level" events-per-second-by-level]
    ["events_per_second_by_cloud" events-per-second-by-cloud]
    ["ps_lost_last" ps-lost-last]])
