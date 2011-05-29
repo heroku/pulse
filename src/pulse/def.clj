@@ -166,6 +166,30 @@
 (defstat nginx-504-per-minute
   (nginx-per-minute 504))
 
+(defstat hermes-requests-per-second
+  (per-second
+    (fn [evt] (and (heroku? evt) (:hermes_proxy evt)))))
+
+(defn hermes-per-minute [code]
+  (per-minute
+    (fn [evt] (and (heroku? evt) (= (:event_type evt) "standard")
+                   (:hermes_proxy evt) (:Error evt) (= (:code evt) code)))))
+
+(defstat hermes-h10-per-minute
+  (hermes-per-minute "H10"))
+
+(defstat hermes-h11-per-minute
+  (hermes-per-minute "H11"))
+
+(defstat hermes-h12-per-minute
+  (hermes-per-minute "H12"))
+
+(defstat hermes-h13-per-minute
+  (hermes-per-minute "H13"))
+
+(defstat hermes-h99-per-minute
+  (hermes-per-minute "H99"))
+
 (defstat amqp-publishes-per-second
   (per-second
     (fn [evt] (and (heroku? evt) (:amqp_publish evt)))))
@@ -237,6 +261,12 @@
    nginx-502-per-minute
    nginx-503-per-minute
    nginx-504-per-minute
+   hermes-requests-per-second
+   hermes-h10-per-minute
+   hermes-h11-per-minute
+   hermes-h12-per-minute
+   hermes-h13-per-minute
+   hermes-h99-per-minute
    amqp-publishes-per-second
    amqp-receives-per-second
    amqp-timeouts-per-minute
