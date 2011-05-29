@@ -13,7 +13,7 @@
        nil)
    :receive-apply
      (fn [last-lost event]
-       (if (:process_lost event)
+       (if (and (= (:cloud event) "heroku.com") (:process_lost event))
          (:total_count event)
          last-lost))
    :receive-emit
