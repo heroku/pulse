@@ -63,7 +63,7 @@
               complete-counts (apply merge-with + (map (fn [[_ _ window-counts]] window-counts) complete-windows))
               complete-sorted-counts (sort-by (fn [[k kc]] (- kc)) complete-counts)
               complete-high-counts (take 10 complete-sorted-counts)
-              complete-rates (map (fn [[k kc]] [k (/ kc (/ time-buffer time-unit))]) complete-high-counts)]
+              complete-rates (map (fn [[k kc]] [k (double (/ kc (/ time-buffer time-unit)))]) complete-high-counts)]
           [recent-windows complete-rates]))})
 
 (defn per-second-by-key [pred-fn key-fn]
