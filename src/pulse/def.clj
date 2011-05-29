@@ -181,7 +181,7 @@
 
 (defstat ps-stop-requests-per-minute
   (per-minute
-    (fn [evt] (and (heroku? evt) (:amqp_publish evt) (re-find #"ps\.kill\.\d+" (:exchange evt))))))
+    (fn [evt] (and (heroku? evt) (:amqp_publish evt) (:exchange evt) (re-find #"ps\.kill\.\d+" (:exchange evt))))))
 
 (defstat ps-stops-per-minute
   (per-minute
