@@ -128,6 +128,24 @@
     (fn [evt] (and (heroku? evt) (= (:event_type evt) "nginx_access")))
     (fn [evt] (:http_domain evt))))
 
+(defstat amqp-publishes-per-second
+  (rate
+    (fn [evt] (and (heroku? evt) (:amqp_publish evt)))))
+
+(defstat amqp-receives-per-second
+  (rate
+    (fn [evt] (and (heroku? evt) (:amqp_action evt) (= (:action evt) "received")))))
+
+(defstat amqp-publishes-per-second-by-exchange
+  (rate-by-key
+    (fn [evt] (and (heroku? evt) (:amqp_publish evt)))
+    (fn [evt] (:exchange evt))))
+
+(defstat amqp-receives-per-second-by-exchange
+  (rate-by-key
+    (fn [evt] (and (heroku? evt) (:amqp_action evt) (= (:action evt) "received")))
+    (fn [evt] (:exchange evt))))
+
 (defstat ps-converges-per-second
   (rate
     (fn [evt] (and (heroku? evt) (:service evt) (:transition evt)))))
@@ -146,5 +164,9 @@
    events-per-second-by-cloud
    nginx-requests-per-second
    nginx-requests-per-second-by-domain
+   amqp-publishes-per-second
+   amqp-receives-per-second
+   amqp-publishes-per-second-by-exchange
+   amqp-receives-per-second-by-exchange
    ps-converges-per-second
    ps-lost-last])
