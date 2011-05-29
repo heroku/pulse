@@ -1,6 +1,6 @@
 # Pulse
 
-Real-time Heroku operations dashboard.
+Backend to real-time Heroku operations dashboard.
 
 
 # Running locally:
