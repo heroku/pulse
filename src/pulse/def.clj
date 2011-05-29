@@ -148,6 +148,10 @@
   (per-second
     (fn [evt] (and (heroku? evt) (:amqp_action evt) (= (:action evt) "received")))))
 
+(defstat amqp-timeouts-per-minute
+  (per-minute
+    (fn [evt] (and (heroku? evt) (:amqp_message evt) (= (:action evt) "timeout")))))
+
 (defstat amqp-publishes-per-second-by-exchange
   (per-second-by-key
     (fn [evt] (and (heroku? evt) (:amqp_publish evt)))
@@ -156,6 +160,11 @@
 (defstat amqp-receives-per-second-by-exchange
   (per-second-by-key
     (fn [evt] (and (heroku? evt) (:amqp_action evt) (= (:action evt) "received")))
+    (fn [evt] (:exchange evt))))
+
+(defstat amqp-timeouts-per-minute-by-exchange
+  (per-minute-by-key
+    (fn [evt] (and (heroku? evt) (:amqp_message evt) (= (:action evt) "timeout")))
     (fn [evt] (:exchange evt))))
 
 (defstat ps-run-requests-per-minute
@@ -186,8 +195,10 @@
    nginx-requests-per-second-by-domain
    amqp-publishes-per-second
    amqp-receives-per-second
+   amqp-timeouts-per-minute
    amqp-publishes-per-second-by-exchange
    amqp-receives-per-second-by-exchange
+   amqp-timeouts-per-minute-by-exchange
    ps-run-requests-per-minute
    ps-runs-per-minute
    ps-converges-per-second
