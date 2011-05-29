@@ -13,8 +13,8 @@
 
 (defn init-stats [stat-defs]
   (reduce
-    (fn [stats-map [stat-name stat-def]]
-      (assoc stats-map stat-name [stat-def (stat/merge-init stat-def)]))
+    (fn [stats-map stat-def]
+      (assoc stats-map (:name stat-def) [stat-def (stat/merge-init stat-def)]))
     {}
     stat-defs))
 

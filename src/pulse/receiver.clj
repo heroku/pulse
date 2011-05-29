@@ -14,16 +14,16 @@
 
 (defn init-stats [stat-defs]
   (map
-    (fn [[stat-name stat-def]]
-      [stat-name stat-def (stat/receive-init stat-def)])
+    (fn [stat-def]
+      [stat-def (stat/receive-init stat-def)])
     stat-defs))
 
 (defn init-emitter [stats publish-queue]
   (log "init-emitter")
   (util/spawn-tick 100 (fn []
-    (doseq [[stat-name stat-def stat-state] stats]
+    (doseq [[stat-def stat-state] stats]
       (let [pub (stat/receive-emit stat-def stat-state)]
-        (queue/offer publish-queue [stat-name pub]))))))
+        (queue/offer publish-queue [(:name stat-def) pub]))))))
 
 (defn parse [aorta-host line]
   (if-let [event (parse/parse-line line)]

@@ -83,64 +83,68 @@
        [last-val last-val])})
 
 
+(defmacro defstat [stat-name stat-body]
+  (let [stat-name-str (name stat-name)]
+    `(def ~stat-name (merge ~stat-body {:name (name ~stat-name-str)}))))
+
 (defn heroku? [evt]
   (= (:cloud evt) "heroku.com"))
 
-(def events-per-second
+(defstat events-per-second
   (rate
     (fn [evt] true)))
 
-(def events-per-second-by-parsed
+(defstat events-per-second-by-parsed
   (rate-by-key
     (fn [evt] true)
     (fn [evt] (:parsed evt))))
 
-(def events-per-second-by-aorta-host
+(defstat events-per-second-by-aorta-host
   (rate-by-key
     (fn [evt] true)
     (fn [evt] (:aorta_host evt))))
 
-(def events-per-second-by-event-type
+(defstat events-per-second-by-event-type
   (rate-by-key
     (fn [evt] true)
     (fn [evt] (or (:event_type evt) "none"))))
 
-(def events-per-second-by-level
+(defstat events-per-second-by-level
   (rate-by-key
     (fn [evt] true)
     (fn [evt] (or (:level evt) "none"))))
 
-(def events-per-second-by-cloud
+(defstat events-per-second-by-cloud
   (rate-by-key
     (fn [evt] true)
     (fn [evt] (or (:cloud evt) "none"))))
 
-(def nginx-requests-per-second
+(defstat nginx-requests-per-second
   (rate
     (fn [evt] (and heroku? evt) (= (:event_type evt) "nginx_access"))))
 
-(def nginx-requests-per-second-by-domain
+(defstat nginx-requests-per-second-by-domain
   (rate-by-key
     (fn [evt] (and (heroku? evt) (= (:event_type evt) "nginx_access")))
     (fn [evt] (:http_domain evt))))
 
-(def ps-converges-per-second
+(defstat ps-converges-per-second
   (rate
     (fn [evt] (and (heroku? evt) (:service evt) (:transition evt)))))
 
-(def ps-lost-last
+(defstat ps-lost-last
   (last
     (fn [evt] (and (heroku? evt) (:process_lost evt)))
     (fn [evt] (:total_count evt))))
 
 (def all
-  [["events_per_second" events-per-second]
-   ["events_per_second_by_parsed" events-per-second-by-parsed]
-   ["events_per_second_by_aorta_host" events-per-second-by-aorta-host]
-   ["events_per_second_by_event_type" events-per-second-by-event-type]
-   ["events_per_second_by_level" events-per-second-by-level]
-   ["events_per_second_by_cloud" events-per-second-by-cloud]
-   ["nginx_requests_per_second" nginx-requests-per-second]
-   ["nginx_requests_per_second_by_domain" nginx-requests-per-second-by-domain]
-   ["ps_converges_per_second" ps-converges-per-second]
-   ["ps_lost_last" ps-lost-last]])
+  [events-per-second
+   events-per-second-by-parsed
+   events-per-second-by-aorta-host
+   events-per-second-by-event-type
+   events-per-second-by-level
+   events-per-second-by-cloud
+   nginx-requests-per-second
+   nginx-requests-per-second-by-domain
+   ps-converges-per-second
+   ps-lost-last])
