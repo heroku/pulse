@@ -88,7 +88,7 @@
    ; (= (:cloud event) "heroku.com")
    :receive-apply
      (fn [[window-start window-counts] event]
-       [window-start (if true (update window-counts (:type event) safe-inc) window-counts)])
+       [window-start (if true (update window-counts (:event_type event) safe-inc) window-counts)])
    :receive-emit
      (fn [[window-start window-counts]]
        [window-start (util/millis) window-counts])
