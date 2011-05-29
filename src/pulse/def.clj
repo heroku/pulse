@@ -119,7 +119,7 @@
        [(util/millis) {}])
    :receive-apply
      (fn [[window-start window-counts] event]
-       [window-start (update window-counts (or (:cloud event) "none") safe-inc)])
+       [window-start (update window-counts (str (or (:cloud event) "none")) safe-inc)])
    :receive-emit
      (fn [[window-start window-counts]]
        [window-start (util/millis) window-counts])
