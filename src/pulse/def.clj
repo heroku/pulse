@@ -149,6 +149,23 @@
     (fn [evt] (and (heroku? evt) (= (:event_type evt) "nginx_error")))
     (fn [evt] (:host evt))))
 
+(defn nginx-per-minute [status]
+  (per-minute
+    (fn [evt] (and (heroku? evt) (= (:event_type evt) "nginx_access")
+                   (not= (:http_host evt) "127.0.0.1") (= (:http_status evt) status)))))
+
+(defstat nginx-500-per-minute
+  (nginx-per-minute 500))
+
+(defstat nginx-502-per-minute
+  (nginx-per-minute 502))
+
+(defstat nginx-503-per-minute
+  (nginx-per-minute 503))
+
+(defstat nginx-504-per-minute
+  (nginx-per-minute 504))
+
 (defstat amqp-publishes-per-second
   (per-second
     (fn [evt] (and (heroku? evt) (:amqp_publish evt)))))
@@ -216,6 +233,10 @@
    nginx-requests-per-second-by-domain
    nginx-errors-per-minute
    nginx-errors-per-minute-by-host
+   nginx-500-per-minute
+   nginx-502-per-minute
+   nginx-503-per-minute
+   nginx-504-per-minute
    amqp-publishes-per-second
    amqp-receives-per-second
    amqp-timeouts-per-minute
