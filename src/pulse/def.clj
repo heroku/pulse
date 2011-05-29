@@ -8,7 +8,7 @@
 (defn safe-inc [n]
   (inc (or n 0)))
 
-(defn rate [pred-fn]
+(defn rate [pred-fn time-unit time-buffer]
   {:receive-init
      (fn []
        [(util/millis) 0])
@@ -27,13 +27,19 @@
    :merge-emit
      (fn [windows]
        (let [now (util/millis)
-             recent-windows (filter (fn [[window-start _ _]] (>= window-start (- now 11000))) windows)
+             recent-windows (filter (fn [[window-start _ _]] (>= window-start (- now (* 1000 time-buffer) 1000))) windows)
              complete-windows (filter (fn [[window-start _ _]] (< window-start (- now 1000))) recent-windows)
              complete-count (reduce + (map (fn [[_ _ window-count]] window-count) complete-windows))
-             complete-rate (/ complete-count 10.0)]
+             complete-rate (double (/ complete-count (/ time-buffer time-unit)))]
          [recent-windows complete-rate]))})
 
-(defn rate-by-key [pred-fn key-fn]
+(defn per-second [pred-fn]
+  (rate pred-fn 1 10))
+
+(defn per-minute [pred-fn]
+  (rate pred-fn 60 70))
+
+(defn rate-by-key [pred-fn key-fn time-unit time-buffer]
   {:receive-init
      (fn []
        [(util/millis) {}])
@@ -52,13 +58,19 @@
    :merge-emit
      (fn [windows]
         (let [now (util/millis)
-              recent-windows (filter (fn [[window-start _ _]] (>= window-start (- now 11000))) windows)
+              recent-windows (filter (fn [[window-start _ _]] (>= window-start (- now (* 1000 time-buffer) 1000))) windows)
               complete-windows (filter (fn [[window-start _ _]] (< window-start (- now 1000))) recent-windows)
               complete-counts (apply merge-with + (map (fn [[_ _ window-counts]] window-counts) complete-windows))
               complete-sorted-counts (sort-by (fn [[k kc]] (- kc)) complete-counts)
               complete-high-counts (take 10 complete-sorted-counts)
-              complete-rates (map (fn [[k kc]] [k (/ kc 10.0)]) complete-high-counts)]
+              complete-rates (map (fn [[k kc]] [k (/ kc (/ time-buffer time-unit))]) complete-high-counts)]
           [recent-windows complete-rates]))})
+
+(defn per-second-by-key [pred-fn key-fn]
+  (rate-by-key pred-fn key-fn 1 10))
+
+(defn per-minute-by-key [pred-fn key-fn]
+  (rate-by-key pred-fn key-fn 60 70))
 
 (defn last [pred-fn val-fn]
   {:receive-init
@@ -91,63 +103,71 @@
   (= (:cloud evt) "heroku.com"))
 
 (defstat events-per-second
-  (rate
+  (per-second
     (fn [evt] true)))
 
 (defstat events-per-second-by-parsed
-  (rate-by-key
+  (per-second-by-key
     (fn [evt] true)
     (fn [evt] (:parsed evt))))
 
 (defstat events-per-second-by-aorta-host
-  (rate-by-key
+  (per-second-by-key
     (fn [evt] true)
     (fn [evt] (:aorta_host evt))))
 
 (defstat events-per-second-by-event-type
-  (rate-by-key
+  (per-second-by-key
     (fn [evt] true)
     (fn [evt] (or (:event_type evt) "none"))))
 
 (defstat events-per-second-by-level
-  (rate-by-key
+  (per-second-by-key
     (fn [evt] true)
     (fn [evt] (or (:level evt) "none"))))
 
 (defstat events-per-second-by-cloud
-  (rate-by-key
+  (per-second-by-key
     (fn [evt] true)
     (fn [evt] (or (:cloud evt) "none"))))
 
 (defstat nginx-requests-per-second
-  (rate
+  (per-second
     (fn [evt] (and heroku? evt) (= (:event_type evt) "nginx_access"))))
 
 (defstat nginx-requests-per-second-by-domain
-  (rate-by-key
+  (per-second-by-key
     (fn [evt] (and (heroku? evt) (= (:event_type evt) "nginx_access")))
     (fn [evt] (:http_domain evt))))
 
 (defstat amqp-publishes-per-second
-  (rate
+  (per-second
     (fn [evt] (and (heroku? evt) (:amqp_publish evt)))))
 
 (defstat amqp-receives-per-second
-  (rate
+  (per-second
     (fn [evt] (and (heroku? evt) (:amqp_action evt) (= (:action evt) "received")))))
 
 (defstat amqp-publishes-per-second-by-exchange
-  (rate-by-key
+  (per-second-by-key
     (fn [evt] (and (heroku? evt) (:amqp_publish evt)))
     (fn [evt] (:exchange evt))))
 
 (defstat amqp-receives-per-second-by-exchange
-  (rate-by-key
+  (per-second-by-key
     (fn [evt] (and (heroku? evt) (:amqp_action evt) (= (:action evt) "received")))
     (fn [evt] (:exchange evt))))
 
+(defstat ps-run-requests-per-minute
+  (per-minute
+    (fn [evt] (and (heroku? evt) (:amqp_publish evt) (= (:exchange evt) "ps.run")))))
+
+(defstat ps-runs-per-minute
+  (per-minute
+    (fn [evt] (and (heroku? evt) (:ps_watch evt) (:ps_run evt) (= (:event evt) "start")))))
+
 (defstat ps-converges-per-second
-  (rate
+  (per-second
     (fn [evt] (and (heroku? evt) (:service evt) (:transition evt)))))
 
 (defstat ps-lost-last
@@ -168,5 +188,7 @@
    amqp-receives-per-second
    amqp-publishes-per-second-by-exchange
    amqp-receives-per-second-by-exchange
+   ps-run-requests-per-minute
+   ps-runs-per-minute
    ps-converges-per-second
    ps-lost-last])
