@@ -79,18 +79,6 @@
        :level (.group m 4)
        :message (.group m 5)})))
 
-(def logplex-re
-  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d-\d\d:00) (logplex_.*)$")
-
-(defn parse-logplex-line [l]
-  (let [m (re-matcher logplex-re l)]
-    (if (.find m)
-      (merge
-        {:event_type "logplex"
-         :timestamp_src (parse-timestamp (.group m 1))
-         :component "logplex"}
-        (parse-message-attrs (.group m 2))))))
-
 (def nginx-access-re
      ;timestamp_src                              ;host      ;facility    ;level           ;slot        ;ion_id ;cloud                                                                 ;http_domain                     ;http_url   ;http_version     ;http_bytes ;http_proto ;http_status               
   #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d-\d\d:00) ([0-9\.]+) ([a-z0-7]+)\.([a-z]+) nginx - ([a-z4-6-]+)?\.(\d+)@([a-z.]+\.com) - \d\d\/[a-zA-z]{3}\/\d\d\d\d:\d\d:\d\d:\d\d -\d\d00 \| ([a-zA-Z0-9\.\-\:]+) \| [A-Z]{3,6} (\S+) HTTP\/(...) \| [0-9\.]+ \| (\d+) \| (https?) \| (\d+)$")
@@ -151,51 +139,11 @@
         :cloud (.group m 7)
         :message (.group m 8)})))
 
-(def varnish-re
-  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d-\d\d:00) ([0-9\.]+) ([a-z0-7]+)\.([a-z]+) varnish\[(\d+)\] - ([a-z4-6]+)?\.(\d+)@([a-z.]+\.com) - [0-9\.]+ - - (.*)$")
-
-(defn parse-varnish-line [l]
-  (let [m (re-matcher varnish-re l)]
-    (if (.find m)
-       {:event_type "varnish_access"
-        :timestamp_src (parse-timestamp (.group m 1))
-        :host (.group m 2)
-        :facility (.group m 3)
-        :level (.group m 4)
-        :component "varnish"
-        :pid (Long/parseLong (.group m 5))
-        :slot (.group m 6)
-        :ion_id (Long/parseLong (.group m 7))
-        :cloud (.group m 8)
-        :message (.group m 9)})))
-
-(def hermes-re
-  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d-\d\d:00) ([0-9\.]+) ([a-z0-7]+)\.([a-z]+) hermes\[(\d+)\] - ([a-z4-6]+)?\.(\d+)@([a-z.]+\.com) - \[hermes_proxy\] (.*)$")
-
-(defn parse-hermes-line [l]
-  (let [m (re-matcher hermes-re l)]
-    (if (.find m)
-      (merge
-        {:event_type "hermes_access"
-         :timestamp_src (parse-timestamp (.group m 1))
-         :host (.group m 2)
-         :facility (.group m 3)
-         :level (.group m 4)
-         :component "hermes"
-         :pid (Long/parseLong (.group m 5))
-         :slot (.group m 6)
-         :ion_id (Long/parseLong (.group m 7))
-         :cloud (.group m 8)}
-        (parse-message-attrs (.group m 9))))))
-
 (defn parse-line [l]
   (try
     (or (parse-nginx-access-line l)
         (parse-nginx-access2-line l)
         (parse-nginx-error-line l)
-        (parse-hermes-line l)
-        (parse-varnish-line l)
-        (parse-logplex-line l)
         (parse-standard-line l)
         (parse-raw-line l))
     (catch Exception e
