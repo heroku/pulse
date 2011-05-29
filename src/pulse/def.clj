@@ -115,6 +115,15 @@
     (fn [evt] true)
     (fn [evt] (or (:cloud evt) "none"))))
 
+(def nginx-requests-per-second
+  (rate
+    (fn [evt] (= (:event_type evt) "nginx_access"))))
+
+(def nginx-requests-per-second-by-domain
+  (rate-by-key
+    (fn [evt] (= (:event_type evt) "nginx_access"))
+    (fn [evt] (:http_domain evt))))
+
 (def ps-lost-last
   (last
     (fn [evt] (and (heroku? evt) (:process_lost evt)))
@@ -127,4 +136,6 @@
    ["events_per_second_by_event_type" events-per-second-by-event-type]
    ["events_per_second_by_level" events-per-second-by-level]
    ["events_per_second_by_cloud" events-per-second-by-cloud]
+   ["nginx_requests_per_second" nginx-requests-per-second]
+   ["nginx_requests_per_second_by_domain" nginx-requests-per-second-by-domain]
    ["ps_lost_last" ps-lost-last]])
