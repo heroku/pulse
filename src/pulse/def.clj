@@ -170,6 +170,11 @@
   (per-second
     (fn [evt] (and (heroku? evt) (:hermes_proxy evt)))))
 
+(defstat hermes-requests-per-second-by-app-id
+  (per-second-by-key
+    (fn [evt] (and (heroku? evt) (:hermes_proxy evt)))
+    (fn [evt] (:app_id evt))))
+
 (defn hermes-per-minute [code]
   (per-minute
     (fn [evt] (and (heroku? evt) (= (:event_type evt) "standard")
@@ -262,6 +267,7 @@
    nginx-503-per-minute
    nginx-504-per-minute
    hermes-requests-per-second
+   hermes-requests-per-second-by-app-id
    hermes-h10-per-minute
    hermes-h11-per-minute
    hermes-h12-per-minute
