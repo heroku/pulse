@@ -140,6 +140,15 @@
     (fn [evt] (and (heroku? evt) (= (:event_type evt) "nginx_access")))
     (fn [evt] (:http_domain evt))))
 
+(defstat nginx-errors-per-minute
+  (per-minute
+    (fn [evt] (and (heroku? evt) (= (:event_type evt) "nginx_error")))))
+
+(defstat nginx-errors-per-minute-by-host
+  (per-minute-by-key
+    (fn [evt] (and (heroku? evt) (= (:event_type evt) "nginx_error")))
+    (fn [evt] (:host evt))))
+
 (defstat amqp-publishes-per-second
   (per-second
     (fn [evt] (and (heroku? evt) (:amqp_publish evt)))))
@@ -205,6 +214,8 @@
    events-per-second-by-cloud
    nginx-requests-per-second
    nginx-requests-per-second-by-domain
+   nginx-errors-per-minute
+   nginx-errors-per-minute-by-host
    amqp-publishes-per-second
    amqp-receives-per-second
    amqp-timeouts-per-minute
