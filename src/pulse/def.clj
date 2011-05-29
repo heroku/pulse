@@ -146,7 +146,7 @@
 
 (defstat amqp-receives-per-second
   (per-second
-    (fn [evt] (and (heroku? evt) (:amqp_action evt) (= (:action evt) "received")))))
+    (fn [evt] (and (heroku? evt) (:amqp_message evt) (= (:action evt) "received")))))
 
 (defstat amqp-timeouts-per-minute
   (per-minute
@@ -159,7 +159,7 @@
 
 (defstat amqp-receives-per-second-by-exchange
   (per-second-by-key
-    (fn [evt] (and (heroku? evt) (:amqp_action evt) (= (:action evt) "received")))
+    (fn [evt] (and (heroku? evt) (:amqp_message evt) (= (:action evt) "received")))
     (fn [evt] (:exchange evt))))
 
 (defstat amqp-timeouts-per-minute-by-exchange
