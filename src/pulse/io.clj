@@ -47,8 +47,13 @@
     (dotimes [i workers]
       (log "init_publisher chan=%s index=%d" chan i)
       (util/spawn-loop (fn []
-        (let [data (queue/take publish-queue)]
-          (redis/publish redis chan (json/generate-string data))))))))
+        (let [data (queue/take publish-queue)
+              data-str (try
+                         (json/generate-string data)
+                         (catch Exception e
+                           (log ("publish event=error data=%s" (pr-str data)))
+                           (throw e)))]
+          (redis/publish redis chan data-str)))))))
 
 (defn init-subscriber [redis-url chan apply-queue]
   (let [redis (redis/init {:url redis-url})]
