@@ -140,15 +140,6 @@
     (fn [evt] (and (heroku? evt) (= (:event_type evt) "nginx_access")))
     (fn [evt] (:http_domain evt))))
 
-(defstat nginx-errors-per-minute
-  (per-minute
-    (fn [evt] (and (heroku? evt) (= (:event_type evt) "nginx_error")))))
-
-(defstat nginx-errors-per-minute-by-host
-  (per-minute-by-key
-    (fn [evt] (and (heroku? evt) (= (:event_type evt) "nginx_error")))
-    (fn [evt] (:host evt))))
-
 (defn nginx-per-minute [status]
   (per-minute
     (fn [evt] (and (heroku? evt) (= (:event_type evt) "nginx_access")
@@ -165,6 +156,36 @@
 
 (defstat nginx-504-per-minute
   (nginx-per-minute 504))
+
+(defstat nginx-errors-per-minute
+  (per-minute
+    (fn [evt] (and (heroku? evt) (= (:event_type evt) "nginx_error")))))
+
+(defstat nginx-errors-per-minute-by-host
+  (per-minute-by-key
+    (fn [evt] (and (heroku? evt) (= (:event_type evt) "nginx_error")))
+    (fn [evt] (:host evt))))
+
+(defstat varnish-requests-per-second
+  (per-second
+    (fn [evt] (and heroku? evt) (= (:event_type evt) "varnish_access"))))
+
+(defn varnish-per-minute [status]
+  (per-minute
+    (fn [evt] (and (heroku? evt) (= (:event_type evt) "varnish_access")
+                   (= (:http_status evt) status)))))
+
+(defstat varnish-500-per-minute
+  (varnish-per-minute 500))
+
+(defstat varnish-502-per-minute
+  (varnish-per-minute 502))
+
+(defstat varnish-503-per-minute
+  (varnish-per-minute 503))
+
+(defstat varnish-504-per-minute
+  (varnish-per-minute 504))
 
 (defstat hermes-requests-per-second
   (per-second
@@ -260,12 +281,17 @@
    events-per-second-by-cloud
    nginx-requests-per-second
    nginx-requests-per-second-by-domain
-   nginx-errors-per-minute
-   nginx-errors-per-minute-by-host
    nginx-500-per-minute
    nginx-502-per-minute
    nginx-503-per-minute
    nginx-504-per-minute
+   nginx-errors-per-minute
+   nginx-errors-per-minute-by-host
+   varnish-requests-per-second
+   varnish-500-per-minute
+   varnish-502-per-minute
+   varnish-503-per-minute
+   varnish-504-per-minute
    hermes-requests-per-second
    hermes-requests-per-second-by-app-id
    hermes-h10-per-minute

@@ -139,11 +139,30 @@
         :cloud (.group m 7)
         :message (.group m 8)})))
 
+(def varnish-access-re
+  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d[\-+]\d\d:00) ([0-9\.]+) ([a-z0-7]+)\.([a-z]+) varnish\[(\d+)\] - ([a-z4-6\-]+)?\.(\d+)@([a-z.]+\.com) - [0-9\.]+ - - .*\" (\d\d\d) .*$")
+
+(defn parse-varnish-access-line [l]
+  (let [m (re-matcher varnish-access-re l)]
+    (if (.find m)
+       {:event_type "varnish_access"
+        :timestamp_src (parse-timestamp (.group m 1))
+        :host (.group m 2)
+        :facility (.group m 3)
+        :level (.group m 4)
+        :component "varnish"
+        :pid (parse-long (.group m 5))
+        :slot (.group m 6)
+        :ion_id (parse-long (.group m 7))
+        :cloud (.group m 8)
+        :http_status (parse-long (.group m 9))})))
+
 (defn parse-line [l]
   (try
     (or (parse-nginx-access-line l)
         (parse-nginx-access2-line l)
         (parse-nginx-error-line l)
+        (parse-varnish-access-line l)
         (parse-standard-line l)
         (parse-raw-line l))
     (catch Exception e
