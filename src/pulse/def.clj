@@ -243,6 +243,36 @@
     (fn [evt] (and (heroku? evt) (:amqp_message evt) (= (:action evt) "timeout")))
     (fn [evt] (:exchange evt))))
 
+(defstat ps-up-total-last
+  (last
+    (fn [evt] (and (heroku? evt) (:psmgr evt) (:counts evt) (= (:event evt) "emit")))
+    (fn [evt] (:up evt))))
+
+(defstat ps-up-web-last
+  (last
+    (fn [evt] (and (heroku? evt) (:psmgr evt) (:counts evt) (= (:event evt) "emit")))
+    (fn [evt] (:web evt))))
+
+(defstat ps-up-worker-last
+  (last
+    (fn [evt] (and (heroku? evt) (:psmgr evt) (:counts evt) (= (:event evt) "emit")))
+    (fn [evt] (:worker evt))))
+
+(defstat ps-up-other-last
+  (last
+    (fn [evt] (and (heroku? evt) (:psmgr evt) (:counts evt) (= (:event evt) "emit")))
+    (fn [evt] (:other evt))))
+
+(defstat ps-starting-last
+  (last
+    (fn [evt] (and (heroku? evt) (:psmgr evt) (:counts evt) (= (:event evt) "emit")))
+    (fn [evt] (:starting evt))))
+
+(defstat ps-crashed-last
+  (last
+    (fn [evt] (and (heroku? evt) (:psmgr evt) (:counts evt) (= (:event evt) "emit")))
+    (fn [evt] (:crashed evt))))
+
 (defstat ps-run-requests-per-minute
   (per-minute
     (fn [evt] (and (heroku? evt) (:amqp_publish evt) (= (:exchange evt) "ps.run")))))
@@ -269,8 +299,8 @@
 
 (defstat ps-lost-last
   (last
-    (fn [evt] (and (heroku? evt) (:process_lost evt)))
-    (fn [evt] (:total_count evt))))
+    (fn [evt] (and (heroku? evt) (:psmgr evt) (:counts evt) (= (:event evt) "emit")))
+    (fn [evt] (:lost evt))))
 
 (def all
   [events-per-second
@@ -305,6 +335,12 @@
    amqp-publishes-per-second-by-exchange
    amqp-receives-per-second-by-exchange
    amqp-timeouts-per-minute-by-exchange
+   ps-up-total-last
+   ps-up-web-last
+   ps-up-worker-last
+   ps-up-other-last
+   ps-starting-last
+   ps-crashed-last
    ps-run-requests-per-minute
    ps-runs-per-minute
    ps-returns-per-minute
