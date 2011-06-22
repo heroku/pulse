@@ -8,6 +8,9 @@
 (defn safe-inc [n]
   (inc (or n 0)))
 
+(defn sum [c]
+  (reduce + c))
+
 (defn rate [pred-fn time-unit time-buffer]
   {:receive-init
      (fn []
@@ -29,7 +32,7 @@
        (let [now (util/millis)
              recent-windows (filter (fn [[window-start _ _]] (>= window-start (- now (* 1000 time-buffer) 1000))) windows)
              complete-windows (filter (fn [[window-start _ _]] (< window-start (- now 1000))) recent-windows)
-             complete-count (reduce + (map (fn [[_ _ window-count]] window-count) complete-windows))
+             complete-count (sum (map (fn [[_ _ window-count]] window-count) complete-windows))
              complete-rate (double (/ complete-count (/ time-buffer time-unit)))]
          [recent-windows complete-rate]))})
 
@@ -94,6 +97,30 @@
      (fn [last-val]
        [last-val last-val])})
 
+(defn last-sum [pred-fn part-fn val-fn]
+  {:receive-init
+     (fn []
+       {})
+   :receive-apply
+     (fn [last-timed-vals event]
+       (if (pred-fn event)
+         (assoc last-timed-vals (part-fn event) [(util/millis) (val-fn event)])
+         last-timed-vals))
+   :receive-emit
+     (fn [last-timed-vals]
+       last-timed-vals)
+   :merge-init
+     (fn []
+       {})
+   :merge-apply
+     (fn [last-timed-vals received]
+       (merge last-timed-vals received))
+   :merge-emit
+     (fn [last-timed-vals]
+       (let [now (util/millis)
+             recent-timed-vals (into {} (filter (fn [_ [last-time _]] (< (- now last-time) (* 300 1000))) last-timed-vals))
+             recent-sum (sum (map (fn [_ [_ last-val]] last-val) recent-timed-vals))]
+         [recent-timed-vals recent-sum]))})
 
 (defmacro defstat [stat-name stat-body]
   (let [stat-name-str (name stat-name)]
@@ -273,6 +300,30 @@
     (fn [evt] (and (heroku? evt) (:psmgr evt) (:counts evt) (= (:event evt) "emit")))
     (fn [evt] (:crashed evt))))
 
+(defstat ps-running-total-last
+  (last-sum
+    (fn [evt] (and (heroku? evt) (:railgun evt) (:counts evt) (= (:key evt) "total")))
+    (fn [evt] (:ion_id evt))
+    (fn [evt] (:num evt))))
+
+(defstat ps-running-web-last
+  (last-sum
+    (fn [evt] (and (heroku? evt) (:railgun evt) (:counts evt) (= (:key evt) "process_type") (= (:process_type evt) "web")))
+    (fn [evt] (:ion_id evt))
+    (fn [evt] (:num evt))))
+
+(defstat ps-running-worker-last
+  (last-sum
+    (fn [evt] (and (heroku? evt) (:railgun evt) (:counts evt) (= (:key evt) "process_type") (= (:process_type evt) "worker")))
+    (fn [evt] (:ion_id evt))
+    (fn [evt] (:num evt))))
+
+(defstat ps-running-other-last
+  (last-sum
+    (fn [evt] (and (heroku? evt) (:railgun evt) (:counts evt) (= (:key evt) "process_type") (= (:process_type evt) "other")))
+    (fn [evt] (:ion_id evt))
+    (fn [evt] (:num evt))))
+
 (defstat ps-run-requests-per-minute
   (per-minute
     (fn [evt] (and (heroku? evt) (:amqp_publish evt) (= (:exchange evt) "ps.run")))))
@@ -341,6 +392,10 @@
    ps-up-other-last
    ps-starting-last
    ps-crashed-last
+   ps-running-total-last
+   ps-running-web-last
+   ps-running-worker-last
+   ps-running-other-last
    ps-run-requests-per-minute
    ps-runs-per-minute
    ps-returns-per-minute
