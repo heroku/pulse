@@ -118,8 +118,8 @@
    :merge-emit
      (fn [last-timed-vals]
        (let [now (util/millis)
-             recent-timed-vals (into {} (filter (fn [_ [last-time _]] (< (- now last-time) (* 300 1000))) last-timed-vals))
-             recent-sum (sum (map (fn [_ [_ last-val]] last-val) recent-timed-vals))]
+             recent-timed-vals (into {} (filter (fn [[_ [last-time _]]] (< (- now last-time) (* 300 1000))) last-timed-vals))
+             recent-sum (sum (map (fn [[_ [_ last-val]]] last-val) recent-timed-vals))]
          [recent-timed-vals recent-sum]))})
 
 (defmacro defstat [stat-name stat-body]
