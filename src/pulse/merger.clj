@@ -18,10 +18,10 @@
 
 (defn init-emitter [stats-map publish-queue]
   (log "init-emitter")
-  (util/spawn-tick 1000 (fn []
+  (util/spawn-tick 500 (fn []
     (doseq [[stat-name [stat-def stat-state]] stats-map]
       (let [pub (stat/merge-emit stat-def stat-state)]
-        (queue/offer publish-queue ["stats.merged" [stat-name pub]]))))))
+        (queue/offer publish-queue [stat-name pub]))))))
 
 (defn init-appliers [stats-map apply-queue]
   (log "init_appliers")
