@@ -6,8 +6,6 @@
   (:require [pulse.stat :as stat])
   (:require [pulse.def :as def]))
 
-(set! *warn-on-reflection* true)
-
 (defn log [msg & args]
   (apply util/log (str "merger " msg) args))
 

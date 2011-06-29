@@ -3,8 +3,6 @@
   (:require [clojure.string :as str])
   (:require [pulse.util :as util]))
 
-(set! *warn-on-reflection* true)
-
 (defn re-match? [re s]
   (let [m (re-matcher re s)]
     (.find m)))

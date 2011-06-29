@@ -7,8 +7,6 @@
   (:import (java.io InputStreamReader BufferedReader PrintWriter))
   (:import (java.net Socket ConnectException)))
 
-(set! *warn-on-reflection* true)
-
 (defn log [msg & args]
   (apply util/log (str "io " msg) args))
 

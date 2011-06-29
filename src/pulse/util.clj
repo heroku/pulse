@@ -3,8 +3,6 @@
   (:import (java.net URI))
   (:import (java.util UUID)))
 
-(set! *warn-on-reflection* true)
-
 (defn ^Runnable crashing [f]
   (fn []
     (try

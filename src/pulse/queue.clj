@@ -4,8 +4,6 @@
   (:import java.util.concurrent.ArrayBlockingQueue)
   (:import java.util.concurrent.atomic.AtomicLong))
 
-(set! *warn-on-reflection* true)
-
 (defn init [size]
   [(ArrayBlockingQueue. size) (AtomicLong. 0) (AtomicLong. 0) (AtomicLong. 0)])
 
