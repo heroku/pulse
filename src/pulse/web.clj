@@ -56,13 +56,13 @@
   (html
     [:html
       [:head
-        [:title "Heroku Kernel Pulse"]
+        [:title "Heroku Pulse"]
         [:script {:type "text/javascript" :src "javascripts/jquery-1.5.js"}]
         [:script {:type "text/javascript" :src "javascripts/jquery.sparkline.js"}]
         [:script {:type "text/javascript" :src "javascripts/pulse.js"}]
         [:script {:type "text/javascript"} (format "var pulse_web_auth ='%s';" (conf/web-auth))]]
       [:body
-        [:h1 {:align "center"} "Heroku Kernel Pulse"]
+        [:h1 {:align "center"} "Heroku Pulse"]
         [:table {:align "center" :border 0 :cellspacing 10}
           (for [row graphs]
             [:tr
