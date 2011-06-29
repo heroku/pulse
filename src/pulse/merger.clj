@@ -39,8 +39,8 @@
         stats-states (init-stats def/all)]
     (queue/init-watcher apply-queue "apply")
     (queue/init-watcher publish-queue "publish")
-    (io/init-publishers publish-queue conf/redis-url "stats.merged" 8)
+    (io/init-publishers publish-queue (conf/redis-url) "stats.merged" 8)
     (init-emitter stats-states publish-queue)
     (init-appliers stats-states apply-queue)
-    (io/init-subscriber conf/redis-url "stats.received" apply-queue))
+    (io/init-subscriber (conf/redis-url) "stats.received" apply-queue))
   (log "init event=finish"))
