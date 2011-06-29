@@ -90,8 +90,8 @@
 
 (defn buff-append [buff val limit]
   (if (< (count buff) limit)
-    (conj (or buff []) val)
-    (conj (subvec buff 1 limit) val)))
+    (conj (or buff (clojure.lang.PersistentQueue/EMPTY)) val)
+    (conj (pop buff) val)))
 
 (defn init-buffer []
   (log "init_buffer")
