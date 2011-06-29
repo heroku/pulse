@@ -35,6 +35,7 @@
     ["ps up web"          "ps-up-web-last"]
     ["ps up worker"       "ps-up-worker-last"]
     ["ps up other"        "ps-up-other-last"]
+    ["ps created"         "ps-created-last"]
     ["ps starting"        "ps-starting-last"]
     ["ps crashed"         "ps-crashed-last"]]
    [["ps running"         "ps-running-total-last"]

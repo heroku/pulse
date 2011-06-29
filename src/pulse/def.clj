@@ -287,6 +287,11 @@
     (fn [evt] (and (heroku? evt) (:psmgr evt) (:counts evt) (= (:event evt) "emit")))
     (fn [evt] (:other evt))))
 
+(defstat ps-created-last
+  (last
+    (fn [evt] (and (heroku? evt) (:psmgr evt) (:counts evt) (= (:event evt) "emit")))
+    (fn [evt] (:created evt))))
+
 (defstat ps-starting-last
   (last
     (fn [evt] (and (heroku? evt) (:psmgr evt) (:counts evt) (= (:event evt) "emit")))
@@ -387,6 +392,7 @@
    ps-up-web-last
    ps-up-worker-last
    ps-up-other-last
+   ps-created-last
    ps-starting-last
    ps-crashed-last
    ps-running-total-last
