@@ -36,7 +36,7 @@
     ["ps up worker"       "ps-up-worker-last"]
     ["ps up other"        "ps-up-other-last"]
     ["ps starting"        "ps-starting-last"]
-    ["ps crashed"         "ps-crashed"]]
+    ["ps crashed"         "ps-crashed-last"]]
    [["ps running"         "ps-running-total-last"]
     ["ps running web"     "ps-running-web-last"]
     ["ps running worker"  "ps-running-worker-last"]
