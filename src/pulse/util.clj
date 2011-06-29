@@ -40,3 +40,6 @@
 
 (defn millis []
   (System/currentTimeMillis))
+
+(defn update [m k f]
+  (assoc m k (f (get m k))))

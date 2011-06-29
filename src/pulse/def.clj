@@ -2,9 +2,6 @@
   (:refer-clojure :exclude [last])
   (:require [pulse.util :as util]))
 
-(defn update [m k f]
-  (assoc m k (f (get m k))))
-
 (defn safe-inc [n]
   (inc (or n 0)))
 
@@ -48,7 +45,7 @@
        [(util/millis) {}])
    :receive-apply
      (fn [[window-start window-counts] event]
-       [window-start (if (pred-fn event) (update window-counts (str (key-fn event)) safe-inc) window-counts)])
+       [window-start (if (pred-fn event) (util/update window-counts (str (key-fn event)) safe-inc) window-counts)])
    :receive-emit
      (fn [[window-start window-counts]]
        [window-start (util/millis) window-counts])
