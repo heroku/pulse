@@ -40,6 +40,3 @@
 
 (defn millis []
   (System/currentTimeMillis))
-
-(def node
-  (str (UUID/randomUUID)))
