@@ -55,7 +55,7 @@
 
 (defn init-subscriber [redis-url chan apply-queue]
   (let [redis (redis/init {:url redis-url})]
-    (log "init-subscribe chan=%s" chan)
+    (log "init_subscribe chan=%s" chan)
     (redis/subscribe redis [chan]
       (fn [_ data-json]
         (queue/offer apply-queue (json/parse-string data-json))))))

@@ -17,7 +17,7 @@
     stat-defs))
 
 (defn init-emitter [stats-map publish-queue]
-  (log "init-emitter")
+  (log "init_emitter")
   (util/spawn-tick 500 (fn []
     (doseq [[stat-name [stat-def stat-state]] stats-map]
       (let [pub (stat/merge-emit stat-def stat-state)]
