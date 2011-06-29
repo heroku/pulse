@@ -1,6 +1,6 @@
 # Pulse
 
-Backend to real-time Heroku operations dashboard.
+Real-time Heroku operations dashboard.
 
 
 # Running locally:
@@ -17,11 +17,10 @@ Backend to real-time Heroku operations dashboard.
     $ heroku create pulse-production --stack cedar
     $ heroku addons:add ssl:piggyback
     $ heroku addons:add redistogo:small
-    $ heroku addons:upgrade logging:advanced
-    $ heroku addons:upgrade releases:advanced
     $ heroku config:add AORTA_URLS="..."
+    $ heroku config:add WEB_AUTH="..."
     $ git push heroku master
-    $ heroku scale receiver 5 merger 1 web 2
+    $ heroku scale receiver=8 merger=1 web=3
 
 
 ## Viewing stats:
@@ -29,5 +28,3 @@ Backend to real-time Heroku operations dashboard.
     $ curl -o redis-cliu https://gist.github.com/...
     $ chmod +x redis-cliu  
     $ ./redis-cliu subscribe stats
-
-    $ lein run -m pulse.term
