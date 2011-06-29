@@ -28,7 +28,7 @@
   (let [start (util/millis)
         popped-prev (atom 0)]
     (util/spawn-tick 1000 (fn []
-      (let [elapsed (-> (util/millis) (- start))
+      (let [elapsed (- (util/millis) start)
             [depth pushed popped dropped] (stats queue)
             rate (- popped @popped-prev)]
         (swap! popped-prev (constantly popped))
