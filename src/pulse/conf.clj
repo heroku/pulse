@@ -1,7 +1,9 @@
 (ns pulse.conf
   (:require [clojure.string :as str]))
 
-(def env (System/getenv))
-(def port (Integer/parseInt (get env "PORT")))
-(def redis-url (or (get env "REDIS_URL") (get env "REDISTOGO_URL")))
-(def aorta-urls (if-let [h (get env "AORTA_URLS")] (str/split h #",")))
+(defn env! [k]
+  (or (System/getenv k) (throw (Exception.)))
+
+(def port (Integer/parseInt (env! "PORT")))
+(def redis-url (env! "REDIS_URL"))
+(def aorta-urls (str/split (env! "AORTA_URLS") #","))
