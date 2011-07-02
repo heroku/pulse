@@ -5,7 +5,7 @@ Real-time Heroku operations dashboard.
 
 # Running locally:
 
-Ensure that aorta is running at `AORTA_URL`, then:
+Ensure that Aorta is running at `AORTA_URL`, then:
 
     $ cp .env.sample .env
     $ mate .env
@@ -16,7 +16,7 @@ Ensure that aorta is running at `AORTA_URL`, then:
 
 ## Running as Heroku app:
 
-Ensure that aorta is running and dyno-reachable at `AORTA_URL`, then:
+Ensure that Aorta is running and dyno-reachable at `AORTA_URL`, then:
 
     $ heroku create pulse-production --stack cedar
     $ heroku addons:add redistogo:small
