@@ -99,7 +99,7 @@
   (let [rd (redis/init {:url (conf/redis-url)})]
     (redis/subscribe rd ["stats.merged"] (fn [_ stat-json]
       (let [[stat-name stat-val] (json/parse-string stat-json)]
-        (swap! stats-buffs-a util/update stat-name #(buff-append % stat-val 60)))))))
+        (swap! stats-buffs-a util/update stat-name #(buff-append % stat-val 120)))))))
 
 (defn core-app [{:keys [uri] :as req}]
   (if (= uri "/stats")
