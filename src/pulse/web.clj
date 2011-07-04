@@ -121,14 +121,13 @@
       (handler req))))
 
 (defn wrap-logging [handler]
-  (fn [{:keys [scheme request-method uri] :as req}]
-    (let [scheme (name scheme)
-          method (name request-method)
+  (fn [{:keys [request-method uri] :as req}]
+    (let [method (name request-method)
           start (util/millis)]
-      (log "req scheme=%s method=%s uri=%s event=start" scheme method uri)
+      (log "req method=%s uri=%s event=start" method uri)
       (let [{:keys [status] :as resp} (handler req)
             elapsed (- (util/millis) start)]
-        (log "req scheme=%s method=%s uri=%s status=%d event=finish elapsed=%.3f" scheme method uri status (/ elapsed 1000.0))
+        (log "req method=%s uri=%s status=%d event=finish elapsed=%.3f" method uri status (/ elapsed 1000.0))
         resp))))
 
 (def app
