@@ -297,6 +297,10 @@
     (fn [evt] (and (heroku? evt) (:psmgr evt) (:counts evt) (= (:event evt) "emit")))
     (fn [evt] (:starting evt))))
 
+(defstat ps-unidles-per-minute
+  (per-minute
+    (fn [evt] (and (heroku? evt) (:psmgr evt) (:unidle evt) (= (:event evt) "begin")))))
+
 (defstat ps-crashed-last
   (last
     (fn [evt] (and (heroku? evt) (:psmgr evt) (:counts evt) (= (:event evt) "emit")))
@@ -394,6 +398,7 @@
    ps-up-other-last
    ps-created-last
    ps-starting-last
+   ps-unidles-per-minute
    ps-crashed-last
    ps-running-total-last
    ps-running-web-last
