@@ -302,7 +302,7 @@
 
 (defstat ps-idles-per-minute
   (per-minute
-    (fn [evt] (and (heroku? evt) (:psmgr evt) (:idle evt) (= (:event evt) "begin")))))
+    (fn [evt] (and (heroku? evt) (:psmgr evt) (:up_to_up evt) (= (:event evt) "idle")))))
 
 (defstat ps-unidles-per-minute
   (per-minute
