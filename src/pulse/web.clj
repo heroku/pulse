@@ -20,7 +20,7 @@
     ["nginx 503/min"      "nginx-503-per-minute"]
     ["nginx 504/min"      "nginx-504-per-minute"]
     ["nginx err/min"      "nginx-errors-per-minute"]]
-   [["varnish reqs/sec"   "varnish-requests-per-second"]
+   [["varnish req/sec"    "varnish-requests-per-second"]
     ["varnish 500/min"    "varnish-500-per-minute"]
     ["varnish 502/min"    "varnish-502-per-minute"]
     ["varnish 503/min"    "varnish-503-per-minute"]
@@ -43,18 +43,19 @@
     ["ps running web"     "ps-running-web-last"]
     ["ps running worker"  "ps-running-worker-last"]
     ["ps running other"   "ps-running-other-last"]
+    ["ps tout/min"        "ps-timeouts-per-minute"]
     ["ps lost"            "ps-lost-last"]]
-   [["ps run reqs/min"    "ps-run-requests-per-minute"]
+   [["ps run req/min"     "ps-run-requests-per-minute"]
     ["ps runs/min"        "ps-runs-per-minute"]
-    ["ps stop reqs/min"   "ps-stop-requests-per-minute"]
+    ["ps stop req/min"    "ps-stop-requests-per-minute"]
     ["ps stops/min"       "ps-stops-per-minute"]
     ["ps idle/min"        "ps-idles-per-minute"]
     ["ps unidle/min"      "ps-unidles-per-minute"]
-    ["ps convs/sec"       "ps-converges-per-second"]]
+    ["ps conv/sec"        "ps-converges-per-second"]]
    [["amqp pub/sec"       "amqp-publishes-per-second"]
     ["amqp rec/sec"       "amqp-receives-per-second"]
-    ["amqp touts/min"     "amqp-timeouts-per-minute"]
-    ["events/sec"         "events-per-second"]]])
+    ["amqp tout/min"      "amqp-timeouts-per-minute"]
+    ["event/sec"          "events-per-second"]]])
 
 (defn view []
   (html

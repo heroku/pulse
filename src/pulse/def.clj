@@ -361,6 +361,10 @@
   (per-second
     (fn [evt] (and (heroku? evt) (:service evt) (:transition evt)))))
 
+(defstat ps-timeouts-per-minute
+  (per-minute
+    (fn [evt] (and (heroku? evt) (:monitor_boot evt) (= (:event evt) "timeout")))))
+
 (defstat ps-lost-last
   (last
     (fn [evt] (and (heroku? evt) (:psmgr evt) (:counts evt) (= (:event evt) "emit")))
@@ -409,6 +413,7 @@
    ps-idles-per-minute
    ps-unidles-per-minute
    ps-crashed-last
+   ps-timeouts-per-minute
    ps-running-total-last
    ps-running-web-last
    ps-running-worker-last
