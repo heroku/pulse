@@ -1,4 +1,5 @@
 (ns pulse.web
+  (:use ring.util.response)
   (:use ring.middleware.file)
   (:use ring.middleware.file-info)
   (:use ring.middleware.basic-auth)
@@ -113,19 +114,27 @@
 (defn web-auth? [& creds]
   (= (conf/web-auth) creds))
 
+(defn wrap-force-https [handler]
+  (fn [{:keys [headers server-name uri] :as req}]
+    (if (and (conf/force-https) (not= (get headers "x-forwarded-proto") "https"))
+      (redirect (format "https://%s%s" server-name uri))
+      (handler req))))
+
 (defn wrap-logging [handler]
-  (fn [{:keys [uri request-method] :as req}]
-    (let [method (name request-method)
+  (fn [{:keys [scheme request-method uri] :as req}]
+    (let [scheme (name scheme)
+          method (name request-method)
           start (util/millis)]
-      (log "req method=%s uri=%s event=start" method uri)
+      (log "req scheme=%s method=%s uri=%s event=start" scheme method uri)
       (let [{:keys [status] :as resp} (handler req)
             elapsed (- (util/millis) start)]
-        (log "req method=%s uri=%s event=finish elapsed=%.3f" method uri (/ elapsed 1000.0))
+        (log "req scheme=%s method=%s uri=%s status=%d event=finish elapsed=%.3f" scheme method uri status (/ elapsed 1000.0))
         resp))))
 
 (def app
   (-> core-app
     (wrap-basic-auth web-auth?)
+    (wrap-force-https)
     (wrap-logging)
     (wrap-stacktrace)))
 

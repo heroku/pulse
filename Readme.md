@@ -42,6 +42,7 @@ Ensure that Aorta is running and dyno-reachable at `AORTA_URL`, then:
     $ heroku config:add REDIS_URL="..."
     $ heroku config:add AORTA_URLS="..."
     $ heroku config:add WEB_AUTH="..."
+    $ heroku config:add FORCE_HTTPS="1"
     $ git push heroku master
     $ heroku scale receiver=6 merger=1 web=2
 
