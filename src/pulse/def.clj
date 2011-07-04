@@ -237,6 +237,9 @@
 (defstat hermes-h13-per-minute
   (hermes-per-minute "H13"))
 
+(defstat hermes-h14-per-minute
+  (hermes-per-minute "H13"))
+
 (defstat hermes-h99-per-minute
   (hermes-per-minute "H99"))
 
@@ -296,6 +299,10 @@
   (last
     (fn [evt] (and (heroku? evt) (:psmgr evt) (:counts evt) (= (:event evt) "emit")))
     (fn [evt] (:starting evt))))
+
+(defstat ps-idles-per-minute
+  (per-minute
+    (fn [evt] (and (heroku? evt) (:psmgr evt) (:idle evt) (= (:event evt) "begin")))))
 
 (defstat ps-unidles-per-minute
   (per-minute
@@ -385,6 +392,7 @@
    hermes-h11-per-minute
    hermes-h12-per-minute
    hermes-h13-per-minute
+   hermes-h14-per-minute
    hermes-h99-per-minute
    amqp-publishes-per-second
    amqp-receives-per-second
@@ -398,6 +406,7 @@
    ps-up-other-last
    ps-created-last
    ps-starting-last
+   ps-idles-per-minute
    ps-unidles-per-minute
    ps-crashed-last
    ps-running-total-last
