@@ -238,7 +238,7 @@
   (hermes-per-minute "H13"))
 
 (defstat hermes-h14-per-minute
-  (hermes-per-minute "H13"))
+  (hermes-per-minute "H14"))
 
 (defstat hermes-h99-per-minute
   (hermes-per-minute "H99"))
