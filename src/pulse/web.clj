@@ -74,8 +74,8 @@
             [:tr
               (for [[label key] row]
                 [:td {:align "center"}
-                  (str label ": ") [:span {:id (str key "-scalar")}] [:br]
-                  [:span {:id (str key "-sparkline")}]])])]]]))
+                  [:span {:id (str key "-sparkline")}] [:br]
+                  (str label ": ") [:span {:id (str key "-scalar")}]])])]]]))
 
 (defn view-handler [req]
   {:status 200
