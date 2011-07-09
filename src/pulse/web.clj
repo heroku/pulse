@@ -44,6 +44,7 @@
     ["ps running web"     "ps-running-web-last"]
     ["ps running worker"  "ps-running-worker-last"]
     ["ps running other"   "ps-running-other-last"]
+    ["ps launch time"     "ps-launch-time-mean"]
     ["ps tout/min"        "ps-timeouts-per-minute"]
     ["ps lost"            "ps-lost-last"]]
    [["ps run req/min"     "ps-run-requests-per-minute"]

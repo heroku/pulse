@@ -8,7 +8,34 @@
 (defn sum [c]
   (reduce + c))
 
-(defn rate [pred-fn time-unit time-buffer]
+(defn mean [time-buffer pred-fn val-fn]
+  {:receive-init
+     (fn []
+       [(util/millis) 0 0])
+   :receive-apply
+     (fn [[window-start window-count window-sum :as receive-buffer] event]
+       (if (pred-fn event)
+         [window-start (inc window-count) (+ window-sum (val-fn event))]
+         receive-buffer))
+   :receive-emit
+     (fn [receive-buffer]
+       receive-buffer)
+   :merge-init
+     (fn []
+       [])
+   :merge-apply
+     (fn [windows window]
+       (conj windows window))
+   :merge-emit
+     (fn [windows]
+       (let [now (util/millis)
+             recent-windows (filter (fn [[window-start _ _]] (>= window-start (- now (* 1000 time-buffer)))) windows)
+             recent-count (sum (map (fn [[_ window-count _]] window-count) recent-windows))
+             recent-sum (sum (map (fn [[_ _ window-sum]] window-sum) recent-windows))
+             recent-mean (double (if (zero? recent-count) 0 (/ recent-sum recent-count)))]
+         [recent-windows recent-mean]))})
+
+(defn rate [time-unit time-buffer pred-fn]
   {:receive-init
      (fn []
        [(util/millis) 0])
@@ -34,12 +61,12 @@
          [recent-windows complete-rate]))})
 
 (defn per-second [pred-fn]
-  (rate pred-fn 1 10))
+  (rate 1 10 pred-fn))
 
 (defn per-minute [pred-fn]
-  (rate pred-fn 60 70))
+  (rate 60 70 pred-fn))
 
-(defn rate-by-key [pred-fn key-fn time-unit time-buffer]
+(defn rate-by-key [time-unit time-buffer pred-fn key-fn]
   {:receive-init
      (fn []
        [(util/millis) {}])
@@ -67,10 +94,10 @@
           [recent-windows complete-rates]))})
 
 (defn per-second-by-key [pred-fn key-fn]
-  (rate-by-key pred-fn key-fn 1 10))
+  (rate-by-key 1 10 pred-fn key-fn))
 
 (defn per-minute-by-key [pred-fn key-fn]
-  (rate-by-key pred-fn key-fn 60 70))
+  (rate-by-key 60 70 pred-fn key-fn))
 
 (defn last [pred-fn val-fn]
   {:receive-init
@@ -365,6 +392,11 @@
   (per-minute
     (fn [evt] (and (heroku? evt) (:monitor_boot evt) (= (:event evt) "timeout")))))
 
+(defstat ps-launch-time-mean
+  (mean 60
+    (fn [evt] (and (heroku? evt) (:monitor_boot evt) (= (:event evt) "responsive")))
+    (fn [evt] (:age evt))))
+
 (defstat ps-lost-last
   (last
     (fn [evt] (and (heroku? evt) (:psmgr evt) (:counts evt) (= (:event evt) "emit")))
@@ -414,6 +446,7 @@
    ps-unidles-per-minute
    ps-crashed-last
    ps-timeouts-per-minute
+   ps-launch-time-mean
    ps-running-total-last
    ps-running-web-last
    ps-running-worker-last
