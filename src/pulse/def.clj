@@ -333,7 +333,7 @@
 
 (defstat ps-unidles-per-minute
   (per-minute
-    (fn [evt] (and (heroku? evt) (:psmgr evt) (:unidle evt) (= (:event evt) "begin")))))
+    (fn [evt] (and (heroku? evt) (:psmgr evt) (:service evt) (:unidle evt) (= (:event evt) "begin")))))
 
 (defstat ps-crashed-last
   (last
