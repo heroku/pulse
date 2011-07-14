@@ -64,6 +64,7 @@
     [:html
       [:head
         [:title "Pulse"]
+        [:link {:rel "stylesheet" :media "screen" :type "text/css" :href "/stylesheets/pulse.css"}]
         [:script {:type "text/javascript" :src "javascripts/jquery-1.5.js"}]
         [:script {:type "text/javascript" :src "javascripts/jquery.sparkline.js"}]
         [:script {:type "text/javascript" :src "javascripts/pulse.js"}]]
@@ -113,7 +114,7 @@
     (static-handler req)))
 
 (defn web-auth? [& creds]
-  (= (conf/web-auth) creds))
+  (= ["" (conf/web-password)] creds))
 
 (defn wrap-force-https [handler]
   (fn [{:keys [headers server-name uri] :as req}]

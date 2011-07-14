@@ -10,5 +10,5 @@
 (defn port [] (Integer/parseInt (env! "PORT")))
 (defn redis-url [] (env! "REDIS_URL"))
 (defn aorta-urls [] (str/split (env! "AORTA_URLS") #","))
-(defn web-auth [] (str/split (env! "WEB_AUTH") #":"))
+(defn web-password [] (env! "WEB_PASSWORD"))
 (defn force-https [] (boolean (env "FORCE_HTTPS")))
