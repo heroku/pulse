@@ -63,12 +63,12 @@
   (html
     [:html
       [:head
-        [:title "Heroku Pulse"]
+        [:title "Pulse"]
         [:script {:type "text/javascript" :src "javascripts/jquery-1.5.js"}]
         [:script {:type "text/javascript" :src "javascripts/jquery.sparkline.js"}]
         [:script {:type "text/javascript" :src "javascripts/pulse.js"}]]
       [:body
-        [:h1 {:align "center"} "Heroku Pulse"]
+        [:h1 {:align "center"} "Pulse"]
         [:table {:align "center" :border 0 :cellspacing 10}
           (for [row graphs]
             [:tr
