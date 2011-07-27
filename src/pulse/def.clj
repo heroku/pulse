@@ -272,7 +272,7 @@
 
 (defstat amqp-publishes-per-second
   (per-second
-    (fn [evt] (and (heroku? evt) (:amqp_publish evt)))))
+    (fn [evt] (and (heroku? evt) (or (:amqp_publish evt) (and (:amqp_message evt) (= (:action evt) "publish")))))))
 
 (defstat amqp-receives-per-second
   (per-second
