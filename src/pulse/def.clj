@@ -307,6 +307,21 @@
     (fn [evt] (and (heroku? evt) (:amqp_message evt) (= (:action evt) "timeout")))
     (fn [evt] (:exchange evt))))
 
+(defstat slugc-pushes-per-minute
+  (per-minute
+    (fn [evt]
+      (and (heroku? evt) (:slugc evt) (:bin evt) (= (:event evt) "start")))))
+
+(defstat slugc-fails-per-minute
+  (per-minute
+    (fn [evt]
+      (and (heroku? evt) (:slugc evt) (:bin evt) (= (:event evt) "fail")))))
+
+(defstat slugc-errors-per-minute
+  (per-minute
+    (fn [evt]
+      (and (heroku? evt) (:slugc evt) (:bin evt) (= (:event evt) "error")))))
+
 (defstat ps-up-total-last
   (last
     (fn [evt] (and (heroku? evt) (:psmgr evt) (:counts evt) (= (:event evt) "emit")))
@@ -448,6 +463,9 @@
    amqp-publishes-per-second-by-exchange
    amqp-receives-per-second-by-exchange
    amqp-timeouts-per-minute-by-exchange
+   slugc-pushes-per-minute
+   slugc-fails-per-minute
+   slugc-errors-per-minute
    ps-up-total-last
    ps-up-web-last
    ps-up-worker-last

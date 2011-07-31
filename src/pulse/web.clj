@@ -59,6 +59,9 @@
    [["amqp pub/sec"       "amqp-publishes-per-second"]
     ["amqp rec/sec"       "amqp-receives-per-second"]
     ["amqp tout/min"      "amqp-timeouts-per-minute"]
+    ["slugc push/min"     "slugc-pushes-per-minute"]
+    ["slugc fail/min"     "slugc-fails-per-minute"]
+    ["slugc err/min"      "slugc-errors-per-minute"]
     ["event/sec"          "events-per-second"]]])
 
 (defn view []
