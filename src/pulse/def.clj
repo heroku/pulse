@@ -238,6 +238,16 @@
 (defstat varnish-504-per-minute
   (varnish-per-minute 504))
 
+(defstat rendezvous-joins-per-minute
+  (per-minute
+    (fn [evt]
+      (and (:rendezvous evt) (:join evt)))))
+
+(defstat rendezvous-rendezvous-per-minute
+  (per-minute
+    (fn [evt]
+      (and (:rendezvous evt) (:conn_id evt) (:waiting_id evt)))))
+
 (defstat hermes-requests-per-second
   (per-second
     (fn [evt] (and (heroku? evt) (:hermes_proxy evt)))))
@@ -422,6 +432,8 @@
    varnish-502-per-minute
    varnish-503-per-minute
    varnish-504-per-minute
+   rendezvous-joins-per-minute
+   rendezvous-rendezvous-per-minute
    hermes-requests-per-second
    hermes-requests-per-second-by-app-id
    hermes-h10-per-minute
