@@ -322,6 +322,11 @@
     (fn [evt]
       (and (heroku? evt) (:slugc evt) (:bin evt) (= (:event evt) "error")))))
 
+(defstat releases-per-minute
+  (per-minute
+    (fn [evt]
+      (and (heroku? evt) (:capture_release evt)))))
+
 (defstat ps-up-total-last
   (last
     (fn [evt] (and (heroku? evt) (:psmgr evt) (:counts evt) (= (:event evt) "emit")))
@@ -494,6 +499,7 @@
    slugc-pushes-per-minute
    slugc-fails-per-minute
    slugc-errors-per-minute
+   releases-per-minute
    ps-up-total-last
    ps-up-web-last
    ps-up-worker-last
