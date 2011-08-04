@@ -62,7 +62,14 @@
     ["slugc push/min"     "slugc-pushes-per-minute"]
     ["slugc fail/min"     "slugc-fails-per-minute"]
     ["slugc err/min"      "slugc-errors-per-minute"]
-    ["event/sec"          "events-per-second"]]])
+    ["event/sec"          "events-per-second"]]
+   [["railgun err/min"    "railgun-errors-per-minute"]
+    ["psmgr err/min"      "psmgr-errors-per-minute"]
+    ["api err/min"        "api-errors-per-minute"]
+    ["codex err/min"      "codex-errors-per-minute"]
+    ["gitproxy err/min"   "gitproxy-errors-per-minute"]
+    ["shen err/min"       "shen-errors-per-minute"]
+    ["hermes error/min"   "hermes-errors-per-minute"]]])
 
 (defn view []
   (html

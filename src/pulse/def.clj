@@ -427,6 +427,34 @@
     (fn [evt] (and (heroku? evt) (:psmgr evt) (:counts evt) (= (:event evt) "emit")))
     (fn [evt] (:lost evt))))
 
+(defn errors-per-minute [components]
+  (per-minute
+    (fn [evt] (and (heroku? evt)
+                   (or (= (:facility evt) "user") (= (:facility evt) "local3"))
+                   (= (:level evt) "err")
+                   (contains? components (:component evt))))))
+
+(defstat railgun-errors-per-minute
+  (errors-per-minute #{"runtime"}))
+
+(defstat psmgr-errors-per-minute
+  (errors-per-minute #{"psmgr"}))
+
+(defstat api-errors-per-minute
+  (errors-per-minute #{"core"}))
+
+(defstat codex-errors-per-minute
+  (errors-per-minute #{"codex-aspen" "codex-bamboo" "codex-beech" "codex-chroot"}))
+
+(defstat gitproxy-errors-per-minute
+  (errors-per-minute #{"gitproxy"}))
+
+(defstat shen-errors-per-minute
+  (errors-per-minute #{"shen"}))
+
+(defstat hermes-errors-per-minute
+  (errors-per-minute #{"hermes"}))
+
 (def all
   [events-per-second
    events-per-second-by-parsed
@@ -487,4 +515,11 @@
    ps-stop-requests-per-minute
    ps-stops-per-minute
    ps-converges-per-second
-   ps-lost-last])
+   ps-lost-last
+   railgun-errors-per-minute
+   psmgr-errors-per-minute
+   api-errors-per-minute
+   codex-errors-per-minute
+   gitproxy-errors-per-minute
+   shen-errors-per-minute
+   hermes-errors-per-minute])
