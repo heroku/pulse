@@ -1,11 +1,15 @@
 (ns pulse.web
   (:use ring.util.response)
+  (:use ring.middleware.params)
+  (:use ring.middleware.session)
+  (:use ring.middleware.session.cookie)
+  (:use ring.middleware.basic-auth)
   (:use ring.middleware.file)
   (:use ring.middleware.file-info)
-  (:use ring.middleware.basic-auth)
   (:use ring.middleware.stacktrace)
   (:use ring.adapter.jetty)
   (:use hiccup.core)
+  (:require [ring.util.codec :as codec])
   (:require [clj-json.core :as json])
   (:require [clj-redis.client :as redis])
   (:require [pulse.conf :as conf])
@@ -27,8 +31,8 @@
     ["varnish 502/min"    "varnish-502-per-minute"]
     ["varnish 503/min"    "varnish-503-per-minute"]
     ["varnish 504/min"    "varnish-504-per-minute"]
-    ["rdv join/min"       "rendezvous-joins-per-minute"]
-    ["rdv rend/min"       "rendezvous-rendezvous-per-minute"]]
+    ["varnish purge/min"  "varnish-purges-per-minute"]
+    ["rdv join/min"       "rendezvous-joins-per-minute"]]
    [["hermes req/sec"     "hermes-requests-per-second"]
     ["hermes H10/min"     "hermes-h10-per-minute"]
     ["hermes H11/min"     "hermes-h11-per-minute"]
@@ -78,10 +82,10 @@
       [:head
         [:title "Pulse"]
         [:link {:rel "stylesheet" :media "screen" :type "text/css" :href "/stylesheets/pulse.css"}]
-        [:script {:type "text/javascript" :src "javascripts/jquery-1.5.js"}]
+        [:script {:type "text/javascript" :src "javascripts/jquery-1.6.2.js"}]
         [:script {:type "text/javascript" :src "javascripts/jquery.sparkline.js"}]
         [:script {:type "text/javascript" :src "javascripts/pulse.js"}]
-        [:script {:type "text/javascript" :src "javascripts/pulse-scales.js"}]]
+        [:script {:type "text/javascript" :src (conf/pulse-scales-url)}]]
       [:body
         [:h1 {:align "center"} "Pulse"]
         [:table {:align "center" :border 0 :cellspacing 10}
@@ -110,6 +114,19 @@
    :headers {"Content-Type" "application/json"}
    :body (json/generate-string @stats-buffs-a)})
 
+(defn api-handler [req]
+  {:status 200,
+   :headers {"Content-Type" "application/json"}
+   :body (json/generate-string @stats-buffs-a)})
+
+(defn wrap-cros-headers [handler]
+  (fn [req]
+    (let [resp (handler req)]
+      (update-in resp [:headers] assoc
+        "Access-Control-Allow-Origin" "*"
+        "Access-Control-Allow-Methods" "GET, OPTIONS"
+        "Access-Control-Allow-Headers" "X-Requested-With, Authorization"))))
+
 (defn buff-append [buff val limit]
   (if (< (count buff) limit)
     (conj (or buff (clojure.lang.PersistentQueue/EMPTY)) val)
@@ -123,16 +140,33 @@
         (swap! stats-buffs-a util/update stat-name #(buff-append % stat-val 120)))))))
 
 (defn core-app [{:keys [uri] :as req}]
-  (if (= uri "/stats")
-    (stats-handler req)
+  (condp = uri
+    "/stats"
+      (stats-handler req)
+    "/api"
+      (api-handler req)
     (static-handler req)))
 
-(defn web-auth? [_ password]
-  (= (conf/web-password) password))
+(defn wrap-openid-proxy [handler]
+  (fn [req]
+    (cond
+      (= [:get "/auth"] [(:request-method req) (:uri req)])
+        (if (= (conf/proxy-secret) (get (:params req) "proxy_secret"))
+          (-> (redirect "/")
+            (update-in [:session] assoc :authorized true))
+          {:status 403 :headers {"Content-Type" "text/plain"} :body "not authorized\n"})
+      (not (:authorized (:session req)))
+        (let [callback-url (str (if (conf/force-https?) "https" "http") "://" (:server-name req) ":" (if (conf/force-https?) 443 (:server-port req)) "/auth")]
+          (redirect (str (conf/proxy-url) "?" "callback_url=" (codec/url-encode callback-url))))
+      :authorized
+        (handler req))))
+
+(defn api-auth? [_ password]
+  (= (conf/api-password) password))
 
 (defn wrap-force-https [handler]
   (fn [{:keys [headers server-name uri] :as req}]
-    (if (and (conf/force-https) (not= (get headers "x-forwarded-proto") "https"))
+    (if (and (conf/force-https?) (not= (get headers "x-forwarded-proto") "https"))
       (redirect (format "https://%s%s" server-name uri))
       (handler req))))
 
@@ -146,9 +180,24 @@
         (log "req method=%s uri=%s status=%d event=finish elapsed=%.3f" method uri status (/ elapsed 1000.0))
         resp))))
 
+(defn wrap-only [handler wrapper pred]
+  (fn [req]
+    (if (pred req)
+      ((wrapper handler) req)
+      (handler req))))
+
+(defn wrap-debug [handler]
+  (fn [req]
+    (prn req)
+    (handler req)))
+
 (def app
   (-> core-app
-    (wrap-basic-auth web-auth?)
+    (wrap-only #(wrap-basic-auth % api-auth?) #(= "/api" (:uri %)))
+    (wrap-only wrap-cros-headers #(= "/api" (:uri %)))
+    (wrap-only wrap-openid-proxy #(not= "/api" (:uri %)))
+    (wrap-session {:store (cookie-store {:key (conf/session-secret)})})
+    (wrap-params)
     (wrap-force-https)
     (wrap-logging)
     (wrap-stacktrace)))

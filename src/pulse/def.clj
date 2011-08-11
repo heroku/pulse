@@ -238,6 +238,10 @@
 (defstat varnish-504-per-minute
   (varnish-per-minute 504))
 
+(defstat varnish-purges-per-minute
+  (per-minute
+     (fn [evt] (and (heroku? evt) (:cache_purge evt)))))
+
 (defstat rendezvous-joins-per-minute
   (per-minute
     (fn [evt]
@@ -480,6 +484,7 @@
    varnish-502-per-minute
    varnish-503-per-minute
    varnish-504-per-minute
+   varnish-purges-per-minute
    rendezvous-joins-per-minute
    rendezvous-rendezvous-per-minute
    hermes-requests-per-second
