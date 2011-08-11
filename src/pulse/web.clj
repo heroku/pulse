@@ -80,7 +80,8 @@
         [:link {:rel "stylesheet" :media "screen" :type "text/css" :href "/stylesheets/pulse.css"}]
         [:script {:type "text/javascript" :src "javascripts/jquery-1.5.js"}]
         [:script {:type "text/javascript" :src "javascripts/jquery.sparkline.js"}]
-        [:script {:type "text/javascript" :src "javascripts/pulse.js"}]]
+        [:script {:type "text/javascript" :src "javascripts/pulse.js"}]
+        [:script {:type "text/javascript" :src "javascripts/pulse-scales.js"}]]
       [:body
         [:h1 {:align "center"} "Pulse"]
         [:table {:align "center" :border 0 :cellspacing 10}
