@@ -28,7 +28,7 @@ Ensure that Aorta is running at `AORTA_URL`, then:
 
     $ cp .env.sample .env
     $ mate .env
-    $ source .env
+    $ export $(cat .env)
     $ lein deps
     $ foreman start
 
