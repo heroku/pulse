@@ -126,8 +126,8 @@
     (stats-handler req)
     (static-handler req)))
 
-(defn web-auth? [& creds]
-  (= ["" (conf/web-password)] creds))
+(defn web-auth? [_ password]
+  (= (conf/web-password) password))
 
 (defn wrap-force-https [handler]
   (fn [{:keys [headers server-name uri] :as req}]
