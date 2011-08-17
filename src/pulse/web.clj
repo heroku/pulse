@@ -114,11 +114,6 @@
    :headers {"Content-Type" "application/json"}
    :body (json/generate-string @stats-buffs-a)})
 
-(defn api-handler [req]
-  {:status 200,
-   :headers {"Content-Type" "application/json"}
-   :body (json/generate-string @stats-buffs-a)})
-
 (defn wrap-cros-headers [handler]
   (fn [req]
     (let [resp (handler req)]
@@ -140,11 +135,8 @@
         (swap! stats-buffs-a util/update stat-name #(buff-append % stat-val 120)))))))
 
 (defn core-app [{:keys [uri] :as req}]
-  (condp = uri
-    "/stats"
-      (stats-handler req)
-    "/api"
-      (api-handler req)
+  (if (or (= uri "/stats") (= uri "/api"))
+    (stats-handler req)
     (static-handler req)))
 
 (defn wrap-openid-proxy [handler]
