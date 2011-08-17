@@ -131,8 +131,9 @@
   (log "init_buffer")
   (let [rd (redis/init {:url (conf/redis-url)})]
     (redis/subscribe rd ["stats.merged"] (fn [_ stat-json]
-      (let [[stat-name stat-val] (json/parse-string stat-json)]
-        (swap! stats-buffs-a util/update stat-name #(buff-append % stat-val 120)))))))
+      (let [[stat-name stat-val] (json/parse-string stat-json)
+            stat-depth (if (coll? stat-val) 1 120)]
+        (swap! stats-buffs-a util/update stat-name #(buff-append % stat-val stat-depth)))))))
 
 (defn core-app [{:keys [uri] :as req}]
   (if (or (= uri "/stats") (= uri "/api"))
