@@ -3,6 +3,7 @@ var pulseSparklineOpts = {
   spotColor: false,
   minSpotColor: false,
   maxSpotColor: false,
+  lineWidth: 2,
   width: 190,
   height: 70};
 

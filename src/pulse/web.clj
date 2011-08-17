@@ -87,14 +87,14 @@
         [:script {:type "text/javascript" :src "javascripts/pulse.js"}]
         [:script {:type "text/javascript" :src (conf/pulse-scales-url)}]]
       [:body
-        [:h1 {:align "center"} "Pulse"]
-        [:table {:align "center" :border 0 :cellspacing 10}
-          (for [row graphs]
-            [:tr
-              (for [[label key] row]
-                [:td {:align "center"}
-                  [:span {:id (str key "-sparkline")}] [:br]
-                  (str label ": ") [:span {:id (str key "-scalar")}]])])]]]))
+        [:id#content
+          [:table
+            (for [row graphs]
+              [:tr
+                (for [[label key] row]
+                  [:td
+                    [:span {:id (str key "-sparkline")}] [:br]
+                    (str label ": ") [:span {:id (str key "-scalar")}]])])]]]]))
 
 (defn view-handler [req]
   {:status 200
