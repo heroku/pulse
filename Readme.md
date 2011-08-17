@@ -59,6 +59,7 @@ Ensure that Aorta is running and dyno-reachable at `AORTA_URL`, then:
 ## See also
 
 * [Nimrod](https://github.com/sbtourist/nimrod): Non-invasive, log-based metrics server in Clojure
+* [Graylog2](http://graylog2.org/): Log management and searching
 * [Splunk](http://www.splunk.com/): Log visibility software
 * [Loggly](http://www.loggly.com/): Logging as a service
 * [Papertrail](https://papertrailapp.com): Hosted cloud log management
