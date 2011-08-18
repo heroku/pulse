@@ -1,4 +1,5 @@
 (ns pulse.conf
+  (:require [pulse.util :as util])
   (:require [clojure.string :as str]))
 
 (defn env [k]
@@ -14,5 +15,8 @@
 (defn proxy-url [] (env! "PROXY_URL"))
 (defn proxy-secret [] (env! "PROXY_SECRET"))
 (defn force-https? [] (boolean (env "FORCE_HTTPS")))
-(defn api-password [] (env! "API_PASSWORD"))
-(defn pulse-scales-url [] (env! "PULSE_SCALES_URL"))
+(defn scales-url [] (env! "SCALES_URL"))
+(defn api-url [] (env! "API_URL"))
+
+(defn api-password []
+  (second (str/split (:auth (util/url-parse (api-url))) #":")))

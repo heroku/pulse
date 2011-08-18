@@ -1,3 +1,14 @@
+function pulseGet(apiUrl, fun) {
+  jQuery.ajax({
+    url: apiUrl.replace(/\:\/\/.*\@/, "://"),
+    type: "GET",
+    dataType: "json",
+    beforeSend: function(xhr) {
+      xhr.setRequestHeader("Authorization", "Basic " + btoa(apiUrl.match(/\:\/\/(.*)\@/, "://")[1])); },
+    success: function(data, status, xhr) {
+      fun(data); } });
+}
+
 var pulseSparklineOpts = {
   chartRangeMin: 0,
   spotColor: false,
@@ -18,10 +29,8 @@ function pulseMerge(objA, objB) {
   return objM;
 }
 
-var pulseScales = {}
-
 function pulseUpdate() {
-  $.get("/stats", function(stats) {
+  pulseGet(pulseApiUrl, function(stats) {
     for (var statName in stats) {
       var statBuff = stats[statName];
       var statVal = statBuff[statBuff.length - 1];

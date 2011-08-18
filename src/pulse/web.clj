@@ -84,8 +84,9 @@
         [:link {:rel "stylesheet" :media "screen" :type "text/css" :href "/stylesheets/pulse.css"}]
         [:script {:type "text/javascript" :src "javascripts/jquery-1.6.2.js"}]
         [:script {:type "text/javascript" :src "javascripts/jquery.sparkline.js"}]
-        [:script {:type "text/javascript" :src "javascripts/pulse.js"}]
-        [:script {:type "text/javascript" :src (conf/pulse-scales-url)}]]
+        [:script {:type "text/javascript"} (str "var pulseApiUrl=\"" (conf/api-url) "\"")]
+        [:script {:type "text/javascript" :src (conf/scales-url)}]
+        [:script {:type "text/javascript" :src "javascripts/pulse.js"}]]
       [:body
         [:id#content
           [:table
@@ -136,7 +137,7 @@
         (swap! stats-buffs-a util/update stat-name #(buff-append % stat-val stat-depth)))))))
 
 (defn core-app [{:keys [uri] :as req}]
-  (if (or (= uri "/stats") (= uri "/api"))
+  (if (= uri "/stats")
     (stats-handler req)
     (static-handler req)))
 
@@ -186,9 +187,9 @@
 
 (def app
   (-> core-app
-    (wrap-only #(wrap-basic-auth % api-auth?) #(= "/api" (:uri %)))
-    (wrap-only wrap-cros-headers #(= "/api" (:uri %)))
-    (wrap-only wrap-openid-proxy #(not= "/api" (:uri %)))
+    (wrap-only #(wrap-basic-auth % api-auth?) #(= "/stats" (:uri %)))
+    (wrap-only wrap-cros-headers #(= "/stats" (:uri %)))
+    (wrap-only wrap-openid-proxy #(not= "/stats" (:uri %)))
     (wrap-session {:store (cookie-store {:key (conf/session-secret)})})
     (wrap-params)
     (wrap-force-https)
