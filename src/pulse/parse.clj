@@ -78,8 +78,8 @@
        :message (.group m 5)})))
 
 (def nginx-access-re
-     ;timestamp_src                              ;host      ;facility    ;level           ;slot        ;ion_id ;cloud                                                                 ;http_domain                     ;http_url   ;http_version     ;http_bytes ;http_proto ;http_status               
-  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d-\d\d:00) ([0-9\.]+) ([a-z0-7]+)\.([a-z]+) nginx - ([a-z4-6-]+)?\.(\d+)@([a-z.]+\.com) - \d\d\/[a-zA-z]{3}\/\d\d\d\d:\d\d:\d\d:\d\d -\d\d00 \| ([a-zA-Z0-9\.\-\:]+) \| [A-Z]{3,6} (\S+) HTTP\/(...) \| [0-9\.]+ \| (\d+) \| (https?) \| (\d+)$")
+     ;timestamp_src                              ;host      ;facility    ;level           ;slot        ;ion_id ;cloud           ;http_host                                                              ;http_method,_url,_version      ;http_status,_bytes,_referrer,_user_agent,_domain
+  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d-\d\d:00) ([0-9\.]+) ([a-z0-7]+)\.([a-z]+) nginx - ([a-z4-6-]+)?\.(\d+)@([a-z.]+\.com) - ([0-9\.]+) - - \[\d\d\/[a-zA-z]{3}\/\d\d\d\d:\d\d:\d\d:\d\d -\d\d00\] \"([a-zA-Z]+) (\S+) HTTP\/(...)\" (\d+) (\d+) \"([^\"]+)\" \"([^\"]+)\" (\S+)$")
 
 (defn parse-nginx-access-line [l]
   (let [m (re-matcher nginx-access-re l)]
@@ -93,32 +93,15 @@
         :slot (.group m 5)
         :ion_id (Long/parseLong (.group m 6))
         :cloud (.group m 7)
-        :http_domain (.group m 8)
-        :http_url (.group m 9)
-        :http_version (.group m 10)
-        :http_bytes (Long/parseLong (.group m 11))
-        :http_protocol (.group m 12)
-        :http_status (Long/parseLong (.group m 13))})))
-
-(def nginx-access2-re
-     ;timestamp_src                              ;host      ;facility    ;level           ;slot        ;ion_id ;cloud                                                                                   ;http_bytes ;http_proto ;http_status               
-  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d-\d\d:00) ([0-9\.]+) ([a-z0-7]+)\.([a-z]+) nginx - ([a-z4-6-]+)?\.(\d+)@([a-z.]+\.com) - \d\d\/[a-zA-z]{3}\/\d\d\d\d:\d\d:\d\d:\d\d -\d\d00 \| - \| - \| [0-9\.]+ \| (\d+) \| (https?) \| (\d+)$")
-
-(defn parse-nginx-access2-line [l]
-  (let [m (re-matcher nginx-access2-re l)]
-    (if (.find m)
-       {:event_type "nginx_access2"
-        :timestamp_src (parse-timestamp (.group m 1))
-        :host (.group m 2)
-        :facility (.group m 3)
-        :level (.group m 4)
-        :component "nginx"
-        :slot (.group m 5)
-        :ion_id (Long/parseLong (.group m 6))
-        :cloud (.group m 7)
-        :http_bytes (Long/parseLong (.group m 8))
-        :http_protocol (.group m 9)
-        :http_status (Long/parseLong (.group m 10))})))
+        :http_host (.group m 8)
+        :http_method (.group m 9)
+        :http_url (.group m 10)
+        :http_version (.group m 11)
+        :http_status (Long/parseLong (.group m 12))
+        :http_bytes (Long/parseLong (.group m 13))
+        :http_referrer (.group m 14)
+        :http_user_agent (.group m 15)
+        :http_domain (.group m 16)})))
 
 (def nginx-error-re
   #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d-\d\d:00) ([0-9\.]+) ([a-z0-7]+)\.([a-z]+) nginx - ([a-z4-6]+)?\.(\d+)@([a-z.]+\.com) - .* \[error\] (.*)$")
@@ -158,7 +141,6 @@
 (defn parse-line [l]
   (try
     (or (parse-nginx-access-line l)
-        (parse-nginx-access2-line l)
         (parse-nginx-error-line l)
         (parse-varnish-access-line l)
         (parse-standard-line l)
