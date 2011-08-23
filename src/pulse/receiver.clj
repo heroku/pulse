@@ -18,7 +18,7 @@
 
 (defn init-emitter [stats publish-queue]
   (log "init_emitter")
-  (util/spawn-tick 100 (fn []
+  (util/spawn-tick 500 (fn []
     (doseq [[stat-def stat-state] stats]
       (let [pub (stat/receive-emit stat-def stat-state)]
         (queue/offer publish-queue [(:name stat-def) pub]))))))
