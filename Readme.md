@@ -35,13 +35,13 @@ Ensure that Aorta is running at `AORTA_URL`, then:
 
 ## Running as Heroku app
 
-Ensure that Aorta is running and dyno-reachable at `AORTA_URL`, then:
+Ensure that Aortas are running and dyno-reachable at `AORTA_URLS`, and that the username in the `AORTA_URLS` are scoped to this particular deployment of Pulse. Then:
 
     $ heroku create pulse-production --stack cedar
     $ heroku addons:add redistogo:small
     $ heroku config:add ...
     $ git push heroku master
-    $ heroku scale receiver=6 merger=1 web=2
+    $ heroku scale receiver=16 merger=1 web=2
 
 
 ## Viewing stats graphs
