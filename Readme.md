@@ -1,6 +1,6 @@
 # Pulse
 
-Real-time Heroku operations dashboard.
+Real-time Heroku operations dashboard, powered by the Heroku event stream.
 
 
 ## Overview
