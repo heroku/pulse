@@ -467,7 +467,7 @@
 (def all
   [events-per-second
    ; events-per-second-by-parsed
-   ; events-per-second-by-aorta-host
+   events-per-second-by-aorta-host
    ; events-per-second-by-event-type
    ; events-per-second-by-level
    ; events-per-second-by-cloud
