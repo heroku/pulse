@@ -418,9 +418,13 @@
   (per-minute
     (fn [evt] (and (heroku? evt) (:ps_watch evt) (:trap_exit evt)))))
 
-(defstat ps-converges-per-second
+(defstat ps-converges-per-second2
   (per-second
     (fn [evt] (and (heroku? evt) (:service evt) (:transition evt)))))
+
+(defstat ps-converges-per-second
+  (per-second
+    (fn [evt] (and (heroku? evt) (:psmgr evt) (= (:function evt) "transition")))))
 
 (defstat ps-timeouts-per-minute
   (per-minute
