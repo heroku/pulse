@@ -333,45 +333,45 @@
 
 (defstat ps-up-total-last
   (last
-    (fn [evt] (and (heroku? evt) (:psmgr evt) (:counts evt) (= (:event evt) "emit")))
+    (fn [evt] (and (heroku? evt) (= (:component evt) "psmgr") (= (:function evt) "counts") (= (:event evt) "emit")))
     (fn [evt] (:up evt))))
 
 (defstat ps-up-web-last
   (last
-    (fn [evt] (and (heroku? evt) (:psmgr evt) (:counts evt) (= (:event evt) "emit")))
+    (fn [evt] (and (heroku? evt) (= (:component evt) "psmgr") (= (:function evt) "counts") (= (:event evt) "emit")))
     (fn [evt] (:web evt))))
 
 (defstat ps-up-worker-last
   (last
-    (fn [evt] (and (heroku? evt) (:psmgr evt) (:counts evt) (= (:event evt) "emit")))
+    (fn [evt] (and (heroku? evt) (= (:component evt) "psmgr") (= (:function evt) "counts") (= (:event evt) "emit")))
     (fn [evt] (:worker evt))))
 
 (defstat ps-up-other-last
   (last
-    (fn [evt] (and (heroku? evt) (:psmgr evt) (:counts evt) (= (:event evt) "emit")))
+    (fn [evt] (and (heroku? evt) (= (:component evt) "psmgr") (= (:function evt) "counts") (= (:event evt) "emit")))
     (fn [evt] (:other evt))))
 
 (defstat ps-created-last
   (last
-    (fn [evt] (and (heroku? evt) (:psmgr evt) (:counts evt) (= (:event evt) "emit")))
+    (fn [evt] (and (heroku? evt) (= (:component evt) "psmgr") (= (:function evt) "counts") (= (:event evt) "emit")))
     (fn [evt] (:created evt))))
 
 (defstat ps-starting-last
   (last
-    (fn [evt] (and (heroku? evt) (:psmgr evt) (:counts evt) (= (:event evt) "emit")))
+    (fn [evt] (and (heroku? evt) (= (:component evt) "psmgr") (= (:function evt) "counts") (= (:event evt) "emit")))
     (fn [evt] (:starting evt))))
 
 (defstat ps-idles-per-minute
   (per-minute
-    (fn [evt] (and (heroku? evt) (:psmgr evt) (:up_to_up evt) (= (:event evt) "idle")))))
+    (fn [evt] (and (heroku? evt) (= (:component evt) "psmgr") (= (:function evt) "up_to_up") (= (:event evt) "idle")))))
 
 (defstat ps-unidles-per-minute
   (per-minute
-    (fn [evt] (and (heroku? evt) (:psmgr evt) (:service evt) (:unidle evt) (= (:event evt) "begin")))))
+    (fn [evt] (and (heroku? evt) (= (:component evt) "psmgr") (= (:function evt) "unidle") (= (:block evt) "begin")))))
 
 (defstat ps-crashed-last
   (last
-    (fn [evt] (and (heroku? evt) (:psmgr evt) (:counts evt) (= (:event evt) "emit")))
+    (fn [evt] (and (heroku? evt) (= (:component evt) "psmgr") (= (:function evt) "counts") (= (:event evt) "emit")))
     (fn [evt] (:crashed evt))))
 
 (defstat ps-running-total-last
@@ -420,7 +420,7 @@
 
 (defstat ps-converges-per-second
   (per-second
-    (fn [evt] (and (heroku? evt) (:service evt) (:transition evt)))))
+    (fn [evt] (and (heroku? evt) (= (:component evt) "psmgr") (= (:function evt) "transition") (= (:block evt) "begin")))))
 
 (defstat ps-timeouts-per-minute
   (per-minute
@@ -433,7 +433,7 @@
 
 (defstat ps-lost-last
   (last
-    (fn [evt] (and (heroku? evt) (:psmgr evt) (:counts evt) (= (:event evt) "emit")))
+    (fn [evt] (and (heroku? evt) (= (:component evt) "psmgr") (= (:function evt) "counts") (= (:event evt) "emit")))
     (fn [evt] (:lost evt))))
 
 (defn errors-per-minute [component]
@@ -467,7 +467,7 @@
 (def all
   [events-per-second
    ; events-per-second-by-parsed
-   ; events-per-second-by-aorta-host
+   events-per-second-by-aorta-host
    ; events-per-second-by-event-type
    ; events-per-second-by-level
    ; events-per-second-by-cloud
