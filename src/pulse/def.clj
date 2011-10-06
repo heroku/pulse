@@ -367,7 +367,7 @@
 
 (defstat ps-unidles-per-minute
   (per-minute
-    (fn [evt] (and (heroku? evt) (= (:component evt) "psmgr") (= (:function evt) "unidle") (= (:event evt) "begin")))))
+    (fn [evt] (and (heroku? evt) (= (:component evt) "psmgr") (= (:function evt) "unidle") (= (:block evt) "begin")))))
 
 (defstat ps-crashed-last
   (last
@@ -420,7 +420,7 @@
 
 (defstat ps-converges-per-second
   (per-second
-    (fn [evt] (and (heroku? evt) (= (:component evt) "psmgr")  (= (:function evt) "transition")))))
+    (fn [evt] (and (heroku? evt) (= (:component evt) "psmgr") (= (:function evt) "transition") (= (:block evt) "begin")))))
 
 (defstat ps-timeouts-per-minute
   (per-minute
