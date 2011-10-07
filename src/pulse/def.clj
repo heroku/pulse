@@ -439,7 +439,7 @@
 (defn errors-per-minute [component]
   (per-minute
     (fn [evt] (and (heroku? evt)
-                   (or (= (:facility evt) "user") (= (:facility evt) "local3"))
+                   (or (= (:facility evt) "user") (= (:facility evt) "local3") (= (:facility evt) "local0"))
                    (= (:level evt) "err")
                    (= (:component evt) component)))))
 
