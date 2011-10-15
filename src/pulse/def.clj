@@ -151,8 +151,8 @@
   (let [stat-name-str (name stat-name)]
     `(def ~stat-name (merge ~stat-body {:name (name ~stat-name-str)}))))
 
-(defn heroku? [evt]
-  (= (:cloud evt) "heroku.com"))
+(defn cloud? [evt]
+  (= (:cloud evt) (conf/cloud)))
 
 (defstat events-per-second
   (per-second
@@ -185,16 +185,16 @@
 
 (defstat nginx-requests-per-second
   (per-second
-    (fn [evt] (and heroku? evt) (= (:event_type evt) "nginx_access"))))
+    (fn [evt] (and (cloud? evt) (= (:event_type evt) "nginx_access")))))
 
 (defstat nginx-requests-per-second-by-domain
   (per-second-by-key
-    (fn [evt] (and (heroku? evt) (= (:event_type evt) "nginx_access")))
+    (fn [evt] (and (cloud? evt) (= (:event_type evt) "nginx_access")))
     (fn [evt] (:http_domain evt))))
 
 (defn nginx-per-minute [status]
   (per-minute
-    (fn [evt] (and (heroku? evt) (= (:event_type evt) "nginx_access")
+    (fn [evt] (and (cloud? evt) (= (:event_type evt) "nginx_access")
                    (not= (:http_host evt) "127.0.0.1") (= (:http_status evt) status)))))
 
 (defstat nginx-500-per-minute
@@ -211,20 +211,20 @@
 
 (defstat nginx-errors-per-minute
   (per-minute
-    (fn [evt] (and (heroku? evt) (= (:event_type evt) "nginx_error")))))
+    (fn [evt] (and (cloud? evt) (= (:event_type evt) "nginx_error")))))
 
 (defstat nginx-errors-per-minute-by-host
   (per-minute-by-key
-    (fn [evt] (and (heroku? evt) (= (:event_type evt) "nginx_error")))
+    (fn [evt] (and (cloud? evt) (= (:event_type evt) "nginx_error")))
     (fn [evt] (:host evt))))
 
 (defstat varnish-requests-per-second
   (per-second
-    (fn [evt] (and heroku? evt) (= (:event_type evt) "varnish_access"))))
+    (fn [evt] (and (cloud? evt)) (= (:event_type evt) "varnish_access"))))
 
 (defn varnish-per-minute [status]
   (per-minute
-    (fn [evt] (and (heroku? evt) (= (:event_type evt) "varnish_access")
+    (fn [evt] (and (cloud? evt) (= (:event_type evt) "varnish_access")
                    (= (:http_status evt) status)))))
 
 (defstat varnish-500-per-minute
@@ -241,7 +241,7 @@
 
 (defstat varnish-purges-per-minute
   (per-minute
-     (fn [evt] (and (heroku? evt) (:cache_purge evt)))))
+     (fn [evt] (and (cloud? evt) (:cache_purge evt)))))
 
 (defstat rendezvous-joins-per-minute
   (per-minute
@@ -255,16 +255,16 @@
 
 (defstat hermes-requests-per-second
   (per-second
-    (fn [evt] (and (heroku? evt) (:hermes_proxy evt)))))
+    (fn [evt] (and (cloud? evt) (:hermes_proxy evt)))))
 
 (defstat hermes-requests-per-second-by-app-id
   (per-second-by-key
-    (fn [evt] (and (heroku? evt) (:hermes_proxy evt)))
+    (fn [evt] (and (cloud? evt) (:hermes_proxy evt)))
     (fn [evt] (:app_id evt))))
 
 (defn hermes-per-minute [code]
   (per-minute
-    (fn [evt] (and (heroku? evt) (= (:event_type evt) "standard")
+    (fn [evt] (and (cloud? evt) (= (:event_type evt) "standard")
                    (:hermes_proxy evt) (:Error evt) (= (:code evt) code)))))
 
 (defstat hermes-h10-per-minute
@@ -287,159 +287,159 @@
 
 (defstat amqp-publishes-per-second
   (per-second
-    (fn [evt] (and (heroku? evt) (or (:amqp_publish evt) (and (:amqp_message evt) (= (:action evt) "publish")))))))
+    (fn [evt] (and (cloud? evt) (or (:amqp_publish evt) (and (:amqp_message evt) (= (:action evt) "publish")))))))
 
 (defstat amqp-receives-per-second
   (per-second
-    (fn [evt] (and (heroku? evt) (:amqp_message evt) (= (:action evt) "received")))))
+    (fn [evt] (and (cloud? evt) (:amqp_message evt) (= (:action evt) "received")))))
 
 (defstat amqp-timeouts-per-minute
   (per-minute
-    (fn [evt] (and (heroku? evt) (:amqp_message evt) (= (:action evt) "timeout")))))
+    (fn [evt] (and (cloud? evt) (:amqp_message evt) (= (:action evt) "timeout")))))
 
 (defstat amqp-publishes-per-second-by-exchange
   (per-second-by-key
-    (fn [evt] (and (heroku? evt) (:amqp_publish evt)))
+    (fn [evt] (and (cloud? evt) (:amqp_publish evt)))
     (fn [evt] (:exchange evt))))
 
 (defstat amqp-receives-per-second-by-exchange
   (per-second-by-key
-    (fn [evt] (and (heroku? evt) (:amqp_message evt) (= (:action evt) "received")))
+    (fn [evt] (and (cloud? evt) (:amqp_message evt) (= (:action evt) "received")))
     (fn [evt] (:exchange evt))))
 
 (defstat amqp-timeouts-per-minute-by-exchange
   (per-minute-by-key
-    (fn [evt] (and (heroku? evt) (:amqp_message evt) (= (:action evt) "timeout")))
+    (fn [evt] (and (cloud? evt) (:amqp_message evt) (= (:action evt) "timeout")))
     (fn [evt] (:exchange evt))))
 
 (defstat slugc-pushes-per-minute
   (per-minute
     (fn [evt]
-      (and (heroku? evt) (:slugc evt) (:bin evt) (= (:event evt) "start")))))
+      (and (cloud? evt) (:slugc evt) (:bin evt) (= (:event evt) "start")))))
 
 (defstat slugc-fails-per-minute
   (per-minute
     (fn [evt]
-      (and (heroku? evt) (:slugc evt) (:bin evt) (= (:event evt) "fail")))))
+      (and (cloud? evt) (:slugc evt) (:bin evt) (= (:event evt) "fail")))))
 
 (defstat slugc-errors-per-minute
   (per-minute
     (fn [evt]
-      (and (heroku? evt) (:slugc evt) (:bin evt) (= (:event evt) "error")))))
+      (and (cloud? evt) (:slugc evt) (:bin evt) (= (:event evt) "error")))))
 
 (defstat releases-per-minute
   (per-minute
     (fn [evt]
-      (and (heroku? evt) (:capture_release evt)))))
+      (and (cloud? evt) (:capture_release evt)))))
 
 (defstat ps-up-total-last
   (last
-    (fn [evt] (and (heroku? evt) (= (:component evt) "psmgr") (= (:function evt) "counts") (= (:event evt) "emit")))
+    (fn [evt] (and (cloud? evt) (= (:component evt) "psmgr") (= (:function evt) "counts") (= (:event evt) "emit")))
     (fn [evt] (:up evt))))
 
 (defstat ps-up-web-last
   (last
-    (fn [evt] (and (heroku? evt) (= (:component evt) "psmgr") (= (:function evt) "counts") (= (:event evt) "emit")))
+    (fn [evt] (and (cloud? evt) (= (:component evt) "psmgr") (= (:function evt) "counts") (= (:event evt) "emit")))
     (fn [evt] (:web evt))))
 
 (defstat ps-up-worker-last
   (last
-    (fn [evt] (and (heroku? evt) (= (:component evt) "psmgr") (= (:function evt) "counts") (= (:event evt) "emit")))
+    (fn [evt] (and (cloud? evt) (= (:component evt) "psmgr") (= (:function evt) "counts") (= (:event evt) "emit")))
     (fn [evt] (:worker evt))))
 
 (defstat ps-up-other-last
   (last
-    (fn [evt] (and (heroku? evt) (= (:component evt) "psmgr") (= (:function evt) "counts") (= (:event evt) "emit")))
+    (fn [evt] (and (cloud? evt) (= (:component evt) "psmgr") (= (:function evt) "counts") (= (:event evt) "emit")))
     (fn [evt] (:other evt))))
 
 (defstat ps-created-last
   (last
-    (fn [evt] (and (heroku? evt) (= (:component evt) "psmgr") (= (:function evt) "counts") (= (:event evt) "emit")))
+    (fn [evt] (and (cloud? evt) (= (:component evt) "psmgr") (= (:function evt) "counts") (= (:event evt) "emit")))
     (fn [evt] (:created evt))))
 
 (defstat ps-starting-last
   (last
-    (fn [evt] (and (heroku? evt) (= (:component evt) "psmgr") (= (:function evt) "counts") (= (:event evt) "emit")))
+    (fn [evt] (and (cloud? evt) (= (:component evt) "psmgr") (= (:function evt) "counts") (= (:event evt) "emit")))
     (fn [evt] (:starting evt))))
 
 (defstat ps-idles-per-minute
   (per-minute
-    (fn [evt] (and (heroku? evt) (= (:component evt) "psmgr") (= (:function evt) "up_to_up") (= (:event evt) "idle")))))
+    (fn [evt] (and (cloud? evt) (= (:component evt) "psmgr") (= (:function evt) "up_to_up") (= (:event evt) "idle")))))
 
 (defstat ps-unidles-per-minute
   (per-minute
-    (fn [evt] (and (heroku? evt) (= (:component evt) "psmgr") (= (:function evt) "unidle") (= (:block evt) "begin")))))
+    (fn [evt] (and (cloud? evt) (= (:component evt) "psmgr") (= (:function evt) "unidle") (= (:block evt) "begin")))))
 
 (defstat ps-crashed-last
   (last
-    (fn [evt] (and (heroku? evt) (= (:component evt) "psmgr") (= (:function evt) "counts") (= (:event evt) "emit")))
+    (fn [evt] (and (cloud? evt) (= (:component evt) "psmgr") (= (:function evt) "counts") (= (:event evt) "emit")))
     (fn [evt] (:crashed evt))))
 
 (defstat ps-running-total-last
   (last-sum
-    (fn [evt] (and (heroku? evt) (:railgun evt) (:counts evt) (= (:key evt) "total")))
+    (fn [evt] (and (cloud? evt) (:railgun evt) (:counts evt) (= (:key evt) "total")))
     (fn [evt] (:ion_id evt))
     (fn [evt] (:num evt))))
 
 (defstat ps-running-web-last
   (last-sum
-    (fn [evt] (and (heroku? evt) (:railgun evt) (:counts evt) (= (:key evt) "process_type") (= (:process_type evt) "web")))
+    (fn [evt] (and (cloud? evt) (:railgun evt) (:counts evt) (= (:key evt) "process_type") (= (:process_type evt) "web")))
     (fn [evt] (:ion_id evt))
     (fn [evt] (:num evt))))
 
 (defstat ps-running-worker-last
   (last-sum
-    (fn [evt] (and (heroku? evt) (:railgun evt) (:counts evt) (= (:key evt) "process_type") (= (:process_type evt) "worker")))
+    (fn [evt] (and (cloud? evt) (:railgun evt) (:counts evt) (= (:key evt) "process_type") (= (:process_type evt) "worker")))
     (fn [evt] (:ion_id evt))
     (fn [evt] (:num evt))))
 
 (defstat ps-running-other-last
   (last-sum
-    (fn [evt] (and (heroku? evt) (:railgun evt) (:counts evt) (= (:key evt) "process_type") (= (:process_type evt) "other")))
+    (fn [evt] (and (cloud? evt) (:railgun evt) (:counts evt) (= (:key evt) "process_type") (= (:process_type evt) "other")))
     (fn [evt] (:ion_id evt))
     (fn [evt] (:num evt))))
 
 (defstat ps-run-requests-per-minute
   (per-minute
-    (fn [evt] (and (heroku? evt) (:amqp_publish evt) (= (:exchange evt) "ps.run")))))
+    (fn [evt] (and (cloud? evt) (:amqp_publish evt) (= (:exchange evt) "ps.run")))))
 
 (defstat ps-runs-per-minute
   (per-minute
-    (fn [evt] (and (heroku? evt) (:ps_watch evt) (:ps_run evt) (= (:event evt) "start")))))
+    (fn [evt] (and (cloud? evt) (:ps_watch evt) (:ps_run evt) (= (:event evt) "start")))))
 
 (defstat ps-returns-per-minute
   (per-minute
-    (fn [evt] (and (heroku? evt) (:ps_watch evt) (:ps_run evt) (= (:event evt) "exit")))))
+    (fn [evt] (and (cloud? evt) (:ps_watch evt) (:ps_run evt) (= (:event evt) "exit")))))
 
 (defstat ps-stop-requests-per-minute
   (per-minute
-    (fn [evt] (and (heroku? evt) (:amqp_publish evt) (:exchange evt) (re-find #"ps\.kill\.\d+" (:exchange evt))))))
+    (fn [evt] (and (cloud? evt) (:amqp_publish evt) (:exchange evt) (re-find #"ps\.kill\.\d+" (:exchange evt))))))
 
 (defstat ps-stops-per-minute
   (per-minute
-    (fn [evt] (and (heroku? evt) (:ps_watch evt) (:trap_exit evt)))))
+    (fn [evt] (and (cloud? evt) (:ps_watch evt) (:trap_exit evt)))))
 
 (defstat ps-converges-per-second
   (per-second
-    (fn [evt] (and (heroku? evt) (= (:component evt) "psmgr") (= (:function evt) "transition") (= (:block evt) "begin")))))
+    (fn [evt] (and (cloud? evt) (= (:component evt) "psmgr") (= (:function evt) "transition") (= (:block evt) "begin")))))
 
 (defstat ps-timeouts-per-minute
   (per-minute
-    (fn [evt] (and (heroku? evt) (:monitor_boot evt) (= (:event evt) "timeout")))))
+    (fn [evt] (and (cloud? evt) (:monitor_boot evt) (= (:event evt) "timeout")))))
 
 (defstat ps-launch-time-mean
   (mean 60
-    (fn [evt] (and (heroku? evt) (:monitor_boot evt) (= (:event evt) "responsive")))
+    (fn [evt] (and (cloud? evt) (:monitor_boot evt) (= (:event evt) "responsive")))
     (fn [evt] (:age evt))))
 
 (defstat ps-lost-last
   (last
-    (fn [evt] (and (heroku? evt) (= (:component evt) "psmgr") (= (:function evt) "counts") (= (:event evt) "emit")))
+    (fn [evt] (and (cloud? evt) (= (:component evt) "psmgr") (= (:function evt) "counts") (= (:event evt) "emit")))
     (fn [evt] (:lost evt))))
 
 (defn errors-per-minute [component]
   (per-minute
-    (fn [evt] (and (heroku? evt)
+    (fn [evt] (and (cloud? evt)
                    (or (= (:facility evt) "user") (= (:facility evt) "local3") (= (:facility evt) "local0"))
                    (= (:level evt) "err")
                    (= (:component evt) component)))))
