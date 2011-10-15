@@ -34,7 +34,7 @@
          (stat/merge-apply stat-def stat-state pub))))))
 
 (defn -main []
-  (log "init event=start")
+  (log "init at=start")
   (let [apply-queue (queue/init 1000)
         publish-queue (queue/init 100)
         stats-states (init-stats def/all)]
@@ -44,4 +44,4 @@
     (init-emitter stats-states publish-queue)
     (init-appliers stats-states apply-queue)
     (io/init-subscriber (conf/redis-url) "stats.received" apply-queue))
-  (log "init event=finish"))
+  (log "init at=finish"))

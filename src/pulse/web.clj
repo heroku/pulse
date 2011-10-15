@@ -169,10 +169,10 @@
   (fn [{:keys [request-method uri] :as req}]
     (let [method (name request-method)
           start (util/millis)]
-      (log "req method=%s uri=%s event=start" method uri)
+      (log "req method=%s uri=%s at=start" method uri)
       (let [{:keys [status] :as resp} (handler req)
             elapsed (- (util/millis) start)]
-        (log "req method=%s uri=%s status=%d event=finish elapsed=%.3f" method uri status (/ elapsed 1000.0))
+        (log "req method=%s uri=%s status=%d at=finish elapsed=%.3f" method uri status (/ elapsed 1000.0))
         resp))))
 
 (defn wrap-only [handler wrapper pred]
@@ -198,7 +198,7 @@
     (wrap-stacktrace)))
 
 (defn -main []
-  (log "init event=start")
+  (log "init at=start")
   (util/spawn init-buffer)
   (run-jetty (app) {:port (conf/port) :join false})
-  (log "init event=finish"))
+  (log "init at=finish"))

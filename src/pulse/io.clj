@@ -14,7 +14,7 @@
 (defn bleeder [aorta-url handler]
   (let [{:keys [^String host ^Integer port auth]} (util/url-parse aorta-url)]
     (loop []
-      (log "bleed event=connect aorta_host=%s" host)
+      (log "bleed at=connect aorta_host=%s" host)
       (try
         (with-open [socket (Socket. host port)
                     in     (-> (.getInputStream socket) (InputStreamReader.) (BufferedReader.))
@@ -25,9 +25,9 @@
             (when-let [line (.readLine in)]
               (handler line)
               (recur))))
-        (log/log "bleed event=eof aorta_host=%s" host)
+        (log/log "bleed at=eof aorta_host=%s" host)
         (catch ConnectException e
-          (log/log "bleed event=exception aorta_host=%s" host)))
+          (log/log "bleed at=exception aorta_host=%s" host)))
       (Thread/sleep 100)
       (recur))))
 
@@ -50,7 +50,7 @@
               data-str (try
                          (json/generate-string data)
                          (catch Exception e
-                           (log "publish event=error data=%s" (pr-str data))
+                           (log "publish at=error data=%s" (pr-str data))
                            (throw e)))]
           (redis/publish redis chan data-str)))))))
 
