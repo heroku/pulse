@@ -18,7 +18,6 @@
 (defn scales-url [] (env! "SCALES_URL"))
 (defn api-url [] (env! "API_URL"))
 (defn deploy [] (env! "DEPLOY"))
-(defn cloud [] (env! "CLOUD"))
 
 (defn api-password []
   (second (str/split (:auth (util/url-parse (api-url))) #":")))
