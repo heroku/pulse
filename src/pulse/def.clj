@@ -158,30 +158,10 @@
   (per-second
     (fn [evt] true)))
 
-(defstat events-per-second-by-parsed
-  (per-second-by-key
-    (fn [evt] true)
-    (fn [evt] (:parsed evt))))
-
 (defstat events-per-second-by-aorta-host
   (per-second-by-key
     (fn [evt] true)
     (fn [evt] (:aorta_host evt))))
-
-(defstat events-per-second-by-event-type
-  (per-second-by-key
-    (fn [evt] true)
-    (fn [evt] (or (:event_type evt) "none"))))
-
-(defstat events-per-second-by-level
-  (per-second-by-key
-    (fn [evt] true)
-    (fn [evt] (or (:level evt) "none"))))
-
-(defstat events-per-second-by-cloud
-  (per-second-by-key
-    (fn [evt] true)
-    (fn [evt] (or (:cloud evt) "none"))))
 
 (defstat nginx-requests-per-second
   (per-second
@@ -467,11 +447,7 @@
 
 (def all
   [events-per-second
-   ; events-per-second-by-parsed
    events-per-second-by-aorta-host
-   ; events-per-second-by-event-type
-   ; events-per-second-by-level
-   ; events-per-second-by-cloud
    nginx-requests-per-second
    ; nginx-requests-per-second-by-domain
    nginx-500-per-minute
