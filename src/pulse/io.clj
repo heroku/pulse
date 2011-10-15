@@ -9,12 +9,12 @@
            (java.net Socket ConnectException)))
 
 (defn log [msg & args]
-  (apply log/log (str "io " msg) args))
+  (apply log/log (str "ns=io " msg) args))
 
 (defn bleeder [aorta-url handler]
   (let [{:keys [^String host ^Integer port auth]} (util/url-parse aorta-url)]
     (loop []
-      (log "bleed at=connect aorta_host=%s" host)
+      (log "fn=bleeder at=connect aorta_host=%s" host)
       (try
         (with-open [socket (Socket. host port)
                     in     (-> (.getInputStream socket) (InputStreamReader.) (BufferedReader.))
@@ -25,38 +25,38 @@
             (when-let [line (.readLine in)]
               (handler line)
               (recur))))
-        (log/log "bleed at=eof aorta_host=%s" host)
+        (log/log "fn=bleeder at=eof aorta_host=%s" host)
         (catch ConnectException e
-          (log/log "bleed at=exception aorta_host=%s" host)))
+          (log/log "fn=bleeder at=exception aorta_host=%s" host)))
       (Thread/sleep 100)
       (recur))))
 
 (defn init-bleeders [aorta-urls apply-queue]
-  (log "init_bleeders")
+  (log "fn=init-bleeders")
   (doseq [aorta-url aorta-urls]
     (let [{aorta-host :host} (util/url-parse aorta-url)]
-      (log "init_bleeder aorta_host=%s" aorta-host)
+      (log "fn=init-bleeder aorta_host=%s" aorta-host)
       (util/spawn (fn []
         (bleeder aorta-url (fn [line]
           (queue/offer apply-queue [aorta-host line]))))))))
 
 (defn init-publishers [publish-queue redis-url chan workers]
   (let [redis (redis/init {:url redis-url})]
-    (log "init_publishers chan=%s" chan)
+    (log "fn=init-publishers chan=%s" chan)
     (dotimes [i workers]
-      (log "init_publisher chan=%s index=%d" chan i)
+      (log "fn=init=publisher chan=%s index=%d" chan i)
       (util/spawn-loop (fn []
         (let [data (queue/take publish-queue)
               data-str (try
                          (json/generate-string data)
                          (catch Exception e
-                           (log "publish at=error data=%s" (pr-str data))
+                           (log "fn=init-publishers at=exception data=%s" (pr-str data))
                            (throw e)))]
           (redis/publish redis chan data-str)))))))
 
 (defn init-subscriber [redis-url chan apply-queue]
   (let [redis (redis/init {:url redis-url})]
-    (log "init_subscribe chan=%s" chan)
+    (log "fn=init-subscriber chan=%s" chan)
     (redis/subscribe redis [chan]
       (fn [_ data-json]
         (queue/offer apply-queue (json/parse-string data-json))))))

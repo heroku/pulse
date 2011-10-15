@@ -147,5 +147,5 @@
         (parse-standard-line l)
         (parse-raw-line l))
     (catch Exception e
-      (log/log "parse error %s" l)
+      (log/log "fn=parse-line at=exception %s" l)
       (throw e))))

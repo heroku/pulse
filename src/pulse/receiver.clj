@@ -9,7 +9,7 @@
             [pulse.def :as def]))
 
 (defn log [msg & args]
-  (apply log/log (str "receiver " msg) args))
+  (apply log/log (str "ns=receiver " msg) args))
 
 (defn init-stats [stat-defs]
   (map
@@ -18,7 +18,7 @@
     stat-defs))
 
 (defn init-emitter [stats publish-queue]
-  (log "init_emitter")
+  (log "fn=init-emitter")
   (util/spawn-tick 500 (fn []
     (doseq [[stat-def stat-state] stats]
       (let [pub (stat/receive-emit stat-def stat-state)]
@@ -30,9 +30,9 @@
     {:line line :aorta_host aorta-host :parsed false}))
 
 (defn init-appliers [stats apply-queue]
-  (log "init_appliers")
+  (log "fn=init-appliers")
   (dotimes [i 2]
-     (log "init_applier index=%d" i)
+     (log "fn=init-applier index=%d" i)
      (util/spawn-loop (fn []
        (let [[aorta-host line] (queue/take apply-queue)
              event (parse aorta-host line)]
@@ -40,7 +40,7 @@
            (stat/receive-apply stat-def stat-state event)))))))
 
 (defn -main []
-  (log "init at=start")
+  (log "fn=main at=start")
   (let [apply-queue (queue/init 10000)
         publish-queue (queue/init 1000)
         stats-states (init-stats def/all)]
@@ -50,4 +50,4 @@
     (init-emitter stats-states publish-queue)
     (init-appliers stats-states apply-queue)
     (io/init-bleeders (conf/aorta-urls) apply-queue)
-  (log "init at=finish")))
+  (log "fn=main at=finish")))

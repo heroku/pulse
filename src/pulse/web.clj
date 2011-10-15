@@ -17,7 +17,7 @@
             [pulse.log :as log]))
 
 (defn log [msg & args]
-  (apply log/log (str "web " msg) args))
+  (apply log/log (str "ns=web " msg) args))
 
 (def graphs
   [[["nginx req/sec"      "nginx-requests-per-second"]
@@ -130,7 +130,7 @@
     (conj (pop buff) val)))
 
 (defn init-buffer []
-  (log "init_buffer")
+  (log "fn=init-buffer at=start")
   (let [rd (redis/init {:url (conf/redis-url)})]
     (redis/subscribe rd ["stats.merged"] (fn [_ stat-json]
       (let [[stat-name stat-val] (json/parse-string stat-json)
@@ -169,10 +169,10 @@
   (fn [{:keys [request-method uri] :as req}]
     (let [method (name request-method)
           start (util/millis)]
-      (log "req method=%s uri=%s at=start" method uri)
+      (log "fn=wrap-logging method=%s uri=%s at=start" method uri)
       (let [{:keys [status] :as resp} (handler req)
             elapsed (- (util/millis) start)]
-        (log "req method=%s uri=%s status=%d at=finish elapsed=%.3f" method uri status (/ elapsed 1000.0))
+        (log "fn=warp-logging method=%s uri=%s status=%d at=finish elapsed=%.3f" method uri status (/ elapsed 1000.0))
         resp))))
 
 (defn wrap-only [handler wrapper pred]
@@ -198,7 +198,7 @@
     (wrap-stacktrace)))
 
 (defn -main []
-  (log "init at=start")
+  (log "fn=main at=start")
   (util/spawn init-buffer)
   (run-jetty (app) {:port (conf/port) :join false})
-  (log "init at=finish"))
+  (log "fn=main at=finish"))
