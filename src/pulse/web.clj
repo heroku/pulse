@@ -185,7 +185,7 @@
     (prn req)
     (handler req)))
 
-(def app
+(defn app []
   (-> core-app
     (wrap-only #(wrap-basic-auth % api-auth?) #(= "/stats" (:uri %)))
     (wrap-only wrap-cros-headers #(= "/stats" (:uri %)))
@@ -199,5 +199,5 @@
 (defn -main []
   (log "init event=start")
   (util/spawn init-buffer)
-  (run-jetty #'app {:port (conf/port) :join false})
+  (run-jetty (app) {:port (conf/port) :join false})
   (log "init event=finish"))
