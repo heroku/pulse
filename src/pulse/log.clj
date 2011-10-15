@@ -3,5 +3,5 @@
 
 (defn log [fmt & args]
   (locking *out*
-    (apply printf (str "pulse deploy=%s" fmt "\n") (conf/deploy) args)
+    (apply printf (str "pulse deploy=%s " fmt "\n") (conf/deploy) args)
     (flush)))
