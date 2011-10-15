@@ -6,7 +6,7 @@
             [clj-redis.client :as redis])
   (:import (clojure.lang LineNumberingPushbackReader)
            (java.io InputStreamReader BufferedReader PrintWriter)
-           (java.net Socket ConnectException)))
+           (java.net Socket SocketException ConnectException)))
 
 (defn log [msg & args]
   (apply log/log (str "ns=io " msg) args))
@@ -27,7 +27,9 @@
               (recur))))
         (log/log "fn=bleeder at=eof aorta_host=%s" host)
         (catch ConnectException e
-          (log/log "fn=bleeder at=exception aorta_host=%s" host)))
+          (log/log "fn=bleeder at=connect_exception aorta_host=%s" host))
+        (catch SocketException e
+          (log/log "fn=bleeder at=socket_exception aorta_host=%s" host)))
       (Thread/sleep 100)
       (recur))))
 
