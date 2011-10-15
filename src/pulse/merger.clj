@@ -35,7 +35,7 @@
 
 (defn -main []
   (log "fn=main at=start")
-  (let [apply-queue (queue/init 1000)
+  (let [apply-queue (queue/init 2000)
         publish-queue (queue/init 100)
         stats-states (init-stats def/all)]
     (queue/init-watcher apply-queue "apply")
