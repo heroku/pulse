@@ -449,7 +449,7 @@
   [events-per-second
    events-per-second-by-aorta-host
    nginx-requests-per-second
-   ; nginx-requests-per-second-by-domain
+   nginx-requests-per-second-by-domain
    nginx-500-per-minute
    nginx-502-per-minute
    nginx-503-per-minute
@@ -465,7 +465,7 @@
    rendezvous-joins-per-minute
    rendezvous-rendezvous-per-minute
    hermes-requests-per-second
-   ; hermes-requests-per-second-by-app-id
+   hermes-requests-per-second-by-app-id
    hermes-h10-per-minute
    hermes-h11-per-minute
    hermes-h12-per-minute
