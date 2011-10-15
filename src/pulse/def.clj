@@ -479,7 +479,7 @@
    nginx-503-per-minute
    nginx-504-per-minute
    nginx-errors-per-minute
-   ; nginx-errors-per-minute-by-host
+   nginx-errors-per-minute-by-host
    varnish-requests-per-second
    varnish-500-per-minute
    varnish-502-per-minute
