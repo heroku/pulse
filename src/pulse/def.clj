@@ -1,6 +1,7 @@
 (ns pulse.def
   (:refer-clojure :exclude [last])
-  (:require [pulse.util :as util]))
+  (:require [pulse.util :as util])
+  (:require [pulse.conf :as conf]))
 
 (defn safe-inc [n]
   (inc (or n 0)))

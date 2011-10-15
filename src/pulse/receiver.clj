@@ -1,14 +1,15 @@
 (ns pulse.receiver
-  (:require [pulse.conf :as conf])
-  (:require [pulse.util :as util])
-  (:require [pulse.queue :as queue])
-  (:require [pulse.io :as io])
-  (:require [pulse.parse :as parse])
-  (:require [pulse.stat :as stat])
-  (:require [pulse.def :as def]))
+  (:require [pulse.conf :as conf]
+            [pulse.log :as log]
+            [pulse.util :as util]
+            [pulse.queue :as queue]
+            [pulse.io :as io]
+            [pulse.parse :as parse]
+            [pulse.stat :as stat]
+            [pulse.def :as def]))
 
 (defn log [msg & args]
-  (apply util/log (str "receiver " msg) args))
+  (apply log/log (str "receiver " msg) args))
 
 (defn init-stats [stat-defs]
   (map

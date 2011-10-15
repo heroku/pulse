@@ -1,13 +1,14 @@
 (ns pulse.merger
-  (:require [pulse.conf :as conf])
-  (:require [pulse.util :as util])
-  (:require [pulse.queue :as queue])
-  (:require [pulse.io :as io])
-  (:require [pulse.stat :as stat])
-  (:require [pulse.def :as def]))
+  (:require [pulse.conf :as conf]
+            [pulse.util :as util]
+            [pulse.log :as log]
+            [pulse.queue :as queue]
+            [pulse.io :as io]
+            [pulse.stat :as stat]
+            [pulse.def :as def]))
 
 (defn log [msg & args]
-  (apply util/log (str "merger " msg) args))
+  (apply log/log (str "merger " msg) args))
 
 (defn init-stats [stat-defs]
   (reduce

@@ -1,14 +1,15 @@
 (ns pulse.io
-  (:require [pulse.util :as util])
-  (:require [pulse.queue :as queue])
-  (:require [clj-json.core :as json])
-  (:require [clj-redis.client :as redis])
-  (:import (clojure.lang LineNumberingPushbackReader))
-  (:import (java.io InputStreamReader BufferedReader PrintWriter))
-  (:import (java.net Socket ConnectException)))
+  (:require [pulse.util :as util]
+            [pulse.log :as log]
+            [pulse.queue :as queue]
+            [clj-json.core :as json]
+            [clj-redis.client :as redis])
+  (:import (clojure.lang LineNumberingPushbackReader)
+           (java.io InputStreamReader BufferedReader PrintWriter)
+           (java.net Socket ConnectException)))
 
 (defn log [msg & args]
-  (apply util/log (str "io " msg) args))
+  (apply log/log (str "io " msg) args))
 
 (defn bleeder [aorta-url handler]
   (let [{:keys [^String host ^Integer port auth]} (util/url-parse aorta-url)]
@@ -24,9 +25,9 @@
             (when-let [line (.readLine in)]
               (handler line)
               (recur))))
-        (util/log "bleed event=eof aorta_host=%s" host)
+        (log/log "bleed event=eof aorta_host=%s" host)
         (catch ConnectException e
-          (util/log "bleed event=exception aorta_host=%s" host)))
+          (log/log "bleed event=exception aorta_host=%s" host)))
       (Thread/sleep 100)
       (recur))))
 

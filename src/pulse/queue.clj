@@ -1,8 +1,9 @@
 (ns pulse.queue
-  (:require [pulse.util :as util])
+  (:require [pulse.util :as util]
+            [pulse.log :as log])
   (:refer-clojure :exclude (take))
-  (:import java.util.concurrent.ArrayBlockingQueue)
-  (:import java.util.concurrent.atomic.AtomicLong))
+  (:import java.util.concurrent.ArrayBlockingQueue
+           java.util.concurrent.atomic.AtomicLong))
 
 (defn init [size]
   [(ArrayBlockingQueue. size) (AtomicLong. 0) (AtomicLong. 0) (AtomicLong. 0)])
@@ -21,7 +22,7 @@
   [(.size queue) (.get pushed) (.get popped) (.get dropped)])
 
 (defn log [msg & args]
-  (apply util/log (str "queue " msg) args))
+  (apply log/log (str "queue " msg) args))
 
 (defn init-watcher [queue queue-name]
   (log "init_watcher name=%s" queue-name)

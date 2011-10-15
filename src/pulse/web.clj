@@ -1,22 +1,23 @@
 (ns pulse.web
-  (:use ring.util.response)
-  (:use ring.middleware.params)
-  (:use ring.middleware.session)
-  (:use ring.middleware.session.cookie)
-  (:use ring.middleware.basic-auth)
-  (:use ring.middleware.file)
-  (:use ring.middleware.file-info)
-  (:use ring.middleware.stacktrace)
-  (:use ring.adapter.jetty)
-  (:use hiccup.core)
-  (:require [ring.util.codec :as codec])
-  (:require [clj-json.core :as json])
-  (:require [clj-redis.client :as redis])
-  (:require [pulse.conf :as conf])
-  (:require [pulse.util :as util]))
+  (:use ring.util.response
+        ring.middleware.params
+        ring.middleware.session
+        ring.middleware.session.cookie
+        ring.middleware.basic-auth
+        ring.middleware.file
+        ring.middleware.file-info
+        ring.middleware.stacktrace
+        ring.adapter.jetty
+        hiccup.core)
+  (:require [ring.util.codec :as codec]
+            [clj-json.core :as json]
+            [clj-redis.client :as redis]
+            [pulse.conf :as conf]
+            [pulse.util :as util]
+            [pulse.log :as log]))
 
 (defn log [msg & args]
-  (apply util/log (str "web " msg) args))
+  (apply log/log (str "web " msg) args))
 
 (def graphs
   [[["nginx req/sec"      "nginx-requests-per-second"]

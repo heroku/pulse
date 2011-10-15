@@ -1,7 +1,7 @@
 (ns pulse.util
-  (:import (java.util.concurrent Executors TimeUnit))
-  (:import (java.net URI))
-  (:import (java.util UUID)))
+  (:import (java.util.concurrent Executors TimeUnit)
+           (java.net URI)
+           (java.util UUID)))
 
 (defn ^Runnable crashing [f]
   (fn []
@@ -26,11 +26,6 @@
 (defn spawn-tick [t f]
   (let [e (Executors/newSingleThreadScheduledExecutor)]
     (.scheduleAtFixedRate e (crashing f) 0 t TimeUnit/MILLISECONDS)))
-
-(defn log [fmt & args]
-  (locking *out*
-    (apply printf (str "pulse " fmt "\n") args)
-    (flush)))
 
 (defn url-parse [url]
   (let [u (URI. url)]

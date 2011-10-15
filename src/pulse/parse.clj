@@ -1,7 +1,8 @@
 (ns pulse.parse
   (:import java.text.SimpleDateFormat)
-  (:require [clojure.string :as str])
-  (:require [pulse.util :as util]))
+  (:require [clojure.string :as str]
+            [pulse.util :as util]
+            [pulse.log :as log]))
 
 (defn re-match? [re s]
   (let [m (re-matcher re s)]
@@ -146,5 +147,5 @@
         (parse-standard-line l)
         (parse-raw-line l))
     (catch Exception e
-      (util/log "parse error %s" l)
+      (log/log "parse error %s" l)
       (throw e))))

@@ -17,6 +17,7 @@
 (defn force-https? [] (boolean (env "FORCE_HTTPS")))
 (defn scales-url [] (env! "SCALES_URL"))
 (defn api-url [] (env! "API_URL"))
+(defn deploy [] (env! "DEPLOY"))
 
 (defn api-password []
   (second (str/split (:auth (util/url-parse (api-url))) #":")))
