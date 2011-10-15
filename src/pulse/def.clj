@@ -499,9 +499,9 @@
    amqp-publishes-per-second
    amqp-receives-per-second
    amqp-timeouts-per-minute
-   ; amqp-publishes-per-second-by-exchange
-   ; amqp-receives-per-second-by-exchange
-   ; amqp-timeouts-per-minute-by-exchange
+   amqp-publishes-per-second-by-exchange
+   amqp-receives-per-second-by-exchange
+   amqp-timeouts-per-minute-by-exchange
    slugc-pushes-per-minute
    slugc-fails-per-minute
    slugc-errors-per-minute
