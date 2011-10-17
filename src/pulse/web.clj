@@ -182,11 +182,6 @@
         (wrapper-handler req)
         (handler req)))))
 
-(defn wrap-debug [handler]
-  (fn [req]
-    (prn req)
-    (handler req)))
-
 (defn app []
   (-> core-app
     (wrap-only #(wrap-basic-auth % api-auth?) #(= "/stats" (:uri %)))
