@@ -98,23 +98,23 @@
                     [:span {:id (str key "-sparkline")}] [:br]
                     (str label ": ") [:span {:id (str key "-scalar")}]])])]]]]))
 
-(defn view-handler [req]
+(defn view-handler []
   {:status 200
    :headers {"Content-Type" "text/html"}
    :body (view)})
 
-(def static-handler
-  (-> view-handler
-    (wrap-file "public")
-    (wrap-file-info)))
-
 (defonce stats-buffs-a
   (atom {}))
 
-(defn stats-handler [req]
+(defn stats-handler []
   {:status 200
    :headers {"Content-Type" "application/json"}
    :body (json/generate-string @stats-buffs-a)})
+
+(defn not-found-handler []
+  {:status 404
+   :headers {"Content-Type" "text/html"}
+   :body "Not Found"})
 
 (defn wrap-cros-headers [handler]
   (fn [req]
@@ -138,9 +138,13 @@
         (swap! stats-buffs-a util/update stat-name #(buff-append % stat-val stat-depth)))))))
 
 (defn core-app [{:keys [uri] :as req}]
-  (if (= uri "/stats")
-    (stats-handler req)
-    (static-handler req)))
+  (cond
+    (= uri "/stats")
+      (stats-handler)
+    (= uri "/")
+      (view-handler)
+    :else
+      (not-found-handler)))
 
 (defn wrap-openid-proxy [handler]
   (fn [req]
@@ -179,11 +183,13 @@
   (let [wrapped-handler (wrapper handler)]
     (fn [req]
       (if (pred req)
-        (wrapper-handler req)
+        (wrapped-handler req)
         (handler req)))))
 
 (defn app []
   (-> core-app
+    (wrap-file "public")
+    (wrap-file-info)
     (wrap-only #(wrap-basic-auth % api-auth?) #(= "/stats" (:uri %)))
     (wrap-only wrap-cros-headers #(= "/stats" (:uri %)))
     (wrap-only wrap-openid-proxy #(not= "/stats" (:uri %)))
