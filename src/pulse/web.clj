@@ -176,10 +176,11 @@
         resp))))
 
 (defn wrap-only [handler wrapper pred]
-  (fn [req]
-    (if (pred req)
-      ((wrapper handler) req)
-      (handler req))))
+  (let [wrapped-handler (wrapper handler)]
+    (fn [req]
+      (if (pred req)
+        (wrapper-handler req)
+        (handler req)))))
 
 (defn wrap-debug [handler]
   (fn [req]
