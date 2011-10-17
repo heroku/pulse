@@ -292,20 +292,116 @@
     (fn [evt] (and (cloud? evt) (:amqp_message evt) (= (:action evt) "timeout")))
     (fn [evt] (:exchange evt))))
 
-(defstat slugc-pushes-per-minute
+(defstat gitproxy-connections-per-minute
   (per-minute
-    (fn [evt]
-      (and (cloud? evt) (:slugc evt) (:bin evt) (= (:event evt) "start")))))
+    (fn [evt] (and (cloud? evt) (:gitproxy evt) (:run evt) (= (:at evt) "start")))))
 
-(defstat slugc-fails-per-minute
+(defstat gitproxy-invalids-per-minute
   (per-minute
-    (fn [evt]
-      (and (cloud? evt) (:slugc evt) (:bin evt) (= (:event evt) "fail")))))
+    (fn [evt] (and (cloud? evt) (:gitproxy evt) (:run evt) (= (:at evt) "invalid")))))
+
+(defstat gitproxy-errors-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (:gitproxy evt) (:run evt) (= (:at evt) "exception") (not (:reraise evt))))))
+
+(defstat gitproxy-successes-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (:gitproxy evt) (:run evt) (= (:at evt) "success")))))
+
+(defstat gitproxy-mean-metadata-time
+  (mean 60
+    (fn [evt] (and (cloud? evt) (:gitproxy evt) (:fetch_push_metadata evt) (= (:event evt) "finish")))
+    (fn [evt] (:elapsed evt))))
+
+(defstat gitproxy-mean-provision-time
+  (mean 60
+    (fn [evt] (and (cloud? evt) (:gitproxy evt) (:fetch_ssh_info evt) (= (:backend evt) "codon") (= (:at evt) "finish")))
+    (fn [evt] (:elapsed evt))))
+
+(defstat gitproxy-mean-service-time
+  (mean 60
+    (fn [evt] (and (cloud? evt) (:gitproxy evt) (:run evt) (= (:at evt) "finish")))
+    (fn [evt] (:elapsed evt))))
+
+(defstat codon-mean-fetch-time
+  (mean 60
+    (fn [evt] (and (:codon evt) (:production evt) (:fetch_archive evt) (= (:at evt) "finish")))
+    (fn [evt] (:elapsed evt))))
+
+(defstat codon-mean-stow-time
+  (mean 60
+    (fn [evt] (and (:codon evt) (:production evt) (:stow_repo evt) (= (:at evt) "finish")))
+    (fn [evt] (:elapsed evt))))
+
+(defstat codon-fetch-errors-per-minute
+  (per-minute
+    (fn [evt] (and (:codon evt) (:production evt) (:fetch_archive evt) (= (:at evt) "error")))))
+
+(defstat codon-stow-errors-per-minute
+  (per-minute
+    (fn [evt] (and (:codon evt) (:production evt) (:stow_repo evt) (= (:at evt) "exception")))))
+
+(defstat codon-compiling-last
+  (last-sum
+    (fn [evt] (and (:codon evt) (:production evt) (:spawn_status_monitor evt) (= (:at evt) "watch")))
+    (fn [evt] (:hostname evt))
+    (fn [evt] (if (and (:started evt) (not (or (:finished evt) (:errored evt)))) 1 0))))
+
+(defstat codon-mean-service-time
+  (mean 60
+    (fn [evt] (and (:codon evt) (:production evt) (:run evt) (= (:at evt) "finish")))
+    (fn [evt] (:elapsed evt))))
+
+(defstat slugc-compiles-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (:slugc evt) (:bin evt) (= (:event evt) "start")))))
+
+(defstat slugc-aspen-compiles-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (:slugc evt) (:bin evt) (= (:event evt) "start" (= (:major_stack evt) "aspen"))))))
+
+(defstat slugc-bamboo-compiles-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (:slugc evt) (:bin evt) (= (:event evt) "start" (= (:major_stack evt) "bamboo"))))))
+
+(defstat slugc-cedar-compiles-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (:slugc evt) (:bin evt) (= (:event evt) "start" (= (:major_stack evt) "cedar"))))))
+
+(defstat slugc-failures-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (:slugc evt) (:bin evt) (= (:event evt) "fail")))))
 
 (defstat slugc-errors-per-minute
   (per-minute
-    (fn [evt]
-      (and (cloud? evt) (:slugc evt) (:bin evt) (= (:event evt) "error")))))
+    (fn [evt] (and (cloud? evt) (:slugc evt) (:bin evt) (= (:event evt) "error")))))
+
+(defstat slugc-successes-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (:slugc evt) (:bin evt) (= (:event evt) "finish")))))
+
+(defstat slugc-mean-stow-time
+  (mean 60
+    (fn [evt] (and (cloud? evt) (:slugc evt) (:store_in_s3 evt) (= (:event evt) "finish")))
+    (fn [evt] (:elapsed evt))))
+
+(defstat slugc-mean-release-time
+  (mean 60
+    (fn [evt] (and (cloud? evt) (:slugc evt) (:post_release evt) (= (:event evt) "finish")))
+    (fn [evt] (:elapsed evt))))
+
+(defstat slugc-stow-errors-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (:slugc evt) (:store_in_s3 evt) (= (:event evt) "error")))))
+
+(defstat slugc-release-errors-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (:slugc evt) (:post_release evt) (= (:event evt) "error")))))
+
+(defstat slugc-mean-compile-time
+  (mean 60
+    (fn [evt] (and (cloud? evt) (:slugc evt) (:bin evt) (= (:event evt) "finish")))
+    (fn [evt] (:elapsed evt))))
 
 (defstat releases-per-minute
   (per-minute
@@ -436,9 +532,6 @@
 (defstat codex-errors-per-minute
   (errors-per-minute "codex"))
 
-(defstat gitproxy-errors-per-minute
-  (errors-per-minute "gitproxy"))
-
 (defstat shen-errors-per-minute
   (errors-per-minute "shen"))
 
@@ -478,9 +571,31 @@
    amqp-publishes-per-second-by-exchange
    amqp-receives-per-second-by-exchange
    amqp-timeouts-per-minute-by-exchange
-   slugc-pushes-per-minute
-   slugc-fails-per-minute
+   gitproxy-connections-per-minute
+   gitproxy-invalids-per-minute
+   gitproxy-errors-per-minute
+   gitproxy-successes-per-minute
+   gitproxy-mean-metadata-time
+   gitproxy-mean-provision-time
+   gitproxy-mean-service-time
+   codon-mean-fetch-time
+   codon-mean-stow-time
+   codon-fetch-errors-per-minute
+   codon-stow-errors-per-minute
+   codon-compiling-last
+   codon-mean-service-time
+   slugc-compiles-per-minute
+   slugc-aspen-compiles-per-minute
+   slugc-bamboo-compiles-per-minute
+   slugc-cedar-compiles-per-minute
+   slugc-failures-per-minute
    slugc-errors-per-minute
+   slugc-successes-per-minute
+   slugc-mean-stow-time
+   slugc-mean-release-time
+   slugc-stow-errors-per-minute
+   slugc-release-errors-per-minute
+   slugc-mean-compile-time
    releases-per-minute
    ps-up-total-last
    ps-up-web-last
@@ -508,6 +623,5 @@
    psmgr-errors-per-minute
    api-errors-per-minute
    codex-errors-per-minute
-   gitproxy-errors-per-minute
    shen-errors-per-minute
    hermes-errors-per-minute])
