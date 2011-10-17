@@ -19,65 +19,92 @@
 (defn log [msg & args]
   (apply log/log (str "ns=web " msg) args))
 
-(def graphs
-  [[["nginx req/sec"      "nginx-requests-per-second"]
-    ["nginx 500/min"      "nginx-500-per-minute"]
-    ["nginx 502/min"      "nginx-502-per-minute"]
-    ["nginx 503/min"      "nginx-503-per-minute"]
-    ["nginx 504/min"      "nginx-504-per-minute"]
-    ["nginx err/min"      "nginx-errors-per-minute"]
-    ["event/sec"          "events-per-second"]]
-   [["varnish req/sec"    "varnish-requests-per-second"]
-    ["varnish 500/min"    "varnish-500-per-minute"]
-    ["varnish 502/min"    "varnish-502-per-minute"]
-    ["varnish 503/min"    "varnish-503-per-minute"]
-    ["varnish 504/min"    "varnish-504-per-minute"]
-    ["varnish purge/min"  "varnish-purges-per-minute"]
-    ["rdv join/min"       "rendezvous-joins-per-minute"]]
-   [["hermes req/sec"     "hermes-requests-per-second"]
-    ["hermes H10/min"     "hermes-h10-per-minute"]
-    ["hermes H11/min"     "hermes-h11-per-minute"]
-    ["hermes H12/min"     "hermes-h12-per-minute"]
-    ["hermes H13/min"     "hermes-h13-per-minute"]
-    ["hermes H14/min"     "hermes-h14-per-minute"]
-    ["hermes H99/min"     "hermes-h99-per-minute"]]
-   [["ps up"              "ps-up-total-last"]
-    ["ps up web"          "ps-up-web-last"]
-    ["ps up worker"       "ps-up-worker-last"]
-    ["ps up other"        "ps-up-other-last"]
-    ["ps starting"        "ps-starting-last"]
-    ["ps crashed"         "ps-crashed-last"]
-    ["ps created"         "ps-created-last"]]
-   [["ps running"         "ps-running-total-last"]
-    ["ps running web"     "ps-running-web-last"]
-    ["ps running worker"  "ps-running-worker-last"]
-    ["ps running other"   "ps-running-other-last"]
-    ["ps launch time"     "ps-launch-time-mean"]
-    ["ps tout/min"        "ps-timeouts-per-minute"]
-    ["ps lost"            "ps-lost-last"]]
-   [["ps run req/min"     "ps-run-requests-per-minute"]
-    ["ps runs/min"        "ps-runs-per-minute"]
-    ["ps stop req/min"    "ps-stop-requests-per-minute"]
-    ["ps stops/min"       "ps-stops-per-minute"]
-    ["ps idle/min"        "ps-idles-per-minute"]
-    ["ps unidle/min"      "ps-unidles-per-minute"]
-    ["ps conv/sec"        "ps-converges-per-second"]]
-   [["amqp pub/sec"       "amqp-publishes-per-second"]
-    ["amqp rec/sec"       "amqp-receives-per-second"]
-    ["amqp tout/min"      "amqp-timeouts-per-minute"]
-    ["slugc compile/min"  "slugc-compiles-per-minute"]
-    ["slugc fail/min"     "slugc-failures-per-minute"]
-    ["slugc err/min"      "slugc-errors-per-minute"]
-    ["release/min"        "releases-per-minute"]]
-   [["railgun err/min"    "railgun-errors-per-minute"]
-    ["psmgr err/min"      "psmgr-errors-per-minute"]
-    ["api err/min"        "api-errors-per-minute"]
-    ["codex err/min"      "codex-errors-per-minute"]
-    ["gitproxy err/min"   "gitproxy-errors-per-minute"]
-    ["shen err/min"       "shen-errors-per-minute"]
-    ["hermes error/min"   "hermes-errors-per-minute"]]])
+(def graphs-index
+  [[["nginx req/sec"       "nginx-requests-per-second"]
+    ["nginx 500/min"       "nginx-500-per-minute"]
+    ["nginx 502/min"       "nginx-502-per-minute"]
+    ["nginx 503/min"       "nginx-503-per-minute"]
+    ["nginx 504/min"       "nginx-504-per-minute"]
+    ["nginx err/min"       "nginx-errors-per-minute"]
+    ["event/sec"           "events-per-second"]]
+   [["varnish req/sec"     "varnish-requests-per-second"]
+    ["varnish 500/min"     "varnish-500-per-minute"]
+    ["varnish 502/min"     "varnish-502-per-minute"]
+    ["varnish 503/min"     "varnish-503-per-minute"]
+    ["varnish 504/min"     "varnish-504-per-minute"]
+    ["varnish purge/min"   "varnish-purges-per-minute"]
+    ["rdv join/min"        "rendezvous-joins-per-minute"]]
+   [["hermes req/sec"      "hermes-requests-per-second"]
+    ["hermes H10/min"      "hermes-h10-per-minute"]
+    ["hermes H11/min"      "hermes-h11-per-minute"]
+    ["hermes H12/min"      "hermes-h12-per-minute"]
+    ["hermes H13/min"      "hermes-h13-per-minute"]
+    ["hermes H14/min"      "hermes-h14-per-minute"]
+    ["hermes H99/min"      "hermes-h99-per-minute"]]
+   [["ps up"               "ps-up-total-last"]
+    ["ps up web"           "ps-up-web-last"]
+    ["ps up worker"        "ps-up-worker-last"]
+    ["ps up other"         "ps-up-other-last"]
+    ["ps starting"         "ps-starting-last"]
+    ["ps crashed"          "ps-crashed-last"]
+    ["ps created"          "ps-created-last"]]
+   [["ps running"          "ps-running-total-last"]
+    ["ps running web"      "ps-running-web-last"]
+    ["ps running worker"   "ps-running-worker-last"]
+    ["ps running other"    "ps-running-other-last"]
+    ["ps launch time"      "ps-launch-time-mean"]
+    ["ps tout/min"         "ps-timeouts-per-minute"]
+    ["ps lost"             "ps-lost-last"]]
+   [["ps run req/min"      "ps-run-requests-per-minute"]
+    ["ps runs/min"         "ps-runs-per-minute"]
+    ["ps stop req/min"     "ps-stop-requests-per-minute"]
+    ["ps stops/min"        "ps-stops-per-minute"]
+    ["ps idle/min"         "ps-idles-per-minute"]
+    ["ps unidle/min"       "ps-unidles-per-minute"]
+    ["ps conv/sec"         "ps-converges-per-second"]]
+   [["amqp pub/sec"        "amqp-publishes-per-second"]
+    ["amqp rec/sec"        "amqp-receives-per-second"]
+    ["amqp tout/min"       "amqp-timeouts-per-minute"]
+    ["slugc compile/min"   "slugc-compiles-per-minute"]
+    ["slugc fail/min"      "slugc-failures-per-minute"]
+    ["slugc err/min"       "slugc-errors-per-minute"]
+    ["release/min"         "releases-per-minute"]]
+   [["railgun err/min"     "railgun-errors-per-minute"]
+    ["psmgr err/min"       "psmgr-errors-per-minute"]
+    ["api err/min"         "api-errors-per-minute"]
+    ["codex err/min"       "codex-errors-per-minute"]
+    ["gitproxy err/min"    "gitproxy-errors-per-minute"]
+    ["shen err/min"        "shen-errors-per-minute"]
+    ["hermes error/min"    "hermes-errors-per-minute"]]])
 
-(defn view []
+(def graphs-packaging
+  [[["gitproxy con/min"    "gitproxy-connections-per-minute"]
+    ["gitproxy inv/min"    "gitproxy-invalids-per-minute"]
+    ["gitproxy err/min"    "gitproxy-errors-per-minute"]
+    ["gitproxy succ/min"   "gitproxy-successes-per-minute"]
+    ["gitproxy meta time"  "gitproxy-mean-metadata-time"]
+    ["gitproxy prov time"  "gitproxy-mean-provision-time"]
+    ["gitproxy serv time"  "gitproxy-mean-service-time"]]
+   [["codon fetch time"    "codon-mean-fetch-time"]
+    ["codon stow time"     "codon-mean-stow-time"]
+    ["codon fetch err/min" "codon-fetch-errors-per-minute"]
+    ["codon stow err/min"  "codon-stow-errors-per-minute"]
+    ["codon compiling"     "codon-compiling-last"]
+    ["codon serv time"     "codon-mean-service-time"]]
+   [["slugc comp/min"      "slugc-compiles-per-minute"]
+    ["slugc asp comp/min"  "slugc-aspen-compiles-per-minute"]
+    ["slugc bam comp/min"  "slugc-bamboo-compiles-per-minute"]
+    ["slugc ced comp/mins" "slugc-cedar-compiles-per-minute"]
+    ["slugc fail/min"      "slugc-failures-per-minute"]
+    ["slugc err/min"       "slugc-errors-per-minute"]
+    ["slugc succ/min"      "slugc-successes-per-minute"]]
+   [["slugc stow time"     "slugc-mean-stow-time"]
+    ["slugc release time"  "slugc-mean-release-time"]
+    ["slugc stow err/min"  "slugc-stow-errors-per-minute"]
+    ["slugc rel err/min"   "slugc-release-errors-per-minute"]
+    ["slugc comp time"     "slugc-mean-compile-time"]]])
+
+(defn view [graphs]
   (html
     [:html
       [:head
@@ -98,10 +125,10 @@
                     [:span {:id (str key "-sparkline")}] [:br]
                     (str label ": ") [:span {:id (str key "-scalar")}]])])]]]]))
 
-(defn view-handler []
+(defn view-handler [graphs]
   {:status 200
    :headers {"Content-Type" "text/html"}
-   :body (view)})
+   :body (view graphs)})
 
 (defonce stats-buffs-a
   (atom {}))
@@ -142,7 +169,9 @@
     (= uri "/stats")
       (stats-handler)
     (= uri "/")
-      (view-handler)
+      (view-handler graphs-index)
+    (= uri "/packaging")
+      (view-handler graphs-packaging)
     :else
       (not-found-handler)))
 
