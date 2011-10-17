@@ -122,7 +122,7 @@
      (fn [last-val]
        [last-val last-val])})
 
-(defn last-sum [pred-fn part-fn val-fn]
+(defn last-sum [pred-fn part-fn val-fn & [recent-interval]]
   {:receive-init
      (fn []
        {})
@@ -143,7 +143,7 @@
    :merge-emit
      (fn [last-timed-vals]
        (let [now (util/millis)
-             recent-timed-vals (into {} (filter (fn [[_ [last-time _]]] (< (- now last-time) (* 300 1000))) last-timed-vals))
+             recent-timed-vals (into {} (filter (fn [[_ [last-time _]]] (< (- now last-time) (* (or recent-interval 300) 1000))) last-timed-vals))
              recent-sum (sum (map (fn [[_ [_ last-val]]] last-val) recent-timed-vals))]
          [recent-timed-vals recent-sum]))})
 
@@ -323,6 +323,43 @@
     (fn [evt] (and (cloud? evt) (:gitproxy evt) (:run evt) (= (:at evt) "finish")))
     (fn [evt] (:elapsed evt))))
 
+(defstat codon-launches-per-minute
+  (per-minute
+    (fn [evt] (and (:codon evt) (:production evt) (:monitor_processes evt) (= (:at evt) "launch")))))
+
+(defstat codon-receives-per-minute
+  (per-minute
+    (fn [evt] (and (:codon evt) (:production evt) (:receive evt) (= (:at evt) "nonempty")))))
+
+(defstat codon-exits-per-minute
+  (per-minute
+    (fn [evt] (and (:codon evt) (:production evt) (:receive evt) (= (:at evt) "exit")))))
+
+(defstat codon-cycles-per-minute
+  (per-minute
+    (fn [evt] (and (:codon evt) (:production evt) (:receive evt) (= (:at evt) "cycle")))))
+
+(defstat codon-up-last
+  (last-sum
+    (fn [evt] (and (:codon evt) (:production evt) (:spawn_heartbeat evt) (= (:at evt) "emit")))
+    (fn [evt] (:hostname evt))
+    (fn [evt] 1)
+    3))
+
+(defstat codon-busy-last
+  (last-sum
+    (fn [evt] (and (:codon evt) (:production evt) (:spawn_heartbeat evt) (= (:at evt) "emit")))
+    (fn [evt] (:hostname evt))
+    (fn [evt] (if (:busy evt) 1 0))
+    3))
+
+(defstat codon-compiling-last
+  (last-sum
+    (fn [evt] (and (:codon evt) (:production evt) (:spawn_heartbeat evt) (= (:at evt) "emit")))
+    (fn [evt] (:hostname evt))
+    (fn [evt] (if (:compiling evt) 1 0))
+    3))
+
 (defstat codon-mean-fetch-time
   (mean 60
     (fn [evt] (and (:codon evt) (:production evt) (:fetch_archive evt) (= (:at evt) "finish")))
@@ -341,16 +378,15 @@
   (per-minute
     (fn [evt] (and (:codon evt) (:production evt) (:stow_repo evt) (= (:at evt) "exception")))))
 
-(defstat codon-compiling-last
-  (last-sum
-    (fn [evt] (and (:codon evt) (:production evt) (:spawn_status_monitor evt) (= (:at evt) "watch")))
-    (fn [evt] (:hostname evt))
-    (fn [evt] (if (and (:started evt) (not (or (:finished evt) (:errored evt)))) 1 0))))
-
 (defstat codon-mean-service-time
   (mean 60
-    (fn [evt] (and (:codon evt) (:production evt) (:run evt) (= (:at evt) "finish")))
-    (fn [evt] (:elapsed evt))))
+    (fn [evt] (and (:codon evt) (:production evt) (:spawn_status_monitor evt) (:service_elapsed evt)))
+    (fn [evt] (:service_elapsed evt))))
+
+(defstat codon-mean-age
+  (mean 60
+    (fn [evt] (and (:codon evt) (:production evt) (:spawn_heartbeat evt) (= (:at evt) "emit")))
+    (fn [evt] (:age evt))))
 
 (defstat slugc-compiles-per-minute
   (per-minute
@@ -571,6 +607,8 @@
    amqp-publishes-per-second-by-exchange
    amqp-receives-per-second-by-exchange
    amqp-timeouts-per-minute-by-exchange
+
+   ; packaging
    gitproxy-connections-per-minute
    gitproxy-invalids-per-minute
    gitproxy-errors-per-minute
@@ -578,24 +616,27 @@
    gitproxy-mean-metadata-time
    gitproxy-mean-provision-time
    gitproxy-mean-service-time
+   codon-launches-per-minute
+   codon-receives-per-minute
+   codon-exits-per-minute
+   codon-cycles-per-minute
+   codon-up-last
+   codon-busy-last
+   codon-compiling-last
    codon-mean-fetch-time
    codon-mean-stow-time
    codon-fetch-errors-per-minute
    codon-stow-errors-per-minute
-   codon-compiling-last
    codon-mean-service-time
+   codon-mean-age
    slugc-compiles-per-minute
-   slugc-aspen-compiles-per-minute
-   slugc-bamboo-compiles-per-minute
-   slugc-cedar-compiles-per-minute
    slugc-failures-per-minute
    slugc-errors-per-minute
    slugc-successes-per-minute
-   slugc-mean-stow-time
-   slugc-mean-release-time
-   slugc-stow-errors-per-minute
-   slugc-release-errors-per-minute
-   slugc-mean-compile-time
+   slugc-aspen-compiles-per-minute
+   slugc-bamboo-compiles-per-minute
+   slugc-cedar-compiles-per-minute
+
    releases-per-minute
    ps-up-total-last
    ps-up-web-last
