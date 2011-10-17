@@ -22,6 +22,10 @@
       (Double/parseDouble v)
     (= "" v)
       nil
+    (= "true" v)
+      true
+    (= "false" v)
+      false
     :else
       v))
 
