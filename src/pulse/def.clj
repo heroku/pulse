@@ -310,7 +310,7 @@
 
 (defstat gitproxy-mean-metadata-time
   (mean 60
-    (fn [evt] (and (cloud? evt) (:gitproxy evt) (:fetch_push_metadata evt) (= (:event evt) "finish")))
+    (fn [evt] (and (cloud? evt) (:gitproxy evt) (:fetch_push_metadata evt) (= (:at evt) "finish")))
     (fn [evt] (:elapsed evt))))
 
 (defstat gitproxy-mean-provision-time
