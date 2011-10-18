@@ -394,15 +394,15 @@
 
 (defstat slugc-aspen-compiles-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (:slugc evt) (:bin evt) (= (:event evt) "start" (= (:major_stack evt) "aspen"))))))
+    (fn [evt] (and (cloud? evt) (:slugc evt) (:bin evt) (= (:event evt) "start") (= (:major_stack evt) "aspen")))))
 
 (defstat slugc-bamboo-compiles-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (:slugc evt) (:bin evt) (= (:event evt) "start" (= (:major_stack evt) "bamboo"))))))
+    (fn [evt] (and (cloud? evt) (:slugc evt) (:bin evt) (= (:event evt) "start") (= (:major_stack evt) "bamboo")))))
 
 (defstat slugc-cedar-compiles-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (:slugc evt) (:bin evt) (= (:event evt) "start" (= (:major_stack evt) "cedar"))))))
+    (fn [evt] (and (cloud? evt) (:slugc evt) (:bin evt) (= (:event evt) "start") (= (:major_stack evt) "cedar")))))
 
 (defstat slugc-failures-per-minute
   (per-minute
