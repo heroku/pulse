@@ -636,6 +636,11 @@
    slugc-aspen-compiles-per-minute
    slugc-bamboo-compiles-per-minute
    slugc-cedar-compiles-per-minute
+   slugc-mean-stow-time
+   slugc-mean-release-time
+   slugc-stow-errors-per-minute
+   slugc-release-errors-per-minute
+   slugc-mean-compile-time
 
    releases-per-minute
    ps-up-total-last
