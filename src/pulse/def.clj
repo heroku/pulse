@@ -380,7 +380,7 @@
 
 (defstat codon-mean-service-time
   (mean 60
-    (fn [evt] (and (:codon evt) (:production evt) (:spawn_status_monitor evt) (:service_elapsed evt)))
+    (fn [evt] (and (:codon evt) (:production evt) (:spawn_status_monitor evt) (:service_elapsed evt) (not (:errored evt))))
     (fn [evt] (:service_elapsed evt))))
 
 (defstat codon-mean-age
