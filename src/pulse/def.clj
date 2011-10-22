@@ -372,11 +372,11 @@
 
 (defstat codon-fetch-errors-per-minute
   (per-minute
-    (fn [evt] (and (:codon evt) (:production evt) (:fetch_archive evt) (= (:at evt) "error")))))
+    (fn [evt] (and (:codon evt) (:production evt) (:fetch_repo evt) (= (:at evt) "error")))))
 
 (defstat codon-stow-errors-per-minute
   (per-minute
-    (fn [evt] (and (:codon evt) (:production evt) (:stow_repo evt) (= (:at evt) "exception")))))
+    (fn [evt] (and (:codon evt) (:production evt) (:stow_repo evt) (= (:at evt) "finish") (not (= (:exit_status evt) 0))))))
 
 (defstat codon-mean-service-time
   (mean 60
