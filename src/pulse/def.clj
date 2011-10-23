@@ -388,6 +388,10 @@
     (fn [evt] (and (:codon evt) (:production evt) (:spawn_heartbeat evt) (= (:at evt) "emit")))
     (fn [evt] (:age evt))))
 
+(defstat codon-unhandled-exceptions-per-minute
+  (per-minute
+    (fn [evt] (and (:codon evt) (:production evt) (:exception evt) (not (:site evt))))))
+
 (defstat slugc-compiles-per-minute
   (per-minute
     (fn [evt] (and (cloud? evt) (:slugc evt) (:bin evt) (= (:event evt) "start")))))
@@ -629,6 +633,7 @@
    codon-stow-errors-per-minute
    codon-mean-service-time
    codon-mean-age
+   codon-unhandled-exceptions-per-minute
    slugc-compiles-per-minute
    slugc-failures-per-minute
    slugc-errors-per-minute
