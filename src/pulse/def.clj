@@ -329,7 +329,7 @@
 
 (defstat codon-receives-per-minute
   (per-minute
-    (fn [evt] (and (:codon evt) (:production evt) (:receive evt) (= (:at evt) "nonempty")))))
+    (fn [evt] (and (:codon evt) (:production evt) (:receive evt) (= (:at evt) "dequeue") (not (:timeout evt))))))
 
 (defstat codon-exits-per-minute
   (per-minute
