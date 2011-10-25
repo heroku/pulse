@@ -499,25 +499,25 @@
 (defstat ps-running-total-last
   (last-sum
     (fn [evt] (and (cloud? evt) (:railgun evt) (:counts evt) (= (:key evt) "total")))
-    (fn [evt] (:ion_id evt))
+    (fn [evt] (:instance_id evt))
     (fn [evt] (:num evt))))
 
 (defstat ps-running-web-last
   (last-sum
     (fn [evt] (and (cloud? evt) (:railgun evt) (:counts evt) (= (:key evt) "process_type") (= (:process_type evt) "web")))
-    (fn [evt] (:ion_id evt))
+    (fn [evt] (:instance_id evt))
     (fn [evt] (:num evt))))
 
 (defstat ps-running-worker-last
   (last-sum
     (fn [evt] (and (cloud? evt) (:railgun evt) (:counts evt) (= (:key evt) "process_type") (= (:process_type evt) "worker")))
-    (fn [evt] (:ion_id evt))
+    (fn [evt] (:instance_id evt))
     (fn [evt] (:num evt))))
 
 (defstat ps-running-other-last
   (last-sum
     (fn [evt] (and (cloud? evt) (:railgun evt) (:counts evt) (= (:key evt) "process_type") (= (:process_type evt) "other")))
-    (fn [evt] (:ion_id evt))
+    (fn [evt] (:instance_id evt))
     (fn [evt] (:num evt))))
 
 (defstat ps-run-requests-per-minute
