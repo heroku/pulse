@@ -362,7 +362,7 @@
 
 (defstat codon-mean-fetch-time
   (mean 60
-    (fn [evt] (and (:codon evt) (:production evt) (:fetch_archive evt) (= (:at evt) "finish")))
+    (fn [evt] (and (:codon evt) (:production evt) (:fetch_repo evt) (= (:at evt) "finish")))
     (fn [evt] (:elapsed evt))))
 
 (defstat codon-mean-stow-time
