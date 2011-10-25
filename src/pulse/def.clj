@@ -376,7 +376,7 @@
 
 (defstat codon-stow-errors-per-minute
   (per-minute
-    (fn [evt] (and (:codon evt) (:production evt) (:stow_repo evt) (= (:at evt) "finish") (not (= (:exit_status evt) 0))))))
+    (fn [evt] (and (:codon evt) (:production evt) (:stow_repo evt) (= (:at evt) "finish") (not= (:exit_status evt) 0) (not= (:out evt) "200")))))
 
 (defstat codon-mean-service-time
   (mean 60
