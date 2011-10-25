@@ -242,6 +242,11 @@
     (fn [evt] (and (cloud? evt) (:hermes_proxy evt)))
     (fn [evt] (:app_id evt))))
 
+(defstat hermes-requests-per-second-by-instance-id
+  (per-second-by-key
+    (fn [evt] (and (cloud? evt) (:hermes_proxy evt)))
+    (fn [evt] (:instance_id evt))))
+
 (defn hermes-per-minute [code]
   (per-minute
     (fn [evt] (and (cloud? evt) (= (:event_type evt) "standard")
@@ -599,6 +604,7 @@
    rendezvous-rendezvous-per-minute
    hermes-requests-per-second
    hermes-requests-per-second-by-app-id
+   hermes-requests-per-second-by-instance-id
    hermes-h10-per-minute
    hermes-h11-per-minute
    hermes-h12-per-minute
