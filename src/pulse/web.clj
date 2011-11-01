@@ -69,7 +69,7 @@
     ["slugc fail/min"      "slugc-failures-per-minute"]
     ["slugc err/min"       "slugc-errors-per-minute"]
     ["release/min"         "releases-per-minute"]]
-   [["railgun err/min"     "railgun-errors-per-minute"]
+   [["railgun excp/min"    "railgun-unhandled-exceptions-per-minute"]
     ["psmgr err/min"       "psmgr-errors-per-minute"]
     ["api err/min"         "api-errors-per-minute"]
     ["codex err/min"       "codex-errors-per-minute"]
@@ -98,7 +98,7 @@
     ["codon stow err/min"  "codon-stow-errors-per-minute"]
     ["codon serv time"     "codon-mean-service-time"]
     ["codon age"           "codon-mean-age"]
-    ["codon excp"          "codon-unhandled-exceptions-per-minute"]]
+    ["codon excp/min"      "codon-unhandled-exceptions-per-minute"]]
    [["slugc comp/min"      "slugc-compiles-per-minute"]
     ["slugc fail/min"      "slugc-failures-per-minute"]
     ["slugc err/min"       "slugc-errors-per-minute"]
@@ -110,7 +110,8 @@
     ["slugc release time"  "slugc-mean-release-time"]
     ["slugc stow err/min"  "slugc-stow-errors-per-minute"]
     ["slugc rel err/min"   "slugc-release-errors-per-minute"]
-    ["slugc comp time"     "slugc-mean-compile-time"]]])
+    ["slugc comp time"     "slugc-mean-compile-time"]
+    ["codex err/min"       "codex-errors-per-minute"]]])
 
 (defn view [graphs]
   (html

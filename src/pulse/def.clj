@@ -395,7 +395,7 @@
 
 (defstat codon-unhandled-exceptions-per-minute
   (per-minute
-    (fn [evt] (and (:codon evt) (:production evt) (:exception evt) (not (:site evt))))))
+    (fn [evt] (and (:codon evt) (:production evt) (:exception evt) (not (:site evt)) (not (:reraise evt))))))
 
 (defstat slugc-compiles-per-minute
   (per-minute
@@ -565,8 +565,9 @@
                    (= (:level evt) "err")
                    (= (:component evt) component)))))
 
-(defstat railgun-errors-per-minute
-  (errors-per-minute "runtime"))
+(defstat railgun-unhandled-exceptions-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (:railgun evt) (:exception evt) (not (:site evt)) (not (:reraise evt))))))
 
 (defstat psmgr-errors-per-minute
   (errors-per-minute "psmgr"))
@@ -618,6 +619,32 @@
    amqp-receives-per-second-by-exchange
    amqp-timeouts-per-minute-by-exchange
 
+   ; runtime
+   railgun-unhandled-exceptions-per-minute
+   ps-up-total-last
+   ps-up-web-last
+   ps-up-worker-last
+   ps-up-other-last
+   ps-created-last
+   ps-starting-last
+   ps-idles-per-minute
+   ps-unidles-per-minute
+   ps-crashed-last
+   ps-timeouts-per-minute
+   ps-launch-time-mean
+   ps-running-total-last
+   ps-running-web-last
+   ps-running-worker-last
+   ps-running-other-last
+   ps-run-requests-per-minute
+   ps-runs-per-minute
+   ps-returns-per-minute
+   ps-stop-requests-per-minute
+   ps-stops-per-minute
+   ps-converges-per-second
+   ps-lost-last
+   psmgr-errors-per-minute
+
    ; packaging
    gitproxy-connections-per-minute
    gitproxy-invalids-per-minute
@@ -652,33 +679,9 @@
    slugc-stow-errors-per-minute
    slugc-release-errors-per-minute
    slugc-mean-compile-time
+   codex-errors-per-minute
 
    releases-per-minute
-   ps-up-total-last
-   ps-up-web-last
-   ps-up-worker-last
-   ps-up-other-last
-   ps-created-last
-   ps-starting-last
-   ps-idles-per-minute
-   ps-unidles-per-minute
-   ps-crashed-last
-   ps-timeouts-per-minute
-   ps-launch-time-mean
-   ps-running-total-last
-   ps-running-web-last
-   ps-running-worker-last
-   ps-running-other-last
-   ps-run-requests-per-minute
-   ps-runs-per-minute
-   ps-returns-per-minute
-   ps-stop-requests-per-minute
-   ps-stops-per-minute
-   ps-converges-per-second
-   ps-lost-last
-   railgun-errors-per-minute
-   psmgr-errors-per-minute
    api-errors-per-minute
-   codex-errors-per-minute
    shen-errors-per-minute
    hermes-errors-per-minute])
