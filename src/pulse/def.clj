@@ -558,6 +558,10 @@
     (fn [evt] (and (cloud? evt) (= (:component evt) "psmgr") (= (:function evt) "counts") (= (:event evt) "emit")))
     (fn [evt] (:lost evt))))
 
+(defstat api-creates-per-minute
+  (per-minute
+    (fn [evt] (and (heroku? evt) (:core evt) (:app evt) (:create evt) (= (:event evt) "start")))))
+
 (defn errors-per-minute [component]
   (per-minute
     (fn [evt] (and (cloud? evt)
@@ -676,6 +680,7 @@
    ps-stops-per-minute
    ps-converges-per-second
    ps-lost-last
+   api-creates-per-minute
    railgun-errors-per-minute
    psmgr-errors-per-minute
    api-errors-per-minute
