@@ -526,11 +526,11 @@
 
 (defstat ps-runs-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (:ps_watch evt) (:ps_run evt) (= (:event evt) "start")))))
+    (fn [evt] (and (cloud? evt) (:ps_watch evt) (:ps_run evt) (= (:at evt) "start")))))
 
 (defstat ps-returns-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (:ps_watch evt) (:ps_run evt) (= (:event evt) "exit")))))
+    (fn [evt] (and (cloud? evt) (:ps_watch evt) (:ps_run evt) (= (:at evt) "exit")))))
 
 (defstat ps-stop-requests-per-minute
   (per-minute
@@ -546,11 +546,11 @@
 
 (defstat ps-timeouts-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (:monitor_boot evt) (= (:event evt) "timeout")))))
+    (fn [evt] (and (cloud? evt) (:monitor_boot evt) (= (:at evt) "timeout")))))
 
 (defstat ps-launch-time-mean
   (mean 60
-    (fn [evt] (and (cloud? evt) (:monitor_boot evt) (= (:event evt) "responsive")))
+    (fn [evt] (and (cloud? evt) (:monitor_boot evt) (= (:at evt) "responsive")))
     (fn [evt] (:age evt))))
 
 (defstat ps-lost-last
