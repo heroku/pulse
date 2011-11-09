@@ -1,6 +1,6 @@
 (ns pulse.conf
-  (:require [pulse.util :as util])
-  (:require [clojure.string :as str]))
+  (:require [pulse.util :as util]
+            [clojure.string :as str]))
 
 (defn env [k]
   (System/getenv k))
