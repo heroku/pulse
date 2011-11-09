@@ -21,11 +21,11 @@
 (defn stats [[^ArrayBlockingQueue queue ^AtomicLong pushed ^AtomicLong popped ^AtomicLong dropped]]
   [(.size queue) (.get pushed) (.get popped) (.get dropped)])
 
-(defn log [msg & args]
-  (apply log/log (str "ns=queue " msg) args))
+(defn log [& data]
+  (apply log/log :ns "queue" data))
 
 (defn init-watcher [queue queue-name]
-  (log "fn=init-watcher name=%s" queue-name)
+  (log :fn "init-watcher" :name queue-name)
   (let [start (util/millis)
         popped-prev (atom 0)]
     (util/spawn-tick 1000 (fn []
@@ -33,5 +33,5 @@
             [depth pushed popped dropped] (stats queue)
             rate (- popped @popped-prev)]
         (swap! popped-prev (constantly popped))
-        (log "fn=init-watcher name=%s depth=%d pushed=%d popped=%d dropped=%d rate=%d"
-          queue-name depth pushed popped dropped rate))))))
+        (log :fn "init-watcher" :name queue-name :depth depth :pushed pushed
+             :popped popped :dropped dropped :rate rate))))))

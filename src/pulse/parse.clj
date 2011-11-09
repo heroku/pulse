@@ -143,6 +143,9 @@
         :cloud (.group m 8)
         :http_status (parse-long (.group m 9))})))
 
+(defn log [& data]
+  (apply log/log :ns "parse" data))
+
 (defn parse-line [l]
   (try
     (or (parse-nginx-access-line l)
@@ -151,5 +154,5 @@
         (parse-standard-line l)
         (parse-raw-line l))
     (catch Exception e
-      (log/log "fn=parse-line at=exception %s" l)
+      (log :fn "parse-line" :at "exception" :line l)
       (throw e))))
