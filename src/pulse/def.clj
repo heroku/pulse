@@ -701,7 +701,7 @@
    rendezvous-joins-per-minute
    rendezvous-rendezvous-per-minute
    hermes-requests-per-second
-   hermes-requests-apps-per-second
+   ; hermes-requests-apps-per-second
    ; hermes-requests-per-second-by-app-id
    ; hermes-requests-per-second-by-instance-id
    hermes-h10-per-minute
