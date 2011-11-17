@@ -122,7 +122,7 @@
         (let [now (util/millis)
               recent-windows (filter (fn [[window-start _ _]] (>= window-start (- now (* 1000 time-buffer) 1000))) windows)
               complete-windows (filter (fn [[window-start _ _]] (< window-start (- now 1000))) recent-windows)
-              complete-hits (apply merge-with set/union (map (fn [[_ _ window-hits]] window-hits) complete-windows))
+              complete-hits (apply set/union (map (fn [[_ _ window-hits]] window-hits) complete-windows))
               complete-count (count complete-hits)]
           [recent-windows complete-hits]))})
 
