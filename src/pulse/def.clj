@@ -124,7 +124,7 @@
               complete-windows (filter (fn [[window-start _ _]] (< window-start (- now 1000))) recent-windows)
               complete-hits (apply set/union (map (fn [[_ _ window-hits]] window-hits) complete-windows))
               complete-count (count complete-hits)]
-          [recent-windows complete-hits]))})
+          [recent-windows complete-count]))})
 
 (defn per-second-unique [pred-fn key-fn]
   (rate-unique 1 10 pred-fn key-fn))
