@@ -99,7 +99,7 @@
     ["hermes H13/min"      "hermes-h13-per-minute"]
     ["hermes H14/min"      "hermes-h14-per-minute"]
     ["hermes H99/min"      "hermes-h99-per-minute"]],
-   [["hermes req app/sec"  "hermes-requests-apps-per-second"]
+   [["hermes req app/min"  "hermes-requests-apps-per-minute"]
     ["hermes H10 app/min"  "hermes-h10-apps-per-minute"]
     ["hermes H11 app/min"  "hermes-h11-apps-per-minute"]
     ["hermes H12 app/min"  "hermes-h12-apps-per-minute"]

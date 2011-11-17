@@ -101,7 +101,7 @@
 (defn per-minute-by-key [pred-fn key-fn]
   (rate-by-key 60 70 pred-fn key-fn))
 
-(defn rate-unique [time-unit time-buffer pred-fn key-fn]
+(defn rate-unique [time-buffer pred-fn key-fn]
   {:receive-init
      (fn []
        [(util/millis) #{}])
@@ -109,8 +109,8 @@
      (fn [[window-start window-hits] event]
        [window-start (if (pred-fn event) (conj window-hits (key-fn event)) window-hits)])
    :receive-emit
-     (fn [[window-start window-hits]]
-       [window-start (util/millis) window-hits])
+     (fn [window]
+       window)
    :merge-init
      (fn []
        [])
@@ -120,17 +120,13 @@
    :merge-emit
      (fn [windows]
         (let [now (util/millis)
-              recent-windows (filter (fn [[window-start _ _]] (>= window-start (- now (* 1000 time-buffer) 1000))) windows)
-              complete-windows (filter (fn [[window-start _ _]] (< window-start (- now 1000))) recent-windows)
-              complete-hits (apply set/union (map (fn [[_ _ window-hits]] window-hits) complete-windows))
-              complete-count (count complete-hits)]
-          [recent-windows complete-count]))})
-
-(defn per-second-unique [pred-fn key-fn]
-  (rate-unique 1 10 pred-fn key-fn))
+              recent-windows (filter (fn [[window-start _]] (>= window-start (- now (* 1000 time-buffer)))) windows)
+              recent-hits (apply set/union (map (fn [[_ window-hits]] window-hits) recent-windows))
+              recent-count (count recent-hits)]
+          [recent-windows recent-count]))})
 
 (defn per-minute-unique [pred-fn key-fn]
-  (rate-unique 60 70 pred-fn key-fn))
+  (rate-unique 60 pred-fn key-fn))
 
 (defn last [pred-fn val-fn]
   {:receive-init
@@ -300,8 +296,8 @@
   (per-second
     (fn [evt] (and (cloud? evt) (:hermes_proxy evt)))))
 
-(defstat hermes-requests-apps-per-second
-  (per-second-unique
+(defstat hermes-requests-apps-per-minute
+  (per-minute-unique
     (fn [evt] (and (cloud? evt) (:hermes_proxy evt)))
     (fn [evt] (:app_id evt))))
 
@@ -701,7 +697,7 @@
    rendezvous-joins-per-minute
    rendezvous-rendezvous-per-minute
    hermes-requests-per-second
-   hermes-requests-apps-per-second
+   hermes-requests-apps-per-minute
    hermes-requests-per-second-by-app-id
    hermes-requests-per-second-by-instance-id
    hermes-h10-per-minute
