@@ -675,23 +675,23 @@
   [
   ; global
    events-per-second
-   events-per-second-by-aorta-host
+   ; events-per-second-by-aorta-host
    amqp-publishes-per-second
    amqp-receives-per-second
    amqp-timeouts-per-minute
-   amqp-publishes-per-second-by-exchange
-   amqp-receives-per-second-by-exchange
-   amqp-timeouts-per-minute-by-exchange
+   ; amqp-publishes-per-second-by-exchange
+   ; amqp-receives-per-second-by-exchange
+   ; amqp-timeouts-per-minute-by-exchange
 
    ; routing
    nginx-requests-per-second
-   nginx-requests-per-second-by-domain
+   ; nginx-requests-per-second-by-domain
    nginx-500-per-minute
    nginx-502-per-minute
    nginx-503-per-minute
    nginx-504-per-minute
    nginx-errors-per-minute
-   nginx-errors-per-minute-by-host
+   ; nginx-errors-per-minute-by-host
    varnish-requests-per-second
    varnish-500-per-minute
    varnish-502-per-minute
@@ -702,8 +702,8 @@
    rendezvous-rendezvous-per-minute
    hermes-requests-per-second
    hermes-requests-apps-per-second
-   hermes-requests-per-second-by-app-id
-   hermes-requests-per-second-by-instance-id
+   ; hermes-requests-per-second-by-app-id
+   ; hermes-requests-per-second-by-instance-id
    hermes-h10-per-minute
    hermes-h11-per-minute
    hermes-h12-per-minute
