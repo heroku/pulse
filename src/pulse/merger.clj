@@ -19,9 +19,11 @@
     stat-defs))
 
 (defn init-emitter [stats-map publish-queue]
-  (log :fn "init-emitter")
+  (log :fn "init-emitter" :at "start")
   (util/spawn-tick 1000 (fn []
+    (log :fn "init-emitter" :at "tick")
     (doseq [[stat-name [stat-def stat-state]] stats-map]
+      (log :fn "init-emitter" :at "emit" :name stat-name)
       (let [pub (stat/merge-emit stat-def stat-state)]
         (queue/offer publish-queue [stat-name pub]))))))
 
