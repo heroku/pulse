@@ -2,7 +2,6 @@
   (:require [pulse.util :as util]
             [pulse.log :as log]
             [pulse.queue :as queue]
-            [clj-json.core :as json]
             [clj-redis.client :as redis])
   (:import (clojure.lang LineNumberingPushbackReader)
            (java.io InputStreamReader BufferedReader PrintWriter)
@@ -42,7 +41,7 @@
         (bleeder aorta-url (fn [line]
           (queue/offer apply-queue [aorta-host line]))))))))
 
-(defn init-publishers [publish-queue redis-url chan workers]
+(defn init-publishers [publish-queue redis-url chan ser workers]
   (let [redis (redis/init {:url redis-url})]
     (log :fn "init-publishers" :at "start" :chan chan)
     (dotimes [i workers]
@@ -50,15 +49,15 @@
       (util/spawn-loop (fn []
         (let [data (queue/take publish-queue)
               data-str (try
-                         (json/generate-string data)
+                         (ser data)
                          (catch Exception e
                            (log :fn "init-publishers" :at "exception" :data (pr-str data))
                            (throw e)))]
           (redis/publish redis chan data-str)))))))
 
-(defn init-subscriber [redis-url chan apply-queue]
+(defn init-subscriber [redis-url chan deser apply-queue]
   (let [redis (redis/init {:url redis-url})]
     (log :fn "init-subscriber" :at "start" :chan chan)
     (redis/subscribe redis [chan]
       (fn [_ data-json]
-        (queue/offer apply-queue (json/parse-string data-json))))))
+        (queue/offer apply-queue (deser data-json))))))

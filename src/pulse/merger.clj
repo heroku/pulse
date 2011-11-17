@@ -5,7 +5,8 @@
             [pulse.queue :as queue]
             [pulse.io :as io]
             [pulse.stat :as stat]
-            [pulse.def :as def]))
+            [pulse.def :as def]
+            [clj-json.core :as json]))
 
 (defn log [& data]
   (apply log/log :ns "merger" data))
@@ -40,8 +41,8 @@
         stats-states (init-stats def/all)]
     (queue/init-watcher apply-queue "apply")
     (queue/init-watcher publish-queue "publish")
-    (io/init-publishers publish-queue (conf/redis-url) "stats.merged" 4)
+    (io/init-publishers publish-queue (conf/redis-url) "stats.merged" json/generate-string 4)
     (init-emitter stats-states publish-queue)
     (init-appliers stats-states apply-queue)
-    (io/init-subscriber (conf/redis-url) "stats.received" apply-queue))
+    (io/init-subscriber (conf/redis-url) "stats.received" read-string apply-queue))
   (log :fn "main" :at "finish"))
