@@ -1,6 +1,7 @@
 (ns pulse.def
   (:refer-clojure :exclude [last])
-  (:require [pulse.util :as util]
+  (:require [clojure.set :as set]
+            [pulse.util :as util]
             [pulse.conf :as conf]))
 
 (defn safe-inc [n]
@@ -99,6 +100,34 @@
 
 (defn per-minute-by-key [pred-fn key-fn]
   (rate-by-key 60 70 pred-fn key-fn))
+
+(defn rate-unique [time-unit time-buffer pred-fn key-fn]
+  {:receive-init
+     (fn []
+       [(util/millis) #{}])
+   :receive-apply
+     (fn [[window-start window-hits] event]
+       [window-start (if (pred-fn event) (conj window-hits (key-fn event)) window-hits)])
+   :receive-emit
+     (fn [[window-start window-hits]]
+       [window-start (util/millis) window-hits])
+   :merge-init
+     (fn []
+       [])
+   :merge-apply
+     (fn [windows window]
+       (conj windows window))
+   :merge-emit
+     (fn [windows]
+        (let [now (util/millis)
+              recent-windows (filter (fn [[window-start _ _]] (>= window-start (- now (* 1000 time-buffer) 1000))) windows)
+              complete-windows (filter (fn [[window-start _ _]] (< window-start (- now 1000))) recent-windows)
+              complete-hits (apply merge-with set/union (map (fn [[_ _ window-hits]] window-hits) complete-windows))
+              complete-count (count complete-hits)]
+          [recent-windows complete-hits]))})
+
+(defn per-minute-unique [pred-fn key-fn]
+  (rate-unique 60 70 pred-fn key-fn))
 
 (defn last [pred-fn val-fn]
   {:receive-init
@@ -300,6 +329,31 @@
 
 (defstat hermes-h99-per-minute
   (hermes-per-minute "H99"))
+
+(defn hermes-apps-per-minute [code]
+  (per-minute-unique
+    (fn [evt]
+      (and (cloud? evt) (= (:event_type evt) "standard")
+           (:hermes_proxy evt) (:Error evt) (= (:code evt) code)))
+    (fn [evt] (:app_id evt))))
+
+(defstat hermes-h10-apps-per-minute
+  (hermes-apps-per-minute "H10"))
+
+(defstat hermes-h10-apps-per-minute
+  (hermes-apps-per-minute "H11"))
+
+(defstat hermes-h10-apps-per-minute
+  (hermes-apps-per-minute "H12"))
+
+(defstat hermes-h10-apps-per-minute
+  (hermes-apps-per-minute "H13"))
+
+(defstat hermes-h10-apps-per-minute
+  (hermes-apps-per-minute "H14"))
+
+(defstat hermes-h10-apps-per-minute
+  (hermes-apps-per-minute "H99"))
 
 (defstat hermes-errors-per-minute
   (per-minute
