@@ -35,6 +35,6 @@
     (str/join " ")))
 
 (defn log [& data]
-  (let [msg (unparse (list* :app "leech" :deploy (conf/deploy) data))]
+  (let [msg (unparse (list* :app "pulse" :deploy (conf/deploy) data))]
     (locking *out*
       (println msg))))
