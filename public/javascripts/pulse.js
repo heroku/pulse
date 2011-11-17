@@ -1,4 +1,4 @@
-function pulseGet(apiUrl, fun) {
+function pulseGet(apiUrl, fun, done) {
   jQuery.ajax({
     url: apiUrl.replace(/\:\/\/.*\@/, "://"),
     type: "GET",
@@ -6,7 +6,10 @@ function pulseGet(apiUrl, fun) {
     beforeSend: function(xhr) {
       xhr.setRequestHeader("Authorization", "Basic " + btoa(apiUrl.match(/\:\/\/(.*)\@/, "://")[1])); },
     success: function(data, status, xhr) {
-      fun(data); } });
+      fun(data); },
+    complete: function(xhr, status) {
+      done();
+    }});
 }
 
 var pulseSparklineOpts = {
@@ -30,40 +33,44 @@ function pulseMerge(objA, objB) {
 }
 
 function pulseUpdate() {
-  pulseGet(pulseApiUrl, function(stats) {
-    for (var statName in stats) {
-      var statBuff = stats[statName];
-      var statVal = statBuff[statBuff.length - 1];
-      var scalarId = "#" + statName + "-scalar";
-      var sparklineId = "#" + statName + "-sparkline";
-      var statScale = pulseScales[statName];
-      if (statScale != undefined) {
-        var statOrange = statScale[0];
-        var statRed = statScale[1];
-        var statCeil = statScale[2];
-        var statMax = Math.max(statVal, statCeil);
-        var statColor = null;
-        if (statVal >= statRed) {
-          statColor = pulseRed;
-        } else if (statVal >= statOrange) {
-          statColor = pulseOrange;
-        } else {
-          statColor = pulseGreen;
+  pulseGet(pulseApiUrl,
+    function(stats) {
+      for (var statName in stats) {
+        var statBuff = stats[statName];
+        var statVal = statBuff[statBuff.length - 1];
+        var scalarId = "#" + statName + "-scalar";
+        var sparklineId = "#" + statName + "-sparkline";
+        var statScale = pulseScales[statName];
+        if (statScale != undefined) {
+          var statOrange = statScale[0];
+          var statRed = statScale[1];
+          var statCeil = statScale[2];
+          var statMax = Math.max(statVal, statCeil);
+          var statColor = null;
+          if (statVal >= statRed) {
+            statColor = pulseRed;
+          } else if (statVal >= statOrange) {
+            statColor = pulseOrange;
+          } else {
+            statColor = pulseGreen;
+          }
+          var statOpts = pulseMerge(pulseSparklineOpts, pulseMerge({chartRangeMax: statMax}, statColor));
+          $(sparklineId).sparkline(statBuff, statOpts);
+          $(scalarId).html(Math.round(statVal));
+        } else if ($(scalarId) != null) {
+          $(sparklineId).sparkline(statBuff, pulseSparklineOpts);
+          $(scalarId).html(Math.round(statVal));
         }
-        var statOpts = pulseMerge(pulseSparklineOpts, pulseMerge({chartRangeMax: statMax}, statColor));
-        $(sparklineId).sparkline(statBuff, statOpts);
-        $(scalarId).html(Math.round(statVal));
-      } else if ($(scalarId) != null) {
-        $(sparklineId).sparkline(statBuff, pulseSparklineOpts);
-        $(scalarId).html(Math.round(statVal));
       }
+    },
+    function() {
+      setTimeout(pulseUpdate, 500);
     }
-  });
+  );
 }
 
 function pulseInit() {
   pulseUpdate();
-  setInterval(pulseUpdate, 1000);
 }
 
 $(document).ready(pulseInit);
