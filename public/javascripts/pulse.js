@@ -63,7 +63,7 @@ function pulseUpdate() {
 
 function pulseInit() {
   pulseUpdate();
-  setInterval(pulseUpdate, 500);
+  setInterval(pulseUpdate, 1000);
 }
 
 $(document).ready(pulseInit);
