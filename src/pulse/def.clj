@@ -585,8 +585,12 @@
   (errors-per-minute "hermes"))
 
 (def all
-  [events-per-second
+  [
+  ; global
+   events-per-second
    events-per-second-by-aorta-host
+
+   ; routing
    nginx-requests-per-second
    nginx-requests-per-second-by-domain
    nginx-500-per-minute
@@ -612,12 +616,7 @@
    hermes-h13-per-minute
    hermes-h14-per-minute
    hermes-h99-per-minute
-   amqp-publishes-per-second
-   amqp-receives-per-second
-   amqp-timeouts-per-minute
-   amqp-publishes-per-second-by-exchange
-   amqp-receives-per-second-by-exchange
-   amqp-timeouts-per-minute-by-exchange
+   hermes-errors-per-minute
 
    ; runtime
    railgun-unhandled-exceptions-per-minute
@@ -681,7 +680,16 @@
    slugc-mean-compile-time
    codex-errors-per-minute
 
+   ; api
    releases-per-minute
+   amqp-publishes-per-second
+   amqp-receives-per-second
+   amqp-timeouts-per-minute
+   amqp-publishes-per-second-by-exchange
+   amqp-receives-per-second-by-exchange
+   amqp-timeouts-per-minute-by-exchange
    api-errors-per-minute
+
+   ; data
    shen-errors-per-minute
-   hermes-errors-per-minute])
+   ])
