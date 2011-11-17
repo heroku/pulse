@@ -126,6 +126,9 @@
               complete-count (count complete-hits)]
           [recent-windows complete-hits]))})
 
+(defn per-second-unique [pred-fn key-fn]
+  (rate-unique 1 10 pred-fn key-fn))
+
 (defn per-minute-unique [pred-fn key-fn]
   (rate-unique 60 70 pred-fn key-fn))
 
@@ -297,6 +300,11 @@
   (per-second
     (fn [evt] (and (cloud? evt) (:hermes_proxy evt)))))
 
+(defstat hermes-requests-apps-per-second
+  (per-second-unique
+    (fn [evt] (and (cloud? evt) (:hermes_proxy evt)))
+    (fn [evt] (:app_id evt))))
+
 (defstat hermes-requests-per-second-by-app-id
   (per-second-by-key
     (fn [evt] (and (cloud? evt) (:hermes_proxy evt)))
@@ -340,19 +348,19 @@
 (defstat hermes-h10-apps-per-minute
   (hermes-apps-per-minute "H10"))
 
-(defstat hermes-h10-apps-per-minute
+(defstat hermes-h11-apps-per-minute
   (hermes-apps-per-minute "H11"))
 
-(defstat hermes-h10-apps-per-minute
+(defstat hermes-h12-apps-per-minute
   (hermes-apps-per-minute "H12"))
 
-(defstat hermes-h10-apps-per-minute
+(defstat hermes-h13-apps-per-minute
   (hermes-apps-per-minute "H13"))
 
-(defstat hermes-h10-apps-per-minute
+(defstat hermes-h14-apps-per-minute
   (hermes-apps-per-minute "H14"))
 
-(defstat hermes-h10-apps-per-minute
+(defstat hermes-h99-apps-per-minute
   (hermes-apps-per-minute "H99"))
 
 (defstat hermes-errors-per-minute
@@ -693,6 +701,7 @@
    rendezvous-joins-per-minute
    rendezvous-rendezvous-per-minute
    hermes-requests-per-second
+   hermes-requests-apps-per-second
    hermes-requests-per-second-by-app-id
    hermes-requests-per-second-by-instance-id
    hermes-h10-per-minute
@@ -701,6 +710,12 @@
    hermes-h13-per-minute
    hermes-h14-per-minute
    hermes-h99-per-minute
+   hermes-h10-apps-per-minute
+   hermes-h11-apps-per-minute
+   hermes-h12-apps-per-minute
+   hermes-h13-apps-per-minute
+   hermes-h14-apps-per-minute
+   hermes-h99-apps-per-minute
    hermes-errors-per-minute
 
    ; runtime

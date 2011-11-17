@@ -77,8 +77,35 @@
     ["shen err/min"        "shen-errors-per-minute"]
     ["hermes error/min"    "hermes-errors-per-minute"]]])
 
-(def graphs-rounting
-  nil)
+(def graphs-routing
+  [[["nginx req/sec"       "nginx-requests-per-second"]
+    ["nginx 500/min"       "nginx-500-per-minute"]
+    ["nginx 502/min"       "nginx-502-per-minute"]
+    ["nginx 503/min"       "nginx-503-per-minute"]
+    ["nginx 504/min"       "nginx-504-per-minute"]
+    ["nginx err/min"       "nginx-errors-per-minute"]
+    ["event/sec"           "events-per-second"]]
+   [["varnish req/sec"     "varnish-requests-per-second"]
+    ["varnish 500/min"     "varnish-500-per-minute"]
+    ["varnish 502/min"     "varnish-502-per-minute"]
+    ["varnish 503/min"     "varnish-503-per-minute"]
+    ["varnish 504/min"     "varnish-504-per-minute"]
+    ["varnish purge/min"   "varnish-purges-per-minute"]
+    ["rdv join/min"        "rendezvous-joins-per-minute"]]
+   [["hermes req/sec"      "hermes-requests-per-second"]
+    ["hermes H10/min"      "hermes-h10-per-minute"]
+    ["hermes H11/min"      "hermes-h11-per-minute"]
+    ["hermes H12/min"      "hermes-h12-per-minute"]
+    ["hermes H13/min"      "hermes-h13-per-minute"]
+    ["hermes H14/min"      "hermes-h14-per-minute"]
+    ["hermes H99/min"      "hermes-h99-per-minute"]],
+   [["hermes req app/sec"  "hermes-requests-apps-per-second"]
+    ["hermes H10 app/min"  "hermes-h10-apps-per-minute"]
+    ["hermes H11 app/min"  "hermes-h11-apps-per-minute"]
+    ["hermes H12 app/min"  "hermes-h12-apps-per-minute"]
+    ["hermes H13 app/min"  "hermes-h13-apps-per-minute"]
+    ["hermes H14 app/min"  "hermes-h14-apps-per-minute"]
+    ["hermes H99 app/min"  "hermes-h99-apps-per-minute"]]])
 
 (def graphs-runtime
   nil)
@@ -188,8 +215,14 @@
       (stats-handler)
     (= uri "/")
       (view-handler graphs-index)
+    (= uri "/routing")
+      (view-handler graphs-routing)
+    (= uri "/runtime")
+      (view-handler graphs-runtime)
     (= uri "/packaging")
       (view-handler graphs-packaging)
+    (= uri "/api")
+      (view-handler graphs-api)
     :else
       (not-found-handler)))
 
