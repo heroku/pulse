@@ -12,11 +12,10 @@
   (AtomicReference. (init-fn)))
 
 (defn receive-apply [{apply-fn :receive-apply} stat-state event]
-  (loop []
+  (locking stat-state
     (let [current (.get stat-state)
-          proposed (apply-fn current event)]
-      (when-not (.compareAndSet stat-state current proposed)
-        (recur)))))
+          applied (apply-fn current event)]
+      (.compareAndSet stat-state current applied))))
 
 (defn receive-emit [{init-fn :receive-init emit-fn :receive-emit} stat-state]
   (emit-fn (.getAndSet stat-state (init-fn))))
@@ -25,16 +24,14 @@
   (AtomicReference. (init-fn)))
 
 (defn merge-apply [{apply-fn :merge-apply} stat-state pub]
-  (loop []
+  (locking stat-state
     (let [current (.get stat-state)
-          proposed (apply-fn current pub)]
-      (when-not (.compareAndSet stat-state current proposed)
-        (recur)))))
+          applied (apply-fn current pub)]
+      (.compareAndSet stat-state current applied))))
 
 (defn merge-emit [{emit-fn :merge-emit} stat-state]
-  (loop []
+  (locking stat-state
     (let [current (.get stat-state)
-          [proposed pub] (emit-fn current)]
-      (if (.compareAndSet stat-state current proposed)
-        pub
-        (recur)))))
+          [applied pub] (emit-fn current)]
+      (.compareAndSet stat-state current applied)
+      pub)))
