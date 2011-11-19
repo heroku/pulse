@@ -253,23 +253,23 @@
 (defstat nginx-504-per-minute
   (nginx-per-minute 504))
 
-(defn nginx-apps-per-minute [status]
+(defn nginx-domains-per-minute [status]
   (per-minute-unique
     (fn [evt] (and (cloud? evt) (= (:event_type evt) "nginx_access")
                    (not= (:http_host evt) "127.0.0.1") (= (:http_status evt) status)))
-    (fn [evt] (:instance_id evt))))
+    (fn [evt] (:http_domain evt))))
 
-(defstat nginx-500-apps-per-minute
-  (nginx-apps-per-minute 500))
+(defstat nginx-500-domains-per-minute
+  (nginx-domains-per-minute 500))
 
-(defstat nginx-502-apps-per-minute
-  (nginx-apps-per-minute 502))
+(defstat nginx-502-domains-per-minute
+  (nginx-domains-per-minute 502))
 
-(defstat nginx-503-apps-per-minute
-  (nginx-apps-per-minute 503))
+(defstat nginx-503-domains-per-minute
+  (nginx-domains-per-minute 503))
 
-(defstat nginx-504-apps-per-minute
-  (nginx-apps-per-minute 504))
+(defstat nginx-504-domains-per-minute
+  (nginx-domains-per-minute 504))
 
 (defstat nginx-errors-per-minute
   (per-minute
@@ -710,7 +710,12 @@
    nginx-502-per-minute
    nginx-503-per-minute
    nginx-504-per-minute
+   nginx-500-domains-per-minute
+   nginx-502-domains-per-minute
+   nginx-503-domains-per-minute
+   nginx-504-domains-per-minute
    nginx-errors-per-minute
+   nginx-errors-instances-per-minute
    varnish-requests-per-second
    varnish-500-per-minute
    varnish-502-per-minute
