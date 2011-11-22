@@ -19,6 +19,8 @@
 (defn api-url [] (env! "API_URL"))
 (defn deploy [] (env! "DEPLOY"))
 (defn cloud [] (env! "CLOUD"))
+(defn apply-threads [] (Integer/parseInt (env! "APPLY_THREADS")))
+(defn publish-threads [] (Integer/parseInt (env! "PUBLISH_THREADS")))
 
 (defn api-password []
   (second (str/split (:auth (util/url-parse (api-url))) #":")))

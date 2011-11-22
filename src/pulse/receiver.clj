@@ -46,8 +46,8 @@
         stats-states (init-stats def/all)]
     (queue/init-watcher apply-queue "apply")
     (queue/init-watcher publish-queue "publish")
-    (io/init-publishers publish-queue (conf/redis-url) "stats.received" pr-str 4)
+    (io/init-publishers publish-queue (conf/redis-url) "stats.received" pr-str (conf/publish-threads))
     (init-emitter stats-states publish-queue)
-    (init-appliers stats-states apply-queue 2)
+    (init-appliers stats-states apply-queue (conf/apply-threads))
     (io/init-bleeders (conf/aorta-urls) apply-queue)
   (log :fn "main" :at "finish")))
