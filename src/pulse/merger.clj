@@ -27,9 +27,9 @@
       (let [pub (stat/merge-emit stat-def stat-state)]
         (queue/offer publish-queue [stat-name pub]))))))
 
-(defn init-appliers [stats-map apply-queue]
+(defn init-appliers [stats-map apply-queue n]
   (log :fn "init-appliers" :at "start")
-  (dotimes [i 2]
+  (dotimes [i n]
      (log :fn "init-appliers" :at "spawn" :index i)
      (util/spawn-loop (fn []
        (let [[stat-name pub] (queue/take apply-queue)
@@ -45,6 +45,6 @@
     (queue/init-watcher publish-queue "publish")
     (io/init-publishers publish-queue (conf/redis-url) "stats.merged" json/generate-string 4)
     (init-emitter stats-states publish-queue)
-    (init-appliers stats-states apply-queue)
+    (init-appliers stats-states apply-queue 2)
     (io/init-subscriber (conf/redis-url) "stats.received" read-string apply-queue))
   (log :fn "main" :at "finish"))

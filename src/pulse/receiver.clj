@@ -29,9 +29,9 @@
     (assoc event :line line :aorta_host aorta-host :parsed true)
     {:line line :aorta_host aorta-host :parsed false}))
 
-(defn init-appliers [stats apply-queue]
+(defn init-appliers [stats apply-queue n]
   (log :fn "init-appliers" :at "start")
-  (dotimes [i 2]
+  (dotimes [i n]
      (log :fn "init-appliers" :at "spawn" :index i)
      (util/spawn-loop (fn []
        (let [[aorta-host line] (queue/take apply-queue)
@@ -48,6 +48,6 @@
     (queue/init-watcher publish-queue "publish")
     (io/init-publishers publish-queue (conf/redis-url) "stats.received" pr-str 4)
     (init-emitter stats-states publish-queue)
-    (init-appliers stats-states apply-queue)
+    (init-appliers stats-states apply-queue 2)
     (io/init-bleeders (conf/aorta-urls) apply-queue)
   (log :fn "main" :at "finish")))
