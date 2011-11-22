@@ -110,7 +110,21 @@
     ["hermes H12 app/min"  "hermes-h12-apps-per-minute"]
     ["hermes H13 app/min"  "hermes-h13-apps-per-minute"]
     ["hermes H14 app/min"  "hermes-h14-apps-per-minute"]
-    ["hermes H99 app/min"  "hermes-h99-apps-per-minute"]]])
+    ["hermes H99 app/min"  "hermes-h99-apps-per-minute"]]
+   [["hermes ls upd/min"   "hermes-lockstep-updates-per-minute"]
+    ["hermes ls conn/min"  "hermes-lockstep-connections-per-minute"]
+    ["hermes ls dconn/min" "hermes-lockstep-disconnections-per-minute"]
+    ["hermes ls ltcy"      "hermes-lockstep-mean-latency"]
+    ["hermes ls max ltcy"  "hermes-lockstep-max-latency"]
+    ["hermes ls still"     "hermes-lockstep-mean-stillness"]
+    ["hermes ls max still" "hermes-lockstep-max-stillness"]]
+   [["hermes elv rt/min"   "hermes-elevated-route-lookups-per-minute"]
+    ["hermes slow rt/min"  "hermes-slow-route-lookups-per-minute"]
+    ["hermes cat rt/min"   "hermes-catastrophic-route-lookups-per-minute"]
+    ["hermes slow rd/min"  "hermes-slow-redis-lookups-per-minute"]
+    ["hermes cat rd/min"   "hermes-catastrophic-redis-lookups-per-minute"]
+    ["hermes processes"    "hermes-processes-last"]
+    ["hermes ports"        "hermes-ports-last"]]])
 
 (def graphs-runtime
   nil)

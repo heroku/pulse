@@ -1,5 +1,5 @@
 (ns pulse.def
-  (:refer-clojure :exclude [last])
+  (:refer-clojure :exclude [last max])
   (:require [clojure.set :as set]
             [pulse.util :as util]
             [pulse.conf :as conf]))
@@ -9,6 +9,36 @@
 
 (defn sum [c]
   (reduce + c))
+
+(defn max [time-buffer pred-fn val-fn]
+  {:receive-init
+     (fn []
+       [(util/millis) nil])
+   :receive-apply
+     (fn [[window-start window-max :as window] evt]
+       (if-not (pred-fn evt)
+         window
+         (let [val (val-fn evt)]
+           (cond
+             (nil? window-max)  [window-start val]
+             (> val window-max) [window-start val]
+             :else              window))))
+   :receive-emit
+     (fn [receive-buffer]
+       receive-buffer)
+   :merge-init
+     (fn []
+       [])
+   :merge-apply
+     (fn [windows [window-start window-max :as window]]
+       (conj windows window))
+   :merge-emit
+     (fn [windows]
+       (let [now (util/millis)
+             recent-windows (filter (fn [[window-start _]] (>= window-start (- now (* 1000 time-buffer)))) windows)
+             recent-values (->> windows (map (fn [[_ window-max]] window-max)) (filter #(not (nil? %))))
+             recent-max (or (and (seq recent-values) (apply clojure.core/max recent-values)) 0)]
+         [recent-windows recent-max]))})
 
 (defn mean [time-buffer pred-fn val-fn]
   {:receive-init
@@ -389,6 +419,70 @@
                    (= (:level evt) "err")
                    (= (:component evt) "hermes")))))
 
+(defstat hermes-lockstep-updates-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (:services_callback evt) (:txid evt)))))
+
+(defstat hermes-lockstep-connections-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (:services_callback evt) (= (:event evt) "connect")))))
+
+(defstat hermes-lockstep-disconnections-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (:services_callback evt) (= (:event evt) "disconnect")))))
+
+(defstat hermes-lockstep-mean-latency
+  (mean 70
+    (fn [evt] (and (cloud? evt) (:hermes_clock evt) (:STATS evt) (:last_service_latency evt)))
+    (fn [evt] (:last_service_latency evt))))
+
+(defstat hermes-lockstep-max-latency
+  (max 70
+    (fn [evt] (and (cloud? evt) (:hermes_clock evt) (:STATS evt) (:last_service_latency evt)))
+    (fn [evt] (:last_service_latency evt))))
+
+(defstat hermes-lockstep-mean-stillness
+  (mean 70
+    (fn [evt] (and (cloud? evt) (:hermes_clock evt) (:STATS evt) (:last_service_update evt)))
+    (fn [evt] (:last_service_update evt))))
+
+(defstat hermes-lockstep-max-stillness
+  (max 70
+    (fn [evt] (and (cloud? evt) (:hermes_clock evt) (:STATS evt) (:last_service_update evt)))
+    (fn [evt] (:last_service_update evt))))
+
+(defstat hermes-elevated-route-lookups-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (:hermes_proxy evt) (= (:code evt) "OK") (>= (:route evt) 2.0)))))
+
+(defstat hermes-slow-route-lookups-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (:hermes_proxy evt) (= (:code evt) "OK") (>= (:route evt) 10.0)))))
+
+(defstat hermes-catastrophic-route-lookups-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (:hermes_proxy evt) (= (:code evt) "OK") (>= (:route evt) 100.0)))))
+
+(defstat hermes-slow-redis-lookups-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (= (:component evt) "hermes") (:redis_helper evt) (>= (:time evt) 10.0)))))
+
+(defstat hermes-catastrophic-redis-lookups-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (= (:component evt) "hermes") (:redis_helper evt) (>= (:time evt) 25.0)))))
+
+(defstat hermes-processes-last
+  (last-sum
+    (fn [evt] (and (cloud? evt) (:hermes_clock evt) (:STATS evt)))
+    (fn [evt] (:instance_id evt))
+    (fn [evt] (:processes evt))))
+
+(defstat hermes-ports-last
+  (last-sum
+    (fn [evt] (and (cloud? evt) (:hermes_clock evt) (:STATS evt)))
+    (fn [evt] (:instance_id evt))
+    (fn [evt] (:ports evt))))
+
 ; runtime
 
 (defstat railgun-unhandled-exceptions-per-minute
@@ -741,6 +835,20 @@
    hermes-h14-apps-per-minute
    hermes-h99-apps-per-minute
    hermes-errors-per-minute
+   hermes-lockstep-updates-per-minute
+   hermes-lockstep-connections-per-minute
+   hermes-lockstep-disconnections-per-minute
+   hermes-lockstep-mean-latency
+   hermes-lockstep-max-latency
+   hermes-lockstep-mean-stillness
+   hermes-lockstep-max-stillness
+   hermes-elevated-route-lookups-per-minute
+   hermes-slow-route-lookups-per-minute
+   hermes-catastrophic-route-lookups-per-minute
+   hermes-slow-redis-lookups-per-minute
+   hermes-catastrophic-redis-lookups-per-minute
+   hermes-processes-last
+   hermes-ports-last
 
    ; runtime
    railgun-unhandled-exceptions-per-minute
