@@ -233,7 +233,10 @@
 
 (defstat events-per-second-unparsed
   (per-second
-    (fn [evt] (not (:parsed evt)))))
+    (fn [evt]
+      (when (not (:parsed evt))
+        (println "unparsed:" (:line evt))
+        true))))
 
 (defstat amqp-publishes-per-second
   (per-second
