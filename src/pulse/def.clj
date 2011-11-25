@@ -10,6 +10,9 @@
 (defn sum [c]
   (reduce + c))
 
+(defn kv=? [m k v]
+  (= (k m) v))
+
 (defn max [time-buffer pred-fn val-fn]
   {:receive-init
      (fn []
@@ -371,8 +374,7 @@
 
 (defn hermes-per-minute [code]
   (per-minute
-    (fn [evt] (and (cloud? evt) (= (:event_type evt) "standard")
-                   (:hermes_proxy evt) (:Error evt) (= (:code evt) code)))))
+    (fn [evt] (and (cloud? evt) (contains? evt :hermes_proxy) (kv=? evt :code code)))))
 
 (defstat hermes-h10-per-minute
   (hermes-per-minute "H10"))
@@ -394,9 +396,7 @@
 
 (defn hermes-apps-per-minute [code]
   (per-minute-unique
-    (fn [evt]
-      (and (cloud? evt) (= (:event_type evt) "standard")
-           (:hermes_proxy evt) (:Error evt) (= (:code evt) code)))
+    (fn [evt] (and (cloud? evt) (contains? evt :hermes_proxy) (kv=? evt :code code)))
     (fn [evt] (:app_id evt))))
 
 (defstat hermes-h10-apps-per-minute
