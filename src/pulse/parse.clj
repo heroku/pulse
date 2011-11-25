@@ -58,7 +58,7 @@
          :component (.group m 4)
          :pid (parse-long (.group m 6))
          :slot (.group m 8)
-         :instance_id (Long/parseLong (.group m 9))
+         :instance_id (parse-long (.group m 9))
          :cloud (.group m 10)}
         (parse-message-attrs (.group m 13))))))
 
@@ -87,14 +87,14 @@
         :level (.group m 3)
         :component "nginx"
         :slot (.group m 4)
-        :instance_id (Long/parseLong (.group m 5))
+        :instance_id (parse-long (.group m 5))
         :cloud (.group m 6)
         :http_host (.group m 7)
         :http_method (.group m 8)
         :http_url (.group m 9)
         :http_version (.group m 10)
-        :http_status (Long/parseLong (.group m 11))
-        :http_bytes (Long/parseLong (.group m 12))
+        :http_status (parse-long (.group m 11))
+        :http_bytes (parse-long (.group m 12))
         :http_referrer (.group m 13)
         :http_user_agent (.group m 14)
         :http_domain (.group m 15)})))
@@ -110,7 +110,7 @@
         :level (.group m 3)
         :component "nginx"
         :slot (.group m 4)
-        :instance_id (Long/parseLong (.group m 5))
+        :instance_id (parse-long (.group m 5))
         :cloud (.group m 6)
         :message (.group m 7)})))
 
