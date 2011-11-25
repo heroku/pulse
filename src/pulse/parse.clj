@@ -46,7 +46,7 @@
   (if s (Long/parseLong s)))
 
 (def standard-re
-  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?[\-\+]\d\d:00) [0-9\.]+ [a-z0-7]+\.([a-z]+) ([a-zA-Z0-9\/\-\_\.]+)(\[(\d+)\])?:? - (([a-z0-9\-\_]+)?\.(\d+)@([a-z.\-]+\.com))?([a-zA-Z0-9\-\_\.]+)?( -)? (.*)$")
+  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?[\-\+]\d\d:00) [0-9\.]+ [a-z0-7]+\.([a-z]+) ([a-zA-Z0-9\/\-\_\.]+)(\[([a-zA-Z0-9\.]+)\])?:? - (([a-z0-9\-\_]+)?\.(\d+)@([a-z.\-]+\.com))?([a-zA-Z0-9\-\_\.]+)?( -)? (.*)$")
 
 (defn parse-standard-line [l]
   (let [m (re-matcher standard-re l)]
@@ -56,7 +56,7 @@
          :timestamp (.group m 1)
          :level (.group m 3)
          :component (.group m 4)
-         :pid (parse-long (.group m 6))
+         :ps (.group m 6)
          :slot (.group m 8)
          :instance_id (parse-long (.group m 9))
          :cloud (.group m 10)}
@@ -72,7 +72,7 @@
        :timestamp (.group m 1)
        :level (.group m 3)
        :component (.group m 4)
-       :pid (parse-long (.group m 6))
+       :ps (.group m 6)
        :message (.group m 7)})))
 
 (def nginx-access-re
@@ -124,7 +124,7 @@
         :timestamp (.group m 1)
         :level (.group m 3)
         :component "varnish"
-        :pid (parse-long (.group m 4))
+        :ps (.group m 4)
         :slot (.group m 5)
         :instance_id (parse-long (.group m 6))
         :cloud (.group m 7)
