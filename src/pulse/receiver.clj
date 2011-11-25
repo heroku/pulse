@@ -30,7 +30,7 @@
       (if (or (nil? (:event_type event)) (= (:event_type event) "") (= (:event_type event) "raw"))
         (log :fn "parse" :at "huh" :type (:event_type event) :line line))
       (assoc event :line line :aorta_host aorta-host :parsed true))
-    {:line line :aorta_host aorta-host :parsed false}))
+    {:line line :aorta_host aorta-host :parse false}))
 
 (defn init-appliers [stats apply-queue n]
   (log :fn "init-appliers" :at "start")

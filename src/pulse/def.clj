@@ -234,6 +234,10 @@
         (prn "wtf" evt))
       (:event_type evt))))
 
+(defstat events-per-second-unparsed
+  (per-second
+    (fn [evt] (not (:parsed evt)))))
+
 (defstat amqp-publishes-per-second
   (per-second
     (fn [evt] (and (cloud? evt) (or (:amqp_publish evt) (and (:amqp_message evt) (= (:action evt) "publish")))))))
@@ -783,6 +787,7 @@
    events-per-second
    events-per-second-by-aorta-host
    events-per-second-by-event-type
+   events-per-second-unparsed
    amqp-publishes-per-second
    amqp-receives-per-second
    amqp-timeouts-per-minute
