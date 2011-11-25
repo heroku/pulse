@@ -229,10 +229,7 @@
 (defstat events-per-second-by-event-type
   (per-second-by-key
     (fn [evt] true)
-    (fn [evt]
-      (when (or (= (:event_type evt) "") (nil? (:event_type evt)))
-        (prn "wtf" evt))
-      (:event_type evt))))
+    (fn [evt] (:event_type evt))))
 
 (defstat events-per-second-unparsed
   (per-second
