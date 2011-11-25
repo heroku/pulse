@@ -63,7 +63,7 @@
         (parse-message-attrs (.group m 10))))))
 
 (def raw-re
-  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?[\-\+]\d\d:00) [0-9\.]+ [a-z0-7]+\.([a-z]+) (.*)$")
+  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?[\-\+]\d\d:00) [0-9\.]+ [a-z0-7]+\.([a-z]+) ([a-z0-9\_\-]+)(\[(\d+)\])?(.*)$")
 
 (defn parse-raw-line [l]
   (let [m (re-matcher raw-re l)]
@@ -71,7 +71,9 @@
       {:event_type "raw"
        :timestamp (.group m 1)
        :level (.group m 3)
-       :message (.group m 4)})))
+       :component (.group m 4)
+       :pid (parse-long (.group m 6))
+       :message (.group m 7)})))
 
 (def nginx-access-re
      ;timestamp                                       ;host    ;facility  ;level           ;slot        ;ins_id ;cloud             ;http_host                                                              ;http_method,_url,_version      ;http_status,_bytes,_referrer,_user_agent,_domain
