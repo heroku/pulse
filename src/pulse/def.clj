@@ -223,6 +223,11 @@
     (fn [evt] true)
     (fn [evt] (:aorta_host evt))))
 
+(defstat events-per-second-by-event-type
+  (per-second-by-key
+    (fn [evt] true)
+    (fn [evt] (:event_type evt))))
+
 (defstat amqp-publishes-per-second
   (per-second
     (fn [evt] (and (cloud? evt) (or (:amqp_publish evt) (and (:amqp_message evt) (= (:action evt) "publish")))))))
@@ -789,6 +794,7 @@
   ; global
    events-per-second
    events-per-second-by-aorta-host
+   events-per-second-by-event-type
    amqp-publishes-per-second
    amqp-receives-per-second
    amqp-timeouts-per-minute
