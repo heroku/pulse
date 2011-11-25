@@ -46,7 +46,7 @@
   (if s (Long/parseLong s)))
 
 (def standard-re
-  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?[\-\+]\d\d:00) [0-9\.]+ [a-z0-7]+\.([a-z]+) ([a-z\-\_]+)(\[(\d+)\])? - ([a-z4-6\-\_]+)?\.(\d+)@([a-z.\-]+\.com) - (.*)$")
+  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?[\-\+]\d\d:00) [0-9\.]+ [a-z0-7]+\.([a-z]+) ([a-z\-\_]+)(\[(\d+)\])?:? - ([a-z4-6\-\_]+)?\.(\d+)@([a-z.\-]+\.com) - (.*)$")
 
 (defn parse-standard-line [l]
   (let [m (re-matcher standard-re l)]
