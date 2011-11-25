@@ -58,7 +58,7 @@
     (if (.find m)
       (merge
         {:event_type "standard"
-         :timestamp_src (parse-timestamp (.group m 1))
+         :timestamp (parse-timestamp (.group m 1))
          :level (.group m 2)
          :component (.group m 3)
          :pid (parse-long (.group m 5))
@@ -74,19 +74,19 @@
   (let [m (re-matcher raw-re l)]
     (if (.find m)
       {:event_type "raw"
-       :timestamp_src (parse-timestamp (.group m 1))
+       :timestamp (parse-timestamp (.group m 1))
        :level (.group m 2)
        :message (.group m 3)})))
 
 (def nginx-access-re
-     ;timestamp_src                                   ;host    ;facility  ;level           ;slot        ;ins_id ;cloud           ;http_host                                                              ;http_method,_url,_version      ;http_status,_bytes,_referrer,_user_agent,_domain
+     ;timestamp                                       ;host    ;facility  ;level           ;slot        ;ins_id ;cloud           ;http_host                                                              ;http_method,_url,_version      ;http_status,_bytes,_referrer,_user_agent,_domain
   #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d[\-\+]\d\d:00) [0-9\.]+ [a-z0-7]+\.([a-z]+) nginx - ([a-z4-6-]+)?\.(\d+)@([a-z.]+\.com) - ([0-9\.]+) - - \[\d\d\/[a-zA-z]{3}\/\d\d\d\d:\d\d:\d\d:\d\d -\d\d00\] \"([a-zA-Z]+) (\S+) HTTP\/(...)\" (\d+) (\d+) \"([^\"]+)\" \"([^\"]+)\" (\S+)$")
 
 (defn parse-nginx-access-line [l]
   (let [m (re-matcher nginx-access-re l)]
     (if (.find m)
        {:event_type "nginx_access"
-        :timestamp_src (parse-timestamp (.group m 1))
+        :timestamp (parse-timestamp (.group m 1))
         :level (.group m 2)
         :component "nginx"
         :slot (.group m 3)
@@ -109,7 +109,7 @@
   (let [m (re-matcher nginx-error-re l)]
     (if (.find m)
        {:event_type "nginx_error"
-        :timestamp_src (parse-timestamp (.group m 1))
+        :timestamp (parse-timestamp (.group m 1))
         :level (.group m 2)
         :component "nginx"
         :slot (.group m 3)
@@ -124,7 +124,7 @@
   (let [m (re-matcher varnish-access-re l)]
     (if (.find m)
        {:event_type "varnish_access"
-        :timestamp_src (parse-timestamp (.group m 1))
+        :timestamp (parse-timestamp (.group m 1))
         :level (.group m 2)
         :component "varnish"
         :pid (parse-long (.group m 3))
