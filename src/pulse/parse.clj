@@ -46,7 +46,7 @@
   (if s (Long/parseLong s)))
 
 (def standard-re
-  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?[\-\+]\d\d:00) [0-9\.]+ [a-z0-7]+\.([a-z]+) ([a-zA-Z\/\-\_]+)(\[(\d+)\])?:? - ([a-z4-6\-\_]+)?\.(\d+)@([a-z.\-]+\.com) - (.*)$")
+  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?[\-\+]\d\d:00) [0-9\.]+ [a-z0-7]+\.([a-z]+) ([a-zA-Z0-9\/\-\_]+)(\[(\d+)\])?:? - (([a-z0-9\-\_]+)?\.(\d+)@([a-z.\-]+\.com))?([a-zA-Z0-9\-\_\.]+)?( -)? (.*)$")
 
 (defn parse-standard-line [l]
   (let [m (re-matcher standard-re l)]
@@ -57,10 +57,10 @@
          :level (.group m 3)
          :component (.group m 4)
          :pid (parse-long (.group m 6))
-         :slot (.group m 7)
-         :instance_id (Long/parseLong (.group m 8))
-         :cloud (.group m 9)}
-        (parse-message-attrs (.group m 10))))))
+         :slot (.group m 8)
+         :instance_id (Long/parseLong (.group m 9))
+         :cloud (.group m 10)}
+        (parse-message-attrs (.group m 13))))))
 
 (def raw-re
   #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?[\-\+]\d\d:00) [0-9\.]+ [a-z0-7]+\.([a-z]+) ([a-zA-Z0-9\/\_\-]+)(\[(\d+)\])?(.*)$")
