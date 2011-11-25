@@ -1,5 +1,4 @@
 (ns pulse.parse
-  (:import java.text.SimpleDateFormat)
   (:require [clojure.string :as str]
             [pulse.util :as util]
             [pulse.log :as log]))
@@ -43,95 +42,91 @@
           (recur a))
         a))))
 
-(defn parse-timestamp [s]
-  (let [f (SimpleDateFormat. "yyyy-MM-dd'T'HH:mm:ssZ")]
-    (.getTime (.parse f (str/replace s #":\d\d$" "00")))))
-
 (defn parse-long [s]
   (if s (Long/parseLong s)))
 
 (def standard-re
-  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d[\-\+]\d\d:00) [0-9\.]+ [a-z0-7]+\.([a-z]+) ([a-z\-\_]+)(\[(\d+)\])? - ([a-z4-6-]+)?\.(\d+)@([a-z.\-]+\.com) - (.*)$")
+  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?[\-\+]\d\d:00) [0-9\.]+ [a-z0-7]+\.([a-z]+) ([a-z\-\_]+)(\[(\d+)\])? - ([a-z4-6-]+)?\.(\d+)@([a-z.\-]+\.com) - (.*)$")
 
 (defn parse-standard-line [l]
   (let [m (re-matcher standard-re l)]
     (if (.find m)
       (merge
         {:event_type "standard"
-         :timestamp (parse-timestamp (.group m 1))
-         :level (.group m 2)
-         :component (.group m 3)
-         :pid (parse-long (.group m 5))
-         :slot (.group m 6)
-         :instance_id (Long/parseLong (.group m 7))
-         :cloud (.group m 8)}
-        (parse-message-attrs (.group m 9))))))
+         :timestamp (.group m 1)
+         :level (.group m 3)
+         :component (.group m 4)
+         :pid (parse-long (.group m 6))
+         :slot (.group m 7)
+         :instance_id (Long/parseLong (.group m 8))
+         :cloud (.group m 9)}
+        (parse-message-attrs (.group m 10))))))
 
 (def raw-re
-  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d[\-\+]\d\d:00) [0-9\.]+ [a-z0-7]+\.([a-z]+) (.*)$")
+  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?[\-\+]\d\d:00) [0-9\.]+ [a-z0-7]+\.([a-z]+) (.*)$")
 
 (defn parse-raw-line [l]
   (let [m (re-matcher raw-re l)]
     (if (.find m)
       {:event_type "raw"
-       :timestamp (parse-timestamp (.group m 1))
-       :level (.group m 2)
-       :message (.group m 3)})))
+       :timestamp (.group m 1)
+       :level (.group m 3)
+       :message (.group m 4)})))
 
 (def nginx-access-re
      ;timestamp                                       ;host    ;facility  ;level           ;slot        ;ins_id ;cloud             ;http_host                                                              ;http_method,_url,_version      ;http_status,_bytes,_referrer,_user_agent,_domain
-  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d[\-\+]\d\d:00) [0-9\.]+ [a-z0-7]+\.([a-z]+) nginx - ([a-z4-6-]+)?\.(\d+)@([a-z.\-]+\.com) - ([0-9\.]+) - - \[\d\d\/[a-zA-z]{3}\/\d\d\d\d:\d\d:\d\d:\d\d -\d\d00\] \"([a-zA-Z]+) (\S+) HTTP\/(...)\" (\d+) (\d+) \"([^\"]+)\" \"([^\"]+)\" (\S+)$")
+  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?[\-\+]\d\d:00) [0-9\.]+ [a-z0-7]+\.([a-z]+) nginx - ([a-z4-6-]+)?\.(\d+)@([a-z.\-]+\.com) - ([0-9\.]+) - - \[\d\d\/[a-zA-z]{3}\/\d\d\d\d:\d\d:\d\d:\d\d -\d\d00\] \"([a-zA-Z]+) (\S+) HTTP\/(...)\" (\d+) (\d+) \"([^\"]+)\" \"([^\"]+)\" (\S+)$")
 
 (defn parse-nginx-access-line [l]
   (let [m (re-matcher nginx-access-re l)]
     (if (.find m)
        {:event_type "nginx_access"
-        :timestamp (parse-timestamp (.group m 1))
-        :level (.group m 2)
+        :timestamp (.group m 1)
+        :level (.group m 3)
         :component "nginx"
-        :slot (.group m 3)
-        :instance_id (Long/parseLong (.group m 4))
-        :cloud (.group m 5)
-        :http_host (.group m 6)
-        :http_method (.group m 7)
-        :http_url (.group m 8)
-        :http_version (.group m 9)
-        :http_status (Long/parseLong (.group m 10))
-        :http_bytes (Long/parseLong (.group m 11))
-        :http_referrer (.group m 12)
-        :http_user_agent (.group m 13)
-        :http_domain (.group m 14)})))
+        :slot (.group m 4)
+        :instance_id (Long/parseLong (.group m 5))
+        :cloud (.group m 6)
+        :http_host (.group m 7)
+        :http_method (.group m 8)
+        :http_url (.group m 9)
+        :http_version (.group m 10)
+        :http_status (Long/parseLong (.group m 11))
+        :http_bytes (Long/parseLong (.group m 12))
+        :http_referrer (.group m 13)
+        :http_user_agent (.group m 14)
+        :http_domain (.group m 15)})))
 
 (def nginx-error-re
-  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d[\-\+]\d\d:00) [0-9\.]+ [a-z0-7]+\.([a-z]+) nginx - ([a-z4-6]+)?\.(\d+)@([a-z.\-]+\.com) - .* \[error\] (.*)$")
+  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?[\-\+]\d\d:00) [0-9\.]+ [a-z0-7]+\.([a-z]+) nginx - ([a-z4-6]+)?\.(\d+)@([a-z.\-]+\.com) - .* \[error\] (.*)$")
 
 (defn parse-nginx-error-line [l]
   (let [m (re-matcher nginx-error-re l)]
     (if (.find m)
        {:event_type "nginx_error"
-        :timestamp (parse-timestamp (.group m 1))
-        :level (.group m 2)
+        :timestamp (.group m 1)
+        :level (.group m 3)
         :component "nginx"
-        :slot (.group m 3)
-        :instance_id (Long/parseLong (.group m 4))
-        :cloud (.group m 5)
-        :message (.group m 6)})))
+        :slot (.group m 4)
+        :instance_id (Long/parseLong (.group m 5))
+        :cloud (.group m 6)
+        :message (.group m 7)})))
 
 (def varnish-access-re
-  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d[\-+]\d\d:00) [0-9\.]+ [a-z0-7]+\.([a-z]+) varnish\[(\d+)\] - ([a-z4-6\-]+)?\.(\d+)@([a-z.\-]+\.com) - [0-9\.]+ - - .*\" (\d\d\d) .*$")
+  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?[\-\+]\d\d:00) [0-9\.]+ [a-z0-7]+\.([a-z]+) varnish\[(\d+)\] - ([a-z4-6\-]+)?\.(\d+)@([a-z.\-]+\.com) - [0-9\.]+ - - .*\" (\d\d\d) .*$")
 
 (defn parse-varnish-access-line [l]
   (let [m (re-matcher varnish-access-re l)]
     (if (.find m)
        {:event_type "varnish_access"
-        :timestamp (parse-timestamp (.group m 1))
-        :level (.group m 2)
+        :timestamp (.group m 1)
+        :level (.group m 3)
         :component "varnish"
-        :pid (parse-long (.group m 3))
-        :slot (.group m 4)
-        :instance_id (parse-long (.group m 5))
-        :cloud (.group m 6)
-        :http_status (parse-long (.group m 7))})))
+        :pid (parse-long (.group m 4))
+        :slot (.group m 5)
+        :instance_id (parse-long (.group m 6))
+        :cloud (.group m 7)
+        :http_status (parse-long (.group m 8))})))
 
 (defn log [& data]
   (apply log/log :ns "parse" data))
