@@ -230,7 +230,7 @@
   (per-second-by-key
     (fn [evt] true)
     (fn [evt]
-      (when (= (:event_type evt) "")
+      (when (or (= (:event_type evt) "") (nil? (:event_type evt)))
         (prn "wtf" evt))
       (:event_type evt))))
 
