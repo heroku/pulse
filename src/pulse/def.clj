@@ -419,10 +419,7 @@
 
 (defstat hermes-errors-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt)
-                   (or (= (:facility evt) "user") (= (:facility evt) "local3") (= (:facility evt) "local0"))
-                   (= (:level evt) "err")
-                   (= (:component evt) "hermes")))))
+    (fn [evt] (and (cloud? evt) (= (:level evt) "err") (= (:component evt) "hermes")))))
 
 (defstat hermes-lockstep-updates-per-minute
   (per-minute
@@ -601,10 +598,7 @@
 
 (defstat psmgr-errors-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt)
-                   (or (= (:facility evt) "user") (= (:facility evt) "local3") (= (:facility evt) "local0"))
-                   (= (:level evt) "err")
-                   (= (:component evt) "psmgr")))))
+    (fn [evt] (and (cloud? evt) (= (:level evt) "err") (= (:component evt) "psmgr")))))
 
 ; packaging
 
@@ -761,10 +755,7 @@
 
 (defstat codex-errors-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt)
-                   (or (= (:facility evt) "user") (= (:facility evt) "local3") (= (:facility evt) "local0"))
-                   (= (:level evt) "err")
-                   (= (:component evt) "codex")))))
+    (fn [evt] (and (cloud? evt) (= (:level evt) "err") (= (:component evt) "codex")))))
 
 ; api
 
@@ -775,19 +766,13 @@
 
 (defstat api-errors-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt)
-                   (or (= (:facility evt) "user") (= (:facility evt) "local3") (= (:facility evt) "local0"))
-                   (= (:level evt) "err")
-                   (= (:component evt) "core")))))
+    (fn [evt] (and (cloud? evt) (= (:level evt) "err") (= (:component evt) "core")))))
 
 ; data
 
 (defstat shen-errors-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt)
-                   (or (= (:facility evt) "user") (= (:facility evt) "local3") (= (:facility evt) "local0"))
-                   (= (:level evt) "err")
-                   (= (:component evt) "shen")))))
+    (fn [evt] (and (cloud? evt) (= (:level evt) "err") (= (:component evt) "shen")))))
 
 (def all
   [
