@@ -28,7 +28,7 @@
   (if-let [event (parse/parse-line line)]
     (do
       (if (or (= (:event_type event) "") (= (:event_type event) "raw"))
-        (log :fn "parse" :at "huh" :line line))
+        (log :fn "parse" :at "huh" :type (:event_type event) :line line))
       (assoc event :line line :aorta_host aorta-host :parsed true))
     {:line line :aorta_host aorta-host :parsed false}))
 
