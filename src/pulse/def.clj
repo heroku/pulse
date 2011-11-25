@@ -229,7 +229,10 @@
 (defstat events-per-second-by-event-type
   (per-second-by-key
     (fn [evt] true)
-    (fn [evt] (:event_type evt))))
+    (fn [evt]
+      (when (= (:event_type evt) "")
+        (prn "wtf" evt))
+      (:event_type evt))))
 
 (defstat amqp-publishes-per-second
   (per-second
