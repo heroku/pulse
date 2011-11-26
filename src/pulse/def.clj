@@ -793,10 +793,10 @@
   [
   ; global
    events-per-second
-   ; events-per-second-by-aorta-host
-   ; events-per-second-by-event-type
-   ; events-per-second-by-source
-   ; events-per-second-unparsed
+   events-per-second-by-aorta-host
+   events-per-second-by-event-type
+   events-per-second-by-source
+   events-per-second-unparsed
    amqp-publishes-per-second
    amqp-receives-per-second
    amqp-timeouts-per-minute
