@@ -229,11 +229,6 @@
     (fn [evt] true)
     (fn [evt] (:aorta_host evt))))
 
-(defstat events-per-second-by-event-type
-  (per-second-by-key
-    (fn [evt] true)
-    (fn [evt] (:event_type evt))))
-
 (defstat events-per-second-by-source
   (per-second-by-key
     (fn [evt] (:source evt))
@@ -275,24 +270,23 @@
 
 ; routing
 
+(defn nginx-request? [evt]
+  (and (and (cloud? evt) (kv? evt :source "nginx") (k? evt :http_status))))
+
 (defstat nginx-requests-per-second
-  (per-second
-    (fn [evt] (and (cloud? evt) (= (:event_type evt) "nginx_access")))))
+  (per-second nginx-request?))
 
 (defstat nginx-requests-per-second-by-domain
-  (per-second-by-key
-    (fn [evt] (and (cloud? evt) (= (:event_type evt) "nginx_access")))
-    (fn [evt] (:http_domain evt))))
+  (per-second-by-key nginx-request? :http_domain))
 
 (defstat nginx-requests-domains-per-minute
-  (per-minute-unique
-    (fn [evt] (and (cloud? evt) (= (:event_type evt) "nginx_access")))
-    (fn [evt] (:http_domain evt))))
+  (per-minute-unique nginx-request? :http_domain))
 
 (defn nginx-per-minute [status]
   (per-minute
-    (fn [evt] (and (cloud? evt) (= (:event_type evt) "nginx_access")
-                   (not= (:http_host evt) "127.0.0.1") (= (:http_status evt) status)))))
+    (fn [evt] (and (nginx-request? evt)
+                   (not (kv? evt :http_host "127.0.0.1"))
+                   (kv? evt :http_status status)))))
 
 (defstat nginx-500-per-minute
   (nginx-per-minute 500))
@@ -308,9 +302,10 @@
 
 (defn nginx-domains-per-minute [status]
   (per-minute-unique
-    (fn [evt] (and (cloud? evt) (= (:event_type evt) "nginx_access")
-                   (not= (:http_host evt) "127.0.0.1") (= (:http_status evt) status)))
-    (fn [evt] (:http_domain evt))))
+    (fn [evt] (and (nginx-request? evt)
+                   (not (kv? evt :http_host "127.0.0.1")
+                   (kv? evt :http_status status))))
+    :http_domain))
 
 (defstat nginx-500-domains-per-minute
   (nginx-domains-per-minute 500))
@@ -324,23 +319,26 @@
 (defstat nginx-504-domains-per-minute
   (nginx-domains-per-minute 504))
 
+(defn nginx-error? [evt]
+  (and (nginx-request? evt)
+       (kv? evt :level "crit")
+       (:msg evt) (.contains (:msg evt) "[error]")))
+
 (defstat nginx-errors-per-minute
-  (per-minute
-    (fn [evt] (and (cloud? evt) (kv? evt :source "nginx") (kv? evt :level "crit") (:msg evt) (.contains (:msg evt) "[error]")))))
+  (per-minute nginx-error?))
 
 (defstat nginx-errors-instances-per-minute
-  (per-minute-unique
-    (fn [evt] (and (cloud? evt) (= (:event_type evt) "nginx_error")))
-    (fn [evt] (:instance_id evt))))
+  (per-minute-unique nginx-error? :instance_id))
+
+(defn varnish-request? [evt]
+  (and (cloud? evt) (kv? evt :source "varnish") (k? evt :http_status)))
 
 (defstat varnish-requests-per-second
-  (per-second
-    (fn [evt] (and (cloud? evt)) (= (:event_type evt) "varnish_access"))))
+  (per-second varnish-request?))
 
 (defn varnish-per-minute [status]
   (per-minute
-    (fn [evt] (and (cloud? evt) (= (:event_type evt) "varnish_access")
-                   (= (:http_status evt) status)))))
+    (fn [evt] (and (varnish-request? evt) (kv? evt :http_status status)))))
 
 (defstat varnish-500-per-minute
   (varnish-per-minute 500))
@@ -794,7 +792,6 @@
   ; global
    events-per-second
    events-per-second-by-aorta-host
-   events-per-second-by-event-type
    events-per-second-by-source
    events-per-second-unparsed
    amqp-publishes-per-second
