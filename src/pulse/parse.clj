@@ -31,7 +31,7 @@
 (def attrs-re
   #"([a-zA-Z0-9_]+)(=?)([a-zA-Z0-9\.\_\-\:\/]*)")
 
-(defn parse-message-attrs [msg]
+(defn parse-msg-attrs [msg]
   (let [m (re-matcher attrs-re msg)]
     (loop [a (java.util.HashMap.)]
       (if (.find m)
@@ -45,77 +45,61 @@
 (defn parse-long [s]
   (if s (Long/parseLong s)))
 
-(def standard-re
+(def base-re
   #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?[\-\+]\d\d:00) [0-9\.]+ [a-z0-7]+\.([a-z]+) ([a-zA-Z0-9\/\-\_\.]+)(\[([a-zA-Z0-9\.]+)\])?:? - (([a-z0-9\-\_]+)?\.(\d+)@([a-z.\-]+))?([a-zA-Z0-9\-\_\.]+)?( -)? (.*)$")
 
-(defn parse-standard-line [l]
-  (let [m (re-matcher standard-re l)]
+(defn parse-base [l]
+  (let [m (re-matcher base-re l)]
     (if (.find m)
-      (merge
-        {:event_type "standard"
-         :timestamp (.group m 1)
-         :level (.group m 3)
-         :source (.group m 4)
-         :ps (.group m 6)
-         :slot (.group m 8)
-         :instance_id (parse-long (.group m 9))
-         :cloud (.group m 10)
-         :msg (.group m 13)}
-        (parse-message-attrs (.group m 13))))))
+      {:timestamp (.group m 1)
+       :level (.group m 3)
+       :source (.group m 4)
+       :ps (.group m 6)
+       :slot (.group m 8)
+       :instance_id (parse-long (.group m 9))
+       :cloud (.group m 10)
+       :msg (.group m 13)})))
+
+(defn inflate-default [evt]
+  (merge evt (parse-msg-attrs (:msg evt))))
 
 (def nginx-access-re
-  ;                                                                                                                                                                                                           http_host                                                               http_method,_url,_version       http_status,_bytes,_referrer,_user_agent,_domain
-  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?[\-\+]\d\d:00) [0-9\.]+ [a-z0-7]+\.([a-z]+) ([a-zA-Z0-9\/\-\_\.]+)(\[([a-zA-Z0-9\.]+)\])?:? - (([a-z0-9\-\_]+)?\.(\d+)@([a-z.\-]+))?([a-zA-Z0-9\-\_\.]+)?( -)? ([0-9\.]+) - - \[\d\d\/[a-zA-z]{3}\/\d\d\d\d:\d\d:\d\d:\d\d -\d\d00\] \"([a-zA-Z]+) (\S+) HTTP\/(...)\" (\d+) (\d+) \"([^\"]+)\" \"([^\"]+)\" (\S+)$")
+  ;  http_host                                                               http_method,_url,_version       http_status,_bytes,_referrer,_user_agent,_domain
+  #"^([0-9\.]+) - - \[\d\d\/[a-zA-z]{3}\/\d\d\d\d:\d\d:\d\d:\d\d -\d\d00\] \"([a-zA-Z]+) (\S+) HTTP\/(...)\" (\d+) (\d+) \"([^\"]+)\" \"([^\"]+)\" (\S+)$")
 
-(defn parse-nginx-access-line [l]
-  (let [m (re-matcher nginx-access-re l)]
-    (if (.find m)
-      (let [source (.group m 4)]
-        (if (= source "nginx")
-          {:event_type "nginx_access"
-           :timestamp (.group m 1)
-           :level (.group m 3)
-           :source (.group m 4)
-           :ps (.group m 6)
-           :slot (.group m 8)
-           :instance_id (parse-long (.group m 9))
-           :cloud (.group m 10)
-           :http_host (.group m 13)
-           :http_method (.group m 14)
-           :http_url (.group m 15)
-           :http_version (.group m 16)
-           :http_status (parse-long (.group m 17))
-           :http_bytes (parse-long (.group m 18))
-           :http_referrer (.group m 19)
-           :http_user_agent (.group m 20)
-           :http_domain (.group m 21)})))))
+(defn inflate-nginx-access [evt]
+  (if (= (:source evt) "nginx")
+    (let [m (re-matcher nginx-access-re (:msg evt))]
+      (if (.find m)
+        (merge evt
+          {:http_host (.group m 1)
+           :http_method (.group m 2)
+           :http_url (.group m 3)
+           :http_version (.group m 4)
+           :http_status (parse-long (.group m 5))
+           :http_bytes (parse-long (.group m 6))
+           :http_referrer (.group m 7)
+           :http_user_agent (.group m 8)
+           :http_domain (.group m 9)})))))
 
 (def varnish-access-re
-  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?[\-\+]\d\d:00) [0-9\.]+ [a-z0-7]+\.([a-z]+) ([a-zA-Z0-9\/\-\_\.]+)(\[([a-zA-Z0-9\.]+)\])?:? - (([a-z0-9\-\_]+)?\.(\d+)@([a-z.\-]+))?([a-zA-Z0-9\-\_\.]+)?( -)? [0-9\.]+ - - .*\" (\d\d\d) .*$")
+  #"^[0-9\.]+ - - .*\" (\d\d\d) .*$")
 
-(defn parse-varnish-access-line [l]
-  (let [m (re-matcher varnish-access-re l)]
-    (if (.find m)
-      (let [source (.group m 4)]
-        (if (= source "varnish")
-          {:event_type "varnish_access"
-           :timestamp (.group m 1)
-           :level (.group m 3)
-           :source (.group m 4)
-           :ps (.group m 6)
-           :slot (.group m 8)
-           :instance_id (parse-long (.group m 9))
-           :cloud (.group m 10)
-           :http_status (parse-long (.group m 13))})))))
+(defn inflate-varnish-access [evt]
+  (if (= (:source evt) "varnish")
+    (let [m (re-matcher varnish-access-re (:msg evt))]
+      (if (.find m)
+        (assoc evt :http_status (parse-long (.group m 1)))))))
 
 (defn log [& data]
   (apply log/log :ns "parse" data))
 
 (defn parse-line [l]
   (try
-    (or (parse-nginx-access-line l)
-        (parse-varnish-access-line l)
-        (parse-standard-line l))
+    (if-let [evt (parse-base l)]
+      (or (inflate-nginx-access evt)
+          (inflate-varnish-access evt)
+          (inflate-default evt)))
     (catch Exception e
       (log :fn "parse-line" :at "exception" :line l)
       (throw e))))
