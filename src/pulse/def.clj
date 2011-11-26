@@ -326,7 +326,7 @@
 
 (defstat nginx-errors-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (kv? evt :source "nginx") (.contains (:msg evt) "[error]")))))
+    (fn [evt] (and (cloud? evt) (kv? evt :source "nginx") (kv? evt :level "crit") (:msg evt) (.contains (:msg evt) "[error]")))))
 
 (defstat nginx-errors-instances-per-minute
   (per-minute-unique
