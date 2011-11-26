@@ -60,7 +60,7 @@
          :slot (.group m 8)
          :instance_id (parse-long (.group m 9))
          :cloud (.group m 10)
-         :msg (.group 13)}
+         :msg (.group m 13)}
         (parse-message-attrs (.group m 13))))))
 
 (def nginx-access-re
