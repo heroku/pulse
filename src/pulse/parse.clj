@@ -97,7 +97,8 @@
     (if (.find m)
       (let [source (.group m 4)]
         (if (= source "nginx")
-          {:timestamp (.group m 1)
+          {:event_type "nginx_error"
+           :timestamp (.group m 1)
            :level (.group m 3)
            :source (.group m 4)
            :ps (.group m 6)
