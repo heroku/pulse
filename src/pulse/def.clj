@@ -10,8 +10,11 @@
 (defn sum [c]
   (reduce + c))
 
-(defn kv=? [m k v]
+(defn kv? [m k v]
   (= (k m) v))
+
+(def k?
+  contains?)
 
 (defn max [time-buffer pred-fn val-fn]
   {:receive-init
@@ -381,7 +384,7 @@
 
 (defn hermes-per-minute [code]
   (per-minute
-    (fn [evt] (and (cloud? evt) (contains? evt :hermes_proxy) (kv=? evt :code code)))))
+    (fn [evt] (and (cloud? evt) (k? evt :hermes_proxy) (kv? evt :code code)))))
 
 (defstat hermes-h10-per-minute
   (hermes-per-minute "H10"))
@@ -403,7 +406,7 @@
 
 (defn hermes-apps-per-minute [code]
   (per-minute-unique
-    (fn [evt] (and (cloud? evt) (contains? evt :hermes_proxy) (kv=? evt :code code)))
+    (fn [evt] (and (cloud? evt) (k? evt :hermes_proxy) (kv? evt :code code)))
     (fn [evt] (:app_id evt))))
 
 (defstat hermes-h10-apps-per-minute
@@ -426,7 +429,7 @@
 
 (defstat hermes-errors-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (= (:level evt) "err") (= (:component evt) "hermes")))))
+    (fn [evt] (and (cloud? evt) (kv? evt :level "err") (kv? evt :source "hermes")))))
 
 (defstat hermes-lockstep-updates-per-minute
   (per-minute
@@ -474,11 +477,11 @@
 
 (defstat hermes-slow-redis-lookups-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (= (:component evt) "hermes") (:redis_helper evt) (>= (:time evt) 10.0)))))
+    (fn [evt] (and (cloud? evt) (kv? evt :source "hermes") (:redis_helper evt) (>= (:time evt) 10.0)))))
 
 (defstat hermes-catastrophic-redis-lookups-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (= (:component evt) "hermes") (:redis_helper evt) (>= (:time evt) 25.0)))))
+    (fn [evt] (and (cloud? evt) (kv? evt :source "hermes") (:redis_helper evt) (>= (:time evt) 25.0)))))
 
 (defstat hermes-processes-last
   (last-sum
@@ -500,45 +503,45 @@
 
 (defstat ps-up-total-last
   (last
-    (fn [evt] (and (cloud? evt) (= (:component evt) "psmgr") (= (:function evt) "counts") (= (:event evt) "emit")))
+    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (= (:function evt) "counts") (= (:event evt) "emit")))
     (fn [evt] (:up evt))))
 
 (defstat ps-up-web-last
   (last
-    (fn [evt] (and (cloud? evt) (= (:component evt) "psmgr") (= (:function evt) "counts") (= (:event evt) "emit")))
+    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (= (:function evt) "counts") (= (:event evt) "emit")))
     (fn [evt] (:web evt))))
 
 (defstat ps-up-worker-last
   (last
-    (fn [evt] (and (cloud? evt) (= (:component evt) "psmgr") (= (:function evt) "counts") (= (:event evt) "emit")))
+    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (= (:function evt) "counts") (= (:event evt) "emit")))
     (fn [evt] (:worker evt))))
 
 (defstat ps-up-other-last
   (last
-    (fn [evt] (and (cloud? evt) (= (:component evt) "psmgr") (= (:function evt) "counts") (= (:event evt) "emit")))
+    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (= (:function evt) "counts") (= (:event evt) "emit")))
     (fn [evt] (:other evt))))
 
 (defstat ps-created-last
   (last
-    (fn [evt] (and (cloud? evt) (= (:component evt) "psmgr") (= (:function evt) "counts") (= (:event evt) "emit")))
+    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (= (:function evt) "counts") (= (:event evt) "emit")))
     (fn [evt] (:created evt))))
 
 (defstat ps-starting-last
   (last
-    (fn [evt] (and (cloud? evt) (= (:component evt) "psmgr") (= (:function evt) "counts") (= (:event evt) "emit")))
+    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (= (:function evt) "counts") (= (:event evt) "emit")))
     (fn [evt] (:starting evt))))
 
 (defstat ps-idles-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (= (:component evt) "psmgr") (= (:function evt) "up_to_up") (= (:event evt) "idle")))))
+    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (= (:function evt) "up_to_up") (= (:event evt) "idle")))))
 
 (defstat ps-unidles-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (= (:component evt) "psmgr") (= (:function evt) "unidle") (= (:block evt) "begin")))))
+    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (= (:function evt) "unidle") (= (:block evt) "begin")))))
 
 (defstat ps-crashed-last
   (last
-    (fn [evt] (and (cloud? evt) (= (:component evt) "psmgr") (= (:function evt) "counts") (= (:event evt) "emit")))
+    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (= (:function evt) "counts") (= (:event evt) "emit")))
     (fn [evt] (:crashed evt))))
 
 (defstat ps-running-total-last
@@ -587,7 +590,7 @@
 
 (defstat ps-converges-per-second
   (per-second
-    (fn [evt] (and (cloud? evt) (= (:component evt) "psmgr") (= (:function evt) "transition") (= (:block evt) "begin")))))
+    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (= (:function evt) "transition") (= (:block evt) "begin")))))
 
 (defstat ps-timeouts-per-minute
   (per-minute
@@ -600,12 +603,12 @@
 
 (defstat ps-lost-last
   (last
-    (fn [evt] (and (cloud? evt) (= (:component evt) "psmgr") (= (:function evt) "counts") (= (:event evt) "emit")))
+    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (= (:function evt) "counts") (= (:event evt) "emit")))
     (fn [evt] (:lost evt))))
 
 (defstat psmgr-errors-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (= (:level evt) "err") (= (:component evt) "psmgr")))))
+    (fn [evt] (and (cloud? evt) (= (:level evt) "err") (kv? evt :source "psmgr")))))
 
 ; packaging
 
@@ -762,7 +765,7 @@
 
 (defstat codex-errors-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (= (:level evt) "err") (= (:component evt) "codex")))))
+    (fn [evt] (and (cloud? evt) (= (:level evt) "err") (kv? evt :source "codex")))))
 
 ; api
 
@@ -773,13 +776,13 @@
 
 (defstat api-errors-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (= (:level evt) "err") (= (:component evt) "core")))))
+    (fn [evt] (and (cloud? evt) (= (:level evt) "err") (kv? evt :source "core")))))
 
 ; data
 
 (defstat shen-errors-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (= (:level evt) "err") (= (:component evt) "shen")))))
+    (fn [evt] (and (cloud? evt) (= (:level evt) "err") (kv? evt :source "shen")))))
 
 (def all
   [

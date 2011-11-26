@@ -55,7 +55,7 @@
         {:event_type "standard"
          :timestamp (.group m 1)
          :level (.group m 3)
-         :component (.group m 4)
+         :source (.group m 4)
          :ps (.group m 6)
          :slot (.group m 8)
          :instance_id (parse-long (.group m 9))
@@ -72,7 +72,7 @@
        {:event_type "nginx_access"
         :timestamp (.group m 1)
         :level (.group m 3)
-        :component "nginx"
+        :source "nginx"
         :slot (.group m 4)
         :instance_id (parse-long (.group m 5))
         :cloud (.group m 6)
@@ -95,7 +95,7 @@
        {:event_type "nginx_error"
         :timestamp (.group m 1)
         :level (.group m 3)
-        :component "nginx"
+        :source "nginx"
         :slot (.group m 4)
         :instance_id (parse-long (.group m 5))
         :cloud (.group m 6)
@@ -110,7 +110,7 @@
        {:event_type "varnish_access"
         :timestamp (.group m 1)
         :level (.group m 3)
-        :component "varnish"
+        :source "varnish"
         :ps (.group m 4)
         :slot (.group m 5)
         :instance_id (parse-long (.group m 6))
