@@ -303,8 +303,8 @@
 (defn nginx-domains-per-minute [status]
   (per-minute-unique
     (fn [evt] (and (nginx-request? evt)
-                   (not (kv? evt :http_host "127.0.0.1")
-                   (kv? evt :http_status status))))
+                   (not (kv? evt :http_host "127.0.0.1"))
+                   (kv? evt :http_status status)))
     :http_domain))
 
 (defstat nginx-500-domains-per-minute
