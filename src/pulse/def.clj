@@ -10,12 +10,6 @@
 (defn sum [c]
   (reduce + c))
 
-(defn kv? [m k v]
-  (= (k m) v))
-
-(def k?
-  contains?)
-
 (defn max [time-buffer pred-fn val-fn]
   {:receive-init
      (fn []
@@ -214,6 +208,12 @@
 (defmacro defstat [stat-name stat-body]
   (let [stat-name-str (name stat-name)]
     `(def ~stat-name (merge ~stat-body {:name (name ~stat-name-str)}))))
+
+(defn kv? [m k v]
+  (= (k m) v))
+
+(def k?
+  contains?)
 
 (defn cloud? [evt]
   (= (:cloud evt) (conf/cloud)))
