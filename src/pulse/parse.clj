@@ -90,19 +90,21 @@
            :http_domain (.group m 21)})))))
 
 (def nginx-error-re
-  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?[\-\+]\d\d:00) [0-9\.]+ [a-z0-7]+\.([a-z]+) nginx - ([a-z4-6\-]+)?\.(\d+)@([a-z.\-]+\.com) - .* \[error\] (.*)$")
+  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?[\-\+]\d\d:00) [0-9\.]+ [a-z0-7]+\.([a-z]+) ([a-zA-Z0-9\/\-\_\.]+)(\[([a-zA-Z0-9\.]+)\])?:? - (([a-z0-9\-\_]+)?\.(\d+)@([a-z.\-]+))?([a-zA-Z0-9\-\_\.]+)?( -)? .* \[error\] (.*)$")
 
 (defn parse-nginx-error-line [l]
   (let [m (re-matcher nginx-error-re l)]
     (if (.find m)
-       {:event_type "nginx_error"
-        :timestamp (.group m 1)
-        :level (.group m 3)
-        :source "nginx"
-        :slot (.group m 4)
-        :instance_id (parse-long (.group m 5))
-        :cloud (.group m 6)
-        :message (.group m 7)})))
+      (let [source (.group m 4)]
+        (if (= source "nginx")
+          {:timestamp (.group m 1)
+           :level (.group m 3)
+           :source (.group m 4)
+           :ps (.group m 6)
+           :slot (.group m 8)
+           :instance_id (parse-long (.group m 9))
+           :cloud (.group m 10)
+           :message (.group m 13)})))))
 
 (def varnish-access-re
   #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?[\-\+]\d\d:00) [0-9\.]+ [a-z0-7]+\.([a-z]+) varnish\[(\d+)\] - ([a-z4-6\-]+)?\.(\d+)@([a-z.\-]+\.com) - [0-9\.]+ - - .*\" (\d\d\d) .*$")
