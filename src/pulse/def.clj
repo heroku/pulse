@@ -320,7 +320,8 @@
   (nginx-domains-per-minute 504))
 
 (defn nginx-error? [evt]
-  (and (nginx-request? evt)
+  (and (cloud? evt)
+       (kv? evt :source "nginx")
        (kv? evt :level "crit")
        (:msg evt) (.contains (:msg evt) "[error]")))
 
