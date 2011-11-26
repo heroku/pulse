@@ -63,7 +63,7 @@
         (parse-message-attrs (.group m 13))))))
 
 (def nginx-access-re
-     ;timestamp                                       ;host    ;facility  ;level           ;slot        ;ins_id ;cloud             ;http_host                                                              ;http_method,_url,_version      ;http_status,_bytes,_referrer,_user_agent,_domain
+     ;timestamp                                               ;host    ;facility  ;level           ;slot        ;ins_id ;cloud             ;http_host                                                              ;http_method,_url,_version      ;http_status,_bytes,_referrer,_user_agent,_domain
   #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?[\-\+]\d\d:00) [0-9\.]+ [a-z0-7]+\.([a-z]+) nginx - ([a-z4-6-]+)?\.(\d+)@([a-z.\-]+\.com) - ([0-9\.]+) - - \[\d\d\/[a-zA-z]{3}\/\d\d\d\d:\d\d:\d\d:\d\d -\d\d00\] \"([a-zA-Z]+) (\S+) HTTP\/(...)\" (\d+) (\d+) \"([^\"]+)\" \"([^\"]+)\" (\S+)$")
 
 (defn parse-nginx-access-line [l]
