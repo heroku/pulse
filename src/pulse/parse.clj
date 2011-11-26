@@ -108,20 +108,22 @@
            :message (.group m 13)})))))
 
 (def varnish-access-re
-  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?[\-\+]\d\d:00) [0-9\.]+ [a-z0-7]+\.([a-z]+) varnish\[(\d+)\] - ([a-z4-6\-]+)?\.(\d+)@([a-z.\-]+\.com) - [0-9\.]+ - - .*\" (\d\d\d) .*$")
+  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?[\-\+]\d\d:00) [0-9\.]+ [a-z0-7]+\.([a-z]+) ([a-zA-Z0-9\/\-\_\.]+)(\[([a-zA-Z0-9\.]+)\])?:? - (([a-z0-9\-\_]+)?\.(\d+)@([a-z.\-]+))?([a-zA-Z0-9\-\_\.]+)?( -)? [0-9\.]+ - - .*\" (\d\d\d) .*$")
 
 (defn parse-varnish-access-line [l]
   (let [m (re-matcher varnish-access-re l)]
     (if (.find m)
-       {:event_type "varnish_access"
-        :timestamp (.group m 1)
-        :level (.group m 3)
-        :source "varnish"
-        :ps (.group m 4)
-        :slot (.group m 5)
-        :instance_id (parse-long (.group m 6))
-        :cloud (.group m 7)
-        :http_status (parse-long (.group m 8))})))
+      (let [source (.group m 4)]
+        (if (= source "varnish")
+          {:event_type "varnish_access"
+           :timestamp (.group m 1)
+           :level (.group m 3)
+           :source (.group m 4)
+           :ps (.group m 6)
+           :slot (.group m 8)
+           :instance_id (parse-long (.group m 9))
+           :cloud (.group m 10)
+           :http_status (parse-long (.group m 13))})))))
 
 (defn log [& data]
   (apply log/log :ns "parse" data))
