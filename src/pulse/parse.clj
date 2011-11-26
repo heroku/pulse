@@ -90,7 +90,7 @@
            :http_domain (.group m 21)})))))
 
 (def nginx-error-re
-  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?[\-\+]\d\d:00) [0-9\.]+ [a-z0-7]+\.([a-z]+) nginx - ([a-z4-6]+)?\.(\d+)@([a-z.\-]+\.com) - .* \[error\] (.*)$")
+  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?[\-\+]\d\d:00) [0-9\.]+ [a-z0-7]+\.([a-z]+) nginx - ([a-z4-6\-]+)?\.(\d+)@([a-z.\-]+\.com) - .* \[error\] (.*)$")
 
 (defn parse-nginx-error-line [l]
   (let [m (re-matcher nginx-error-re l)]
