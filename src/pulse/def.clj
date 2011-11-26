@@ -224,11 +224,6 @@
   (per-second
     (fn [evt] true)))
 
-(defstat events-per-second-by-aorta-host
-  (per-second-by-key
-    (fn [evt] true)
-    (fn [evt] (:aorta_host evt))))
-
 (defstat events-per-second-by-source
   (per-second-by-key
     (fn [evt] (:source evt))
@@ -792,7 +787,6 @@
   [
   ; global
    events-per-second
-   events-per-second-by-aorta-host
    events-per-second-by-source
    events-per-second-unparsed
    amqp-publishes-per-second

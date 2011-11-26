@@ -24,20 +24,15 @@
       (let [pub (stat/receive-emit stat-def stat-state)]
         (queue/offer publish-queue [(:name stat-def) pub]))))))
 
-(defn parse [aorta-host line]
-  (if-let [event (parse/parse-line line)]
-    (assoc event :aorta_host aorta-host)
-    {:line line :aorta_host aorta-host :unparsed true}))
-
 (defn init-appliers [stats apply-queue n]
   (log :fn "init-appliers" :at "start")
   (dotimes [i n]
      (log :fn "init-appliers" :at "spawn" :index i)
      (util/spawn-loop (fn []
-       (let [[aorta-host line] (queue/take apply-queue)
-             event (parse aorta-host line)]
+       (let [line (queue/take apply-queue)
+             evt (or (parse/parse-line line) {:line line :unparsed true})]
          (doseq [[stat-def stat-state] stats]
-           (stat/receive-apply stat-def stat-state event)))))))
+           (stat/receive-apply stat-def stat-state evt)))))))
 
 (defn -main []
   (log :fn "main" :at "start")

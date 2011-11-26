@@ -39,7 +39,7 @@
       (log :fn "init-bleeder" :at "spawn" :aorta_host aorta-host)
       (util/spawn (fn []
         (bleeder aorta-url (fn [line]
-          (queue/offer apply-queue [aorta-host line]))))))))
+          (queue/offer apply-queue line))))))))
 
 (defn init-publishers [publish-queue redis-url chan ser workers]
   (let [redis (redis/init {:url redis-url})]
