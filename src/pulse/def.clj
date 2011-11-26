@@ -234,6 +234,11 @@
     (fn [evt] true)
     (fn [evt] (:event_type evt))))
 
+(defstat events-per-second-by-source
+  (per-second-by-key
+    (fn [evt] (:source evt))
+    (fn [evt] (:source evt))))
+
 (defstat events-per-second-unparsed
   (per-second
     (fn [evt]
@@ -790,6 +795,7 @@
    events-per-second
    events-per-second-by-aorta-host
    events-per-second-by-event-type
+   events-per-second-by-source
    events-per-second-unparsed
    amqp-publishes-per-second
    amqp-receives-per-second
