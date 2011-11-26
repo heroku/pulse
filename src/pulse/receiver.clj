@@ -26,10 +26,7 @@
 
 (defn parse [aorta-host line]
   (if-let [event (parse/parse-line line)]
-    (do
-      (if (= (:event_type event) "raw")
-        (println "raw: " line))
-      (assoc event :line line :aorta_host aorta-host :parsed true))
+    (assoc event :line line :aorta_host aorta-host :parsed true)
     {:line line :aorta_host aorta-host :parse false}))
 
 (defn init-appliers [stats apply-queue n]

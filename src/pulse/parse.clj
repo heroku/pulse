@@ -62,19 +62,6 @@
          :cloud (.group m 10)}
         (parse-message-attrs (.group m 13))))))
 
-(def raw-re
-  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?[\-\+]\d\d:00) [0-9\.]+ [a-z0-7]+\.([a-z]+) ([a-zA-Z0-9\/\_\-]+)(\[(\d+)\])?(.*)$")
-
-(defn parse-raw-line [l]
-  (let [m (re-matcher raw-re l)]
-    (if (.find m)
-      {:event_type "raw"
-       :timestamp (.group m 1)
-       :level (.group m 3)
-       :component (.group m 4)
-       :ps (.group m 6)
-       :message (.group m 7)})))
-
 (def nginx-access-re
      ;timestamp                                       ;host    ;facility  ;level           ;slot        ;ins_id ;cloud             ;http_host                                                              ;http_method,_url,_version      ;http_status,_bytes,_referrer,_user_agent,_domain
   #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?[\-\+]\d\d:00) [0-9\.]+ [a-z0-7]+\.([a-z]+) nginx - ([a-z4-6-]+)?\.(\d+)@([a-z.\-]+\.com) - ([0-9\.]+) - - \[\d\d\/[a-zA-z]{3}\/\d\d\d\d:\d\d:\d\d:\d\d -\d\d00\] \"([a-zA-Z]+) (\S+) HTTP\/(...)\" (\d+) (\d+) \"([^\"]+)\" \"([^\"]+)\" (\S+)$")
@@ -138,8 +125,7 @@
     (or (parse-nginx-access-line l)
         (parse-nginx-error-line l)
         (parse-varnish-access-line l)
-        (parse-standard-line l)
-        (parse-raw-line l))
+        (parse-standard-line l))
     (catch Exception e
       (log :fn "parse-line" :at "exception" :line l)
       (throw e))))
