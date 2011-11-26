@@ -237,7 +237,7 @@
 (defstat events-per-second-unparsed
   (per-second
     (fn [evt]
-      (when (not (:parsed evt))
+      (when (:unparsed evt)
         (println "unparsed:" (:line evt))
         true))))
 
