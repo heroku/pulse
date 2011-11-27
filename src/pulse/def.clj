@@ -541,25 +541,25 @@
 
 (defstat ps-running-total-last
   (last-sum
-    (fn [evt] (and (cloud? evt) (k? evt :railgun) (k? evt :counts) (kv? evt :key"total")))
+    (fn [evt] (and (cloud? evt) (k? evt :railgun) (k? evt :counts) (kv? evt :key "total")))
     :instance-id
     :num))
 
 (defstat ps-running-web-last
   (last-sum
-    (fn [evt] (and (cloud? evt) (k? evt :railgun) (k? evt :counts) (kv? evt :key"process_type") (kv? evt :process_type"web")))
+    (fn [evt] (and (cloud? evt) (k? evt :railgun) (k? evt :counts) (kv? evt :key "process_type") (kv? evt :process_type "web")))
     :instance_id
     :num))
 
 (defstat ps-running-worker-last
   (last-sum
-    (fn [evt] (and (cloud? evt) (k? evt :railgun) (k? evt :counts) (kv? evt :key"process_type") (kv? evt :process_type"worker")))
+    (fn [evt] (and (cloud? evt) (k? evt :railgun) (k? evt :counts) (kv? evt :key "process_type") (kv? evt :process_type "worker")))
     :instance_id
     :num))
 
 (defstat ps-running-other-last
   (last-sum
-    (fn [evt] (and (cloud? evt) (k? evt :railgun) (k? evt :counts) (kv? evt :key"process_type") (kv? evt :process_type"other")))
+    (fn [evt] (and (cloud? evt) (k? evt :railgun) (k? evt :counts) (kv? evt :key "process_type") (kv? evt :process_type "other")))
     :instance_id
     :num))
 
