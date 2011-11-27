@@ -205,6 +205,9 @@
              recent-sum (sum (map (fn [[_ [_ last-val]]] last-val) recent-timed-vals))]
          [recent-timed-vals recent-sum]))})
 
+(defn last-count [pred-fn part-fn cnt-fn & [recent-interval]]
+  (last-sum pred-fn part-fn (fn [evt] (if (cnt-fn evt) 1 0)) recent-interval))
+
 (defmacro defstat [stat-name stat-body]
   (let [stat-name-str (name stat-name)]
     `(def ~stat-name (merge ~stat-body {:name (name ~stat-name-str)}))))
@@ -652,24 +655,24 @@
     (fn [evt] (and (k? evt :codon) (k? evt :production) (k? evt :receive) (kv? evt :at "cycle")))))
 
 (defstat codon-up-last
-  (last-sum
+  (last-count
     (fn [evt] (and (k? evt :codon) (k? evt :production) (k? evt :spawn_heartbeat) (kv? evt :at "emit")))
     :hostname
-    (constantly 1)
+    (constantly true)
     3))
 
 (defstat codon-busy-last
-  (last-sum
+  (last-count
     (fn [evt] (and (k? evt :codon) (k? evt :production) (k? evt :spawn_heartbeat) (kv? evt :at "emit")))
     :hostname
-    (fn [evt] (if (k? evt :busy) 1 0))
+    (fn [evt] (k? evt :busy))
     3))
 
 (defstat codon-compiling-last
-  (last-sum
+  (last-count
     (fn [evt] (and (k? evt :codon) (k? evt :production) (k? evt :spawn_heartbeat) (kv? evt :at "emit")))
     :hostname
-    (fn [evt] (if (k? evt :compiling) 1 0))
+    (fn [evt] (k? evt :compiling))
     3))
 
 (defstat codon-mean-fetch-time
