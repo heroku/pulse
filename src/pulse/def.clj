@@ -644,7 +644,7 @@
 
 (defstat codon-receives-per-minute
   (per-minute
-    (fn [evt] (and (k? evt :codon) (k? evt :production) (k? evt :receive) (kv? evt :at "dequeue") (not (k? evt :timeout))))))
+    (fn [evt] (and (k? evt :codon) (k? evt :production) (k? evt :receive) (kv? evt :at "dequeue") (not (kv? evt :timeout true))))))
 
 (defstat codon-exits-per-minute
   (per-minute
@@ -665,14 +665,14 @@
   (last-count
     (fn [evt] (and (k? evt :codon) (k? evt :production) (k? evt :spawn_heartbeat) (kv? evt :at "emit")))
     :hostname
-    (fn [evt] (k? evt :busy))
+    (fn [evt] (kv? evt :busy true))
     3))
 
 (defstat codon-compiling-last
   (last-count
     (fn [evt] (and (k? evt :codon) (k? evt :production) (k? evt :spawn_heartbeat) (kv? evt :at "emit")))
     :hostname
-    (fn [evt] (k? evt :compiling))
+    (fn [evt] (kv? evt :compiling true))
     3))
 
 (defstat codon-mean-fetch-time
