@@ -542,7 +542,7 @@
 (defstat ps-running-total-last
   (last-sum
     (fn [evt] (and (cloud? evt) (k? evt :railgun) (k? evt :counts) (kv? evt :key "total")))
-    :instance-id
+    :instance_id
     :num))
 
 (defstat ps-running-web-last
