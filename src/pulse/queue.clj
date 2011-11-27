@@ -27,11 +27,19 @@
 (defn init-watcher [queue queue-name]
   (log :fn "init-watcher" :name queue-name)
   (let [start (util/millis)
-        popped-prev (atom 0)]
+        pushed-prev  (atom 0)
+        popped-prev  (atom 0)
+        dropped-prev (atom 0)]
     (util/spawn-tick 1000 (fn []
       (let [elapsed (- (util/millis) start)
             [depth pushed popped dropped] (stats queue)
-            rate (- popped @popped-prev)]
-        (swap! popped-prev (constantly popped))
-        (log :fn "init-watcher" :name queue-name :depth depth :pushed pushed
-             :popped popped :dropped dropped :rate rate))))))
+            push-rate (- pushed  @pushed-prev)
+            pop-rate  (- popped  @popped-prev)
+            drop-rate (- dropped @dropped-prev)]
+        (swap! pushed-prev  (constantly pushed))
+        (swap! popped-prev  (constantly popped))
+        (swap! dropped-prev (constantly dropped))
+        (log :fn "init-watcher" :name queue-name :depth depth
+             :push-rate push-rate :pushed pushed
+             :pop-rate pop-rate :popped popped
+             :drop-rate drop-rate :dropped dropped))))))
