@@ -472,11 +472,11 @@
 
 (defstat hermes-slow-redis-lookups-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (kv? evt :source "hermes") (k? evt :redis_helper) (>=? evt :time 10.0)))))
+    (fn [evt] (and (cloud? evt) (k? evt :hermes_proxy) (>=? evt :redis 10.0)))))
 
 (defstat hermes-catastrophic-redis-lookups-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (kv? evt :source "hermes") (k? evt :redis_helper) (>=? evt :time 25.0)))))
+    (fn [evt] (and (cloud? evt) (k? evt :hermes_proxy) (>=? evt :redis 25.0)))))
 
 (defstat hermes-processes-last
   (last-sum
