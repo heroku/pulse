@@ -460,23 +460,23 @@
 
 (defstat hermes-elevated-route-lookups-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (k? evt :hermes_proxy) (kv? evt :code "OK") (>=? evt :route 2.0)))))
+    (fn [evt] (and (hermes-request? evt) (kv? evt :code "OK") (>=? evt :route 2.0)))))
 
 (defstat hermes-slow-route-lookups-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (k? evt :hermes_proxy) (kv? evt :code "OK") (>=? evt :route 10.0)))))
+    (fn [evt] (and (hermes-request? evt) (kv? evt :code "OK") (>=? evt :route 10.0)))))
 
 (defstat hermes-catastrophic-route-lookups-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (k? evt :hermes_proxy) (kv? evt :code "OK") (>=? evt :route 100.0)))))
+    (fn [evt] (and (hermes-request? evt) (kv? evt :code "OK") (>=? evt :route 100.0)))))
 
 (defstat hermes-slow-redis-lookups-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (k? evt :hermes_proxy) (>=? evt :redis 10.0)))))
+    (fn [evt] (and (hermes-request? evt) (>=? evt :redis 10.0)))))
 
 (defstat hermes-catastrophic-redis-lookups-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (k? evt :hermes_proxy) (>=? evt :redis 25.0)))))
+    (fn [evt] (and (hermes-request? evt) (>=? evt :redis 25.0)))))
 
 (defstat hermes-processes-last
   (last-sum
