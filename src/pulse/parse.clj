@@ -46,7 +46,7 @@
   (if s (Long/parseLong s)))
 
 (def base-re
-  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?[\-\+]\d\d:00) [0-9\.]+ [a-z0-7]+\.([a-z]+) ([a-zA-Z0-9\/\-\_\.]+)(\[([a-zA-Z0-9\.]+)\])?:? - (([a-z0-9\-\_]+)?\.(\d+)@([a-z.\-]+))?([a-zA-Z0-9\-\_\.]+)?( -)? (.*)$")
+  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?[\-\+]\d\d:00) [0-9\.]+ [a-z0-7]+\.([a-z]+) ([a-zA-Z0-9\/\-\_\.]+)(\[([a-zA-Z0-9\.]+)\])?:? - ((([a-z0-9\-\_]+)?\.(\d+)@([a-z.\-]+))|(([a-z\_\-]+)-(\d+)\.([a-z.\-]+)))?([a-zA-Z0-9\-\_\.]+)?( -)? (.*)$")
 
 (defn parse-base [l]
   (let [m (re-matcher base-re l)]
@@ -55,10 +55,10 @@
        :level (.group m 3)
        :source (.group m 4)
        :ps (.group m 6)
-       :slot (.group m 8)
-       :instance_id (parse-long (.group m 9))
-       :cloud (.group m 10)
-       :msg (.group m 13)})))
+       :slot (or (.group m 9) (.group m 13))
+       :instance_id (parse-long (or (.group m 10) (.group m 14)))
+       :cloud (or (.group m 11) (.group m 15))
+       :msg (.group m 18)})))
 
 (defn inflate-default [evt]
   (merge evt (parse-msg-attrs (:msg evt))))
