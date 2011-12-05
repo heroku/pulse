@@ -166,7 +166,7 @@
     ["codex err/min"       "codex-errors-per-minute"]]])
 
 (def graphs-api
-  nil)
+  [[["user errors"  "api-errors-per-minute"]]])
 
 (defn view [graphs]
   (html
