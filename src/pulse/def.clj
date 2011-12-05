@@ -773,7 +773,7 @@
 
 (defstat api-errors-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (kv? evt :level "err") (kv? evt :source "core") (kv? evt :event "api_error")))))
+    (fn [evt] (and (cloud? evt) (kv? evt :source "core") (k? evt :api_error)))))
 
 ; data
 
