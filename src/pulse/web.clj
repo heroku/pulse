@@ -166,29 +166,7 @@
     ["codex err/min"       "codex-errors-per-minute"]]])
 
 (def graphs-api
-  [[["user errors/min"  "api-errors-per-minute"]
-    ["jobs/min"             "api-worker-jobs-per-minute"]
-    ["jobs delay"           "api-worker-jobs-delay"]
-    ["jobs duration"        "api-worker-jobs-time"]
-    ["jobs errors/min"      "api-worker-unhandled-exceptions-per-minute"]
-    ["req/min"              "api-requests-per-minute"]
-    ["req time"             "api-request-time"]]
-   [["req errors/min"       "api-request-unhandled-exceptions-per-minute"]
-    ["dev actions/min"      "api-developer-actions-per-minute"]
-    ["creates/min"          "api-creates-per-minute"]
-    ["releases/min"         "api-releases-per-minute"]
-    ["deploys/min"          "api-deploys-per-minute"]
-    ["runs/min"             "api-runs-per-minute"]
-    ["restarts/min"         "api-restarts-per-minute"]]
-   [["scales/min"           "api-scales-per-minute"]
-    ["config changes/min"   "api-config-changes-per-minute"]
-    ["logs/min"             "api-logs-per-minute"]
-    ["config list/min"      "api-configs-per-minute"]
-    ["codex prov/min"       "api-codex-provisions-per-minute"]
-    ["codex prov time"      "api-codex-provision-time"]]
-   [["s3 copy/min"          "api-s3-copies-per-minute"]
-    ["s3 copy errors/min"   "api-s3-copy-unhandled-exceptions-per-minute"]
-    ["s3 copy duration"     "api-s3-copy-time"]]])
+  [[["user errors"  "api-errors-per-minute"]]])
 
 (defn view [graphs]
   (html
