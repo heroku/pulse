@@ -565,7 +565,7 @@
 
 (defstat ps-run-requests-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (k? evt :amqp_publish) (kv? evt :exchange "ps.run")))))
+    (fn [evt] (and (cloud? evt) (k? evt :amqp_message) (kv? evt :action "publish") (kv? evt :exchange "ps.run")))))
 
 (defstat ps-runs-per-minute
   (per-minute
@@ -577,7 +577,7 @@
 
 (defstat ps-stop-requests-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (k? evt :amqp_publish) (k? evt :exchange) (cont? evt :exchange "ps.kill.")))))
+    (fn [evt] (and (cloud? evt) (k? evt :amqp_message) (kv? evt :action "publish") (k? evt :exchange) (cont? evt :exchange "ps.kill.")))))
 
 (defstat ps-stops-per-minute
   (per-minute
