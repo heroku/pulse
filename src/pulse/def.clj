@@ -356,11 +356,11 @@
 
 (defstat rendezvous-joins-per-minute
   (per-minute
-    (fn [evt] (and (k? evt :rendezvous) (k? evt :join)))))
+    (fn [evt] (and (kv? evt :app "rendezvous") (kv? evt :fn "join") (kv? evt :at "start")))))
 
 (defstat rendezvous-rendezvous-per-minute
   (per-minute
-    (fn [evt] (and (k? evt :rendezvous) (k? evt :conn_id) (k? evt :waiting_id)))))
+    (fn [evt] (and (kv? evt :app "rendezvous") (kv? evt :fn "join") (kv? evt :at "rendezvous")))))
 
 (defn hermes-request? [evt]
   (and (cloud? evt) (k? evt :hermes_proxy)))
