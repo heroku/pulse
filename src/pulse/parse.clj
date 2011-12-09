@@ -94,12 +94,9 @@
 (defn log [& data]
   (apply log/log :ns "parse" data))
 
-(defn parse-line [l]
-  (try
-    (if-let [evt (parse-base l)]
-      (or (inflate-nginx-access evt)
-          (inflate-varnish-access evt)
-          (inflate-default evt)))
-    (catch Exception e
-      (log :fn "parse-line" :at "exception" :line l)
-      (throw e))))
+(defn parse-event [evt]
+  (when evt
+    (or (inflate-nginx-access evt)
+        (inflate-varnish-access evt)
+        (inflate-default evt))))
+

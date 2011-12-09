@@ -291,7 +291,7 @@
     (wrap-file-info)
     (wrap-only #(wrap-basic-auth % api-auth?) #(= "/stats" (:uri %)))
     (wrap-only wrap-cros-headers #(= "/stats" (:uri %)))
-    (wrap-only wrap-openid-proxy #(not= "/stats" (:uri %)))
+    #_(wrap-only wrap-openid-proxy #(not= "/stats" (:uri %)))
     (wrap-session {:store (cookie-store {:key (conf/session-secret)})})
     (wrap-params)
     (wrap-force-https)
@@ -299,7 +299,8 @@
     (wrap-stacktrace)))
 
 (defn -main []
-  (log :fn "main" :at "start")
+  (log :fn "main" :at "start" :port (conf/port))
   (util/spawn init-buffer)
   (run-jetty (app) {:port (conf/port) :join false})
   (log :fn "main" :at "finish"))
+

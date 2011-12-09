@@ -37,7 +37,7 @@
          (stat/merge-apply stat-def stat-state pub))))))
 
 (defn -main []
-  (log :fn "main" :at "start")
+  (log :fn "main" :at "start" :port (conf/port))
   (let [apply-queue (queue/init 2000)
         publish-queue (queue/init 100)
         stats-map (init-stats def/all)]

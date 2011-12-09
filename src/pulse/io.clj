@@ -2,44 +2,80 @@
   (:require [pulse.util :as util]
             [pulse.log :as log]
             [pulse.queue :as queue]
+            [pulse.conf :as conf]
             [clj-redis.client :as redis])
   (:import (clojure.lang LineNumberingPushbackReader)
+           (org.jboss.netty.util CharsetUtil)
+           (org.jboss.netty.buffer ChannelBuffers)
            (java.io InputStreamReader BufferedReader PrintWriter)
-           (java.net Socket SocketException ConnectException)))
+           (java.net Socket SocketException ConnectException)
+           (org.jboss.netty.bootstrap ServerBootstrap)
+           (org.jboss.netty.channel.socket.nio NioServerSocketChannelFactory)
+           (java.util.concurrent Executors Executor)
+           (java.net InetSocketAddress)
+           (org.jboss.netty.channel Channel
+                                    Channels
+                                    SimpleChannelUpstreamHandler
+                                    ChannelHandlerContext
+                                    MessageEvent
+                                    ChannelFutureListener)
+           (org.jboss.netty.handler.codec.http HttpServerCodec
+                                               HttpRequest
+                                               DefaultHttpResponse
+                                               HttpVersion
+                                               HttpResponseStatus
+                                               HttpHeaders
+                                               HttpChunk
+                                               DefaultHttpChunk)
+           (org.jboss.netty.handler.codec.frame DelimiterBasedFrameDecoder
+                                                Delimiters)
+           (org.jboss.netty.handler.codec.http HttpHeaders$Names
+                                               HttpHeaders$Values)))
 
 (defn log [& data]
   (apply log/log :ns "io" data))
 
-(defn bleeder [aorta-url handler]
-  (let [{:keys [^String host ^Integer port auth]} (util/url-parse aorta-url)]
-    (loop []
-      (log :fn "bleeder" :at "connect" :aorta_host host)
-      (try
-        (with-open [socket (Socket. host port)
-                    in     (-> (.getInputStream socket) (InputStreamReader.) (BufferedReader.))
-                    out    (-> (.getOutputStream socket) (PrintWriter.))]
-          (.println out auth)
-          (.flush out)
-          (loop []
-            (when-let [line (.readLine in)]
-              (handler line)
-              (recur))))
-        (log/log :fn "bleeder" :at "eof" :aorta_host host)
-        (catch ConnectException e
-          (log/log :fn "bleeder" :at "connect_exception" :aorta_host host))
-        (catch SocketException e
-          (log/log :fn "bleeder" :at "socket_exception" :aorta_host host)))
-      (Thread/sleep 100)
-      (recur))))
+(defn http-message? [o]
+  (instance? HttpRequest (.getMessage o)))
 
-(defn init-bleeders [aorta-urls apply-queue]
-  (log :fn "init-bleeders" :at "start")
-  (doseq [aorta-url aorta-urls]
-    (let [{aorta-host :host} (util/url-parse aorta-url)]
-      (log :fn "init-bleeder" :at "spawn" :aorta_host aorta-host)
-      (util/spawn (fn []
-        (bleeder aorta-url (fn [line]
-          (queue/offer apply-queue line))))))))
+(defn http-ack []
+  (doto (DefaultHttpResponse. HttpVersion/HTTP_1_1 HttpResponseStatus/OK)
+    (.setHeader HttpHeaders$Names/CONTENT_TYPE "application/json")
+    (.setHeader HttpHeaders$Names/TRANSFER_ENCODING HttpHeaders$Values/CHUNKED)
+    (.setChunked true)))
+
+(defn channel-handler [on-message]
+  (proxy [SimpleChannelUpstreamHandler] []
+    (messageReceived [ctx e]
+      (log :fn "message-received" :http-message (http-message? e))
+      (if (http-message? e)
+        (-> (.getChannel e)
+            (.write (http-ack)))
+        (let [chunk   (.getMessage e)
+              payload (-> chunk
+                          (.getContent)
+                          (.toString CharsetUtil/UTF_8))]
+          (on-message payload))))
+    (exceptionCaught [ctx e]
+      (.printStackTrace (.getCause e)))))
+
+(defn server [port on-message]
+  (let [handler   (channel-handler on-message)
+        pipeline  (doto (Channels/pipeline)
+                    (.addLast "codec" (HttpServerCodec.))
+                    #_(.addLast "line-decoder" (line-decoder))
+                    (.addLast "handler" handler))
+        bootstrap (doto (ServerBootstrap.
+                         (NioServerSocketChannelFactory.
+                          (Executors/newCachedThreadPool)
+                          (Executors/newCachedThreadPool)))
+                    (.setPipeline pipeline))
+        channel   (.bind bootstrap (InetSocketAddress. port))]
+    (fn [& _] (.close channel))))
+
+(defn init-bleeders [port apply-queue]
+  (log :fn "init-bleeders" :at "start" :port port)
+  (server port #(queue/offer apply-queue %)))
 
 (defn init-publishers [publish-queue redis-url chan ser workers]
   (let [redis (redis/init {:url redis-url})]
