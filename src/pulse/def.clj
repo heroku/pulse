@@ -2,7 +2,11 @@
   (:refer-clojure :exclude [last max])
   (:require [clojure.set :as set]
             [pulse.util :as util]
-            [pulse.conf :as conf]))
+            [pulse.conf :as conf]
+            [pulse.log :as log]))
+
+(defn log [& data]
+  (apply log/log :ns "def" data))
 
 (defn safe-inc [n]
   (inc (or n 0)))
@@ -55,7 +59,11 @@
        (if-not (pred-fn evt)
          receive-buffer
          (let [val (val-fn evt)]
-           [window-start (inc window-count) (+ window-sum val)])))
+           (if (nil? val)
+             (do
+               (log :fn "mean" :at "nil-val" :msg (:msg evt))
+               receive-buffer)
+             [window-start (inc window-count) (+ window-sum val)]))))
    :receive-emit
      (fn [receive-buffer]
        receive-buffer)
