@@ -45,10 +45,11 @@
      (fn []
        [(util/millis) 0 0])
    :receive-apply
-     (fn [[window-start window-count window-sum :as receive-buffer] event]
-       (if (pred-fn event)
-         [window-start (inc window-count) (+ window-sum (val-fn event))]
-         receive-buffer))
+     (fn [[window-start window-count window-sum :as receive-buffer] evt]
+       (if-not (pred-fn evt)
+         receive-buffer
+         (let [val (val-fn evt)]
+           [window-start (inc window-count) (+ window-sum val)])))
    :receive-emit
      (fn [receive-buffer]
        receive-buffer)
