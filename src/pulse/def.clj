@@ -987,6 +987,100 @@
   (per-minute
     (fn [evt] (and (cloud? evt) (kv? evt :source "core") (k? evt :api_error)))))
 
+(defstat api-worker-jobs-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (kv? evt :source "core") (k? evt :worker) (kv? evt :at "start")))))
+
+(defstat api-worker-jobs-delay
+  (mean 60
+    (fn [evt] (and (cloud? evt) (kv? evt :source "core") (k? evt :worker) (kv? evt :at "start")))
+    :queue_time))
+
+(defstat api-worker-jobs-time
+  (mean 60
+    (fn [evt] (and (cloud? evt) (kv? evt :source "core") (k? evt :worker) (kv? evt :at "finish")))
+    :elapsed))
+
+(defstat api-worker-unhandled-exceptions-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (kv? evt :source "core") (k? evt :worker) (kv? evt :at "error")))))
+
+(defstat api-requests-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (kv? evt :source "core") (k? evt :access_info)))))
+
+(defstat api-request-time
+  (mean 60
+    (fn [evt] (and (cloud? evt) (kv? evt :source "core") (k? evt :access_info)))
+    :elapsed))
+
+(defstat api-request-unhandled-exceptions-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (kv? evt :source "core") (k? evt :unhandled-exception)))))
+
+(defstat api-developer-actions-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (kv? evt :source "core") (k? evt :developer_action)))))
+
+(defstat api-creates-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (kv? evt :source "core") (k? evt :developer_action) (kv? evt :action "create_app")))))
+
+(defstat api-releases-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (kv? evt :source "core") (k? evt :app) (k? evt :release) (kv? evt :at "start")))))
+
+(defstat api-deploys-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (kv? evt :source "core") (k? evt :developer_action) (kv? evt :action "deploy")))))
+
+(defstat api-runs-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (kv? evt :source "core") (k? evt :developer_action) (kv? evt :action "ps_run")))))
+
+(defstat api-restarts-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (kv? evt :source "core") (k? evt :developer_action) (kv? evt :action "restart_ps")))))
+
+(defstat api-scales-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (kv? evt :source "core") (k? evt :developer_action) (kv? evt :action "ps_scale")))))
+
+(defstat api-config-changes-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (kv? evt :source "core") (k? evt :developer_action) (or (kv? evt :action "config_add") (kv? evt :action "config_remove"))))))
+
+(defstat api-logs-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (kv? evt :source "core") (k? evt :developer_action) (kv? evt :action "logs")))))
+
+(defstat api-configs-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (kv? evt :source "core") (k? evt :developer_action) (kv? evt :action "config_list")))))
+
+(defstat api-codex-provisions-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (kv? evt :source "core") (k? evt :init_codex) (kv? evt :stateless_codex "false") (kv? evt :at "start")))))
+
+(defstat api-codex-provision-time
+  (mean 60
+    (fn [evt] (and (cloud? evt) (kv? evt :source "core") (k? evt :init_codex) (kv? evt :stateless_codex "false") (kv? evt :at "finish")))
+    :elapsed))
+
+(defstat api-s3-copies-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (kv? evt :source "core") (k? evt :s3_helper) (k? evt :copy) (kv? evt :event "start")))))
+
+(defstat api-s3-copy-unhandled-exceptions-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (kv? evt :source "core") (k? evt :s3_helper) (k? evt :copy) (kv? evt :event "failed")))))
+
+(defstat api-s3-copy-time
+  (mean 60
+    (fn [evt] (and (cloud? evt) (kv? evt :source "core") (k? evt :s3_helper) (k? evt :copy)))
+    :elapsed))
+
+
 ; data
 
 (defstat shen-errors-per-minute
@@ -1168,6 +1262,28 @@
    ; api
    api-releases-per-minute
    api-errors-per-minute
+   api-worker-jobs-per-minute
+   api-worker-jobs-delay
+   api-worker-jobs-time
+   api-worker-unhandled-exceptions-per-minute
+   api-requests-per-minute
+   api-request-time
+   api-request-unhandled-exceptions-per-minute
+   api-developer-actions-per-minute
+   api-creates-per-minute
+   api-releases-per-minute
+   api-deploys-per-minute
+   api-runs-per-minute
+   api-restarts-per-minute
+   api-scales-per-minute
+   api-config-changes-per-minute
+   api-logs-per-minute
+   api-configs-per-minute
+   api-codex-provisions-per-minute
+   api-codex-provision-time
+   api-s3-copies-per-minute
+   api-s3-copy-unhandled-exceptions-per-minute
+   api-s3-copy-time
 
    ; data
    shen-errors-per-minute
