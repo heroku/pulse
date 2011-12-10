@@ -7,8 +7,14 @@
 (defn safe-inc [n]
   (inc (or n 0)))
 
-(defn sum [c]
+(defn coll-sum [c]
   (reduce + c))
+
+(defn coll-mean [c]
+  (let [n (count c)]
+    (if (zero? n)
+      0
+      (float (/ (coll-sum c) n)))))
 
 (defn max [time-buffer pred-fn val-fn]
   {:receive-init
@@ -62,8 +68,8 @@
      (fn [windows]
        (let [now (util/millis)
              recent-windows (filter (fn [[window-start _ _]] (>= window-start (- now (* 1000 time-buffer)))) windows)
-             recent-count (sum (map (fn [[_ window-count _]] window-count) recent-windows))
-             recent-sum (sum (map (fn [[_ _ window-sum]] window-sum) recent-windows))
+             recent-count (coll-sum (map (fn [[_ window-count _]] window-count) recent-windows))
+             recent-sum (coll-sum (map (fn [[_ _ window-sum]] window-sum) recent-windows))
              recent-mean (double (if (zero? recent-count) 0 (/ recent-sum recent-count)))]
          [recent-windows recent-mean]))})
 
@@ -88,7 +94,7 @@
        (let [now (util/millis)
              recent-windows (filter (fn [[window-start _ _]] (>= window-start (- now (* 1000 time-buffer) 1000))) windows)
              complete-windows (filter (fn [[window-start _ _]] (< window-start (- now 1000))) recent-windows)
-             complete-count (sum (map (fn [[_ _ window-count]] window-count) complete-windows))
+             complete-count (coll-sum (map (fn [[_ _ window-count]] window-count) complete-windows))
              complete-rate (double (/ complete-count (/ time-buffer time-unit)))]
          [recent-windows complete-rate]))})
 
@@ -180,14 +186,14 @@
      (fn [last-val]
        [last-val last-val])})
 
-(defn last-sum [pred-fn part-fn val-fn & [recent-interval]]
+(defn last-agg [recent-interval pred-fn part-fn val-fn agg-fn]
   {:receive-init
      (fn []
        {})
    :receive-apply
-     (fn [last-timed-vals event]
-       (if (pred-fn event)
-         (assoc last-timed-vals (part-fn event) [(util/millis) (val-fn event)])
+     (fn [last-timed-vals evt]
+       (if (pred-fn evt)
+         (assoc last-timed-vals (part-fn evt) [(util/millis) (val-fn evt)])
          last-timed-vals))
    :receive-emit
      (fn [last-timed-vals]
@@ -202,11 +208,19 @@
      (fn [last-timed-vals]
        (let [now (util/millis)
              recent-timed-vals (into {} (filter (fn [[_ [last-time _]]] (< (- now last-time) (* (or recent-interval 300) 1000))) last-timed-vals))
-             recent-sum (sum (map (fn [[_ [_ last-val]]] last-val) recent-timed-vals))]
-         [recent-timed-vals recent-sum]))})
+             recent-agg (agg-fn (map (fn [[_ [_ last-val]]] last-val) recent-timed-vals))]
+         [recent-timed-vals recent-agg]))})
+
+(defn last-mean [recent-interval pred-fn part-fn val-fn]
+  (last-agg recent-interval pred-fn part-fn val-fn coll-mean))
+
+(defn last-sum [pred-fn part-fn val-fn & [recent-interval]]
+  (let [recent-interval (or recent-interval 300)]
+    (last-agg recent-interval pred-fn part-fn val-fn coll-sum)))
 
 (defn last-count [pred-fn part-fn cnt-fn & [recent-interval]]
-  (last-sum pred-fn part-fn (fn [evt] (if (cnt-fn evt) 1 0)) recent-interval))
+  (let [recent-interval (or recent-interval 300)]
+    (last-sum pred-fn part-fn (fn [evt] (if (cnt-fn evt) 1 0)) recent-interval)))
 
 (defmacro defstat [stat-name stat-body]
   (let [stat-name-str (name stat-name)]
@@ -226,6 +240,9 @@
 
 (defn cloud? [evt]
   (kv? evt :cloud (conf/cloud)))
+
+(defn finish? [evt]
+  (kv? evt :at "finish"))
 
 ; global
 
@@ -490,118 +507,313 @@
     :instance_id
     :ports))
 
-; runtime
+; railgun
+
+(defn railgun? [evt]
+  (and (cloud? evt) (k? evt :railgun)))
+
+(defstat railgun-running-count
+  (last-count
+    (fn [evt] (and (railgun? evt) (k? evt :heartbeat)))
+    :instance_id
+    (constantly true)
+    40))
+
+(defstat railgun-denied-count
+  (last-count
+    (fn [evt] (and (railgun? evt) (k? evt :stats) (kv? evt :at "emit")))
+    :instance_id
+    :deny
+    40))
+
+(defstat railgun-packed-count
+  (last-count
+    (fn [evt] (and (railgun? evt) (k? evt :stats) (kv? evt :at "emit")))
+    :instance_id
+    :packed
+    40))
+
+(defstat railgun-loaded-count
+  (last-count
+    (fn [evt] (and (railgun? evt) (k? evt :stats) (kv? evt :at "emit")))
+    :instance_id
+    (fn [evt] (kv? evt :load_status "loaded"))
+    40))
+
+(defstat railgun-critical-count
+  (last-count
+    (fn [evt] (and (railgun? evt) (k? evt :stats) (kv? evt :at "emit")))
+    :instance_id
+    (fn [evt] (kv? evt :load_status "critical"))
+    40))
+
+(defstat railgun-accepting-count
+  (last-count
+    (fn [evt] (and (railgun? evt) (k? evt :stats) (kv? evt :at "emit")))
+    :instance_id
+    (fn [evt] (kv? evt :run_factor 1))
+    40))
+
+(defstat railgun-load-avg-15m-mean
+  (last-mean 90
+    (fn [evt] (and (railgun? evt) (k? evt :check_load_status) (kv? evt :at "report")))
+    :instance_id
+    :load_avg_fifteen))
+
+(defstat railgun-ps-running-total-last
+  (last-sum
+    (fn [evt] (and (railgun? evt) (k? evt :counts) (kv? evt :key "total")))
+    :instance_id
+    :num))
+
+(defn last-sum-process-type [t]
+  (last-sum
+    (fn [evt] (and (railgun? evt) (k? evt :counts) (kv? evt :key "process_type") (kv? evt :process_type t)))
+    :instance_id
+    :num))
+
+(defstat railgun-ps-running-web-last
+  (last-sum-process-type "web"))
+
+(defstat railgun-ps-running-worker-last
+  (last-sum-process-type "worker"))
+
+(defstat railgun-ps-running-clock-last
+  (last-sum-process-type "clock"))
+
+(defstat railgun-ps-running-console-last
+  (last-sum-process-type "console"))
+
+(defstat railgun-ps-running-rake-last
+  (last-sum-process-type "rake"))
+
+(defstat railgun-ps-running-other-last
+  (last-sum-process-type "other"))
+
+(defstat railgun-runs-per-minute
+  (per-minute
+    (fn [evt] (and (railgun? evt) (k? evt :ps_watch) (k? evt :ps_run) (kv? evt :at "start")))))
+
+(defstat railgun-returns-per-minute
+  (per-minute
+    (fn [evt] (and (railgun? evt) (k? evt :ps_watch) (k? evt :ps_run) (kv? evt :at "exit")))))
+
+(defstat railgun-kills-per-minute
+  (per-minute
+    (fn [evt] (and (railgun? evt) (k? evt :ps_watch) (k? evt :trap_exit)))))
+
+(defstat railgun-subscribes-per-minute
+  (per-minute
+    (fn [evt] (and (railgun? evt) (k? evt :converge_queues) (kv? evt :at "subscribe")))))
+
+(defstat railgun-unsubscribes-per-minute
+  (per-minute
+    (fn [evt] (and (railgun? evt) (k? evt :converge_queues) (kv? evt :at "unsubscribe")))))
+
+(defstat railgun-status-batches-per-minute
+  (per-minute
+    (fn [evt] (and (railgun? evt) (k? evt :publish_batch_status) (finish? evt)))))
+
+(defstat railgun-gcs-per-minute
+  (per-minute
+    (fn [evt] (and (railgun? evt) (k? evt :gc_one) (finish? evt)))))
+
+(defstat railgun-kill-time-mean
+  (mean 70
+    (fn [evt] (and (railgun? evt) (k? evt :kill) (finish? evt)))
+    :elapsed))
+
+(defstat railgun-save-time-mean
+  (mean 70
+    (fn [evt] (and (railgun? evt) (k? evt :save_slug) (finish? evt)))
+    :elapsed))
+
+(defstat railgun-unpack-time-mean
+  (mean 70
+    (fn [evt] (and (railgun? evt) (k? evt :unpack_slug) (kv? evt :slug_url true) (finish? evt)))
+    :elapsed))
+
+(defstat railgun-setup-time-mean
+  (mean 70
+    (fn [evt] (and (railgun? evt) (k? evt :start_boot) (finish? evt)))
+    :age))
+
+(defstat railgun-launch-time-mean
+  (mean 70
+    (fn [evt] (and (railgun? evt) (k? evt :monitor_boot) (kv? evt :at "responsive")))
+    :age))
+
+(defstat railgun-status-batch-time-mean
+  (mean 70
+    (fn [evt] (and (railgun? evt) (k? evt :publish_batch_status) (finish? evt)))
+    :elapsed))
+
+(defstat railgun-gc-time-mean
+  (mean 70
+    (fn [evt] (and (railgun? evt) (k? evt :gc_one) (finish? evt)))
+    :elapsed))
+
+(defstat railgun-s3-requests-per-minute
+  (per-minute
+    (fn [evt] (and (railgun? evt) (k? evt :save_slug_attempt) (kv? evt :at "start")))))
+
+(defstat railgun-s3-errors-per-minute
+  (per-minute
+    (fn [evt] (and (railgun? evt) (k? evt :save_slug_attempt) (kv? evt :at "error")))))
+
+(defstat railgun-s3-time-mean
+  (mean 70
+    (fn [evt] (and (railgun? evt) (k? evt :save_slug_attempt) (finish? evt)))
+    :elapsed))
+
+(defstat railgun-s3-canary-requests-per-minute
+  (per-minute
+    (fn [evt] (and (railgun? evt) (k? evt :check_s3) (kv? evt :at "start")))))
+
+(defstat railgun-s3-canary-errors-per-minute
+  (per-minute
+    (fn [evt] (and (railgun? evt) (k? evt :check_s3) (kv? evt :at "error")))))
+
+(defstat railgun-s3-canary-time-mean
+  (mean 70
+    (fn [evt] (and (railgun? evt) (k? evt :check_s3) (finish? evt)))
+    :elapsed))
+
+(defstat railgun-r10-per-minute
+  (per-minute
+    (fn [evt] (and (railgun? evt) (k? evt :monitor_boot) (kv? evt :at "timeout")))))
+
+(defstat railgun-r11-per-minute
+  (per-minute
+    (fn [evt] (and (railgun? evt) (k? evt :monitor_boot) (kv? evt :at "bad_bind")))))
+
+(defstat railgun-r12-per-minute
+  (per-minute
+    (fn [evt] (and (railgun? evt) (k? evt :kill_pids) (kv? evt :at "timeout")))))
+
+(defstat railgun-r10-apps-per-minute
+  (per-minute-unique
+    (fn [evt] (and (railgun? evt) (k? evt :monitor_boot) (kv? evt :at "timeout")))
+    :app_id))
+
+(defstat railgun-r11-apps-per-minute
+  (per-minute-unique
+    (fn [evt] (and (railgun? evt) (k? evt :monitor_boot) (kv? evt :at "bad_bind")))
+    :app_id))
+
+(defstat railgun-r12-apps-per-minute
+  (per-minute-unique
+    (fn [evt] (and (railgun? evt) (k? evt :kill_pids) (kv? evt :at "timeout")))
+    :app_id))
+
+(defstat railgun-r14-per-minute
+  (per-minute
+    (fn [evt] (and (railgun? evt) (k? evt :check_usage) (kv? evt :at "warn")))))
+
+(defstat railgun-r15-per-minute
+  (per-minute
+    (fn [evt] (and (railgun? evt) (k? evt :check_usage) (kv? evt :at "kill")))))
+
+(defstat railgun-r14-apps-per-minute
+  (per-minute-unique
+    (fn [evt] (and (railgun? evt) (k? evt :check_usage) (kv? evt :at "warn")))
+    :app_id))
+
+(defstat railgun-r15-apps-per-minute
+  (per-minute-unique
+    (fn [evt] (and (railgun? evt) (k? evt :check_usage) (kv? evt :at "kill")))
+    :app_id))
+
+(defstat railgun-inits-per-minute
+  (per-minute
+    (fn [evt] (and (railgun? evt) (k? evt :init_railgun) (kv? evt :at "start")))))
+
+(defstat railgun-traps-per-minute
+  (per-minute
+    (fn [evt] (and (railgun? evt) (k? evt :trap)))))
+
+(defstat railgun-exits-per-minute
+  (per-minute
+    (fn [evt] (and (railgun? evt) (k? evt :init_railgun) (finish? evt)))))
 
 (defstat railgun-unhandled-exceptions-per-minute
   (per-minute
     (fn [evt] (and (cloud? evt) (k? evt :railgun) (k? evt :exception) (not (k? evt :site)) (not (k? evt :reraise))))))
 
-(defstat ps-up-total-last
+(defstat railgun-pings-per-minute
+  (per-minute
+    (fn [evt] (and (railgun? evt) (k? evt :server) (k? evt :request) (finish? evt)))))
+
+(defstat railgun-heartbeats-per-minute
+  (per-minute
+    (fn [evt] (and (railgun? evt) (k? evt :heartbeat)))))
+
+(defstat railgun-events-per-second
+  (per-second railgun?))
+
+; psmgr
+
+(defstat psmgr-ps-up-total-last
   (last
     (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :function "counts") (kv? evt :event "emit")))
     :up))
 
-(defstat ps-up-web-last
+(defstat psmgr-ps-up-web-last
   (last
     (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :function "counts") (kv? evt :event "emit")))
     :web))
 
-(defstat ps-up-worker-last
+(defstat psmgr-ps-up-worker-last
   (last
     (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :function "counts") (kv? evt :event "emit")))
     :worker))
 
-(defstat ps-up-other-last
+(defstat psmgr-ps-up-other-last
   (last
     (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :function "counts") (kv? evt :event "emit")))
     :other))
 
-(defstat ps-created-last
+(defstat psmgr-ps-created-last
   (last
     (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :function "counts") (kv? evt :event "emit")))
     :created))
 
-(defstat ps-starting-last
+(defstat psmgr-ps-starting-last
   (last
     (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :function "counts") (kv? evt :event "emit")))
     :starting))
 
-(defstat ps-idles-per-minute
-  (per-minute
-    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :function "up_to_up") (kv? evt :event "idle")))))
-
-(defstat ps-unidles-per-minute
-  (per-minute
-    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :function "unidle") (kv? evt :block "begin")))))
-
-(defstat ps-crashed-last
+(defstat psmgr-ps-crashed-last
   (last
     (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :function "counts") (kv? evt :event "emit")))
     :crashed))
 
-(defstat ps-running-total-last
-  (last-sum
-    (fn [evt] (and (cloud? evt) (k? evt :railgun) (k? evt :counts) (kv? evt :key "total")))
-    :instance_id
-    :num))
-
-(defstat ps-running-web-last
-  (last-sum
-    (fn [evt] (and (cloud? evt) (k? evt :railgun) (k? evt :counts) (kv? evt :key "process_type") (kv? evt :process_type "web")))
-    :instance_id
-    :num))
-
-(defstat ps-running-worker-last
-  (last-sum
-    (fn [evt] (and (cloud? evt) (k? evt :railgun) (k? evt :counts) (kv? evt :key "process_type") (kv? evt :process_type "worker")))
-    :instance_id
-    :num))
-
-(defstat ps-running-other-last
-  (last-sum
-    (fn [evt] (and (cloud? evt) (k? evt :railgun) (k? evt :counts) (kv? evt :key "process_type") (kv? evt :process_type "other")))
-    :instance_id
-    :num))
-
-(defstat ps-run-requests-per-minute
-  (per-minute
-    (fn [evt] (and (cloud? evt) (k? evt :amqp_message) (kv? evt :action "publish") (kv? evt :exchange "ps.run")))))
-
-(defstat ps-runs-per-minute
-  (per-minute
-    (fn [evt] (and (cloud? evt) (k? evt :ps_watch) (k? evt :ps_run) (kv? evt :at "start")))))
-
-(defstat ps-returns-per-minute
-  (per-minute
-    (fn [evt] (and (cloud? evt) (k? evt :ps_watch) (k? evt :ps_run) (kv? evt :at "exit")))))
-
-(defstat ps-stop-requests-per-minute
-  (per-minute
-    (fn [evt] (and (cloud? evt) (k? evt :amqp_message) (kv? evt :action "publish") (k? evt :exchange) (cont? evt :exchange "ps.kill.")))))
-
-(defstat ps-stops-per-minute
-  (per-minute
-    (fn [evt] (and (cloud? evt) (k? evt :ps_watch) (k? evt :trap_exit)))))
-
-(defstat ps-converges-per-second
-  (per-second
-    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :function "transition") (kv? evt :block "begin")))))
-
-(defstat ps-timeouts-per-minute
-  (per-minute
-    (fn [evt] (and (cloud? evt) (k? evt :monitor_boot) (kv? evt :at "timeout")))))
-
-(defstat ps-launch-time-mean
-  (mean 60
-    (fn [evt] (and (cloud? evt) (k? evt :monitor_boot) (kv? evt :at "responsive")))
-    :age))
-
-(defstat ps-lost-last
+(defstat psmgr-ps-lost-last
   (last
     (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :function "counts") (kv? evt :event "emit")))
     :lost))
 
-(defstat psmgr-errors-per-minute
+(defstat psmgr-idles-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :function "up_to_up") (kv? evt :event "idle")))))
+
+(defstat psmgr-unidles-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :function "unidle") (kv? evt :block "begin")))))
+
+(defstat psmgr-run-requests-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (k? evt :amqp_message) (kv? evt :action "publish") (kv? evt :exchange "ps.run")))))
+
+(defstat psmgr-kill-requests-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (k? evt :amqp_message) (kv? evt :action "publish") (k? evt :exchange) (cont? evt :exchange "ps.kill.")))))
+
+(defstat psmgr-converges-per-second
+  (per-second
+    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :function "transition") (kv? evt :block "begin")))))
+
+(defstat psmgr-unhandled-exceptions-per-minute
   (per-minute
     (fn [evt] (and (cloud? evt) (kv? evt :level "err") (kv? evt :source "psmgr")))))
 
@@ -625,17 +837,17 @@
 
 (defstat gitproxy-mean-metadata-time
   (mean 60
-    (fn [evt] (and (cloud? evt) (k? evt :gitproxy) (k? evt :fetch_push_metadata) (kv? evt :at "finish")))
+    (fn [evt] (and (cloud? evt) (k? evt :gitproxy) (k? evt :fetch_push_metadata) (finish? evt)))
     :elapsed))
 
 (defstat gitproxy-mean-provision-time
   (mean 60
-    (fn [evt] (and (cloud? evt) (k? evt :gitproxy) (k? evt :fetch_ssh_info) (kv? evt :backend "codon") (kv? evt :at "finish")))
+    (fn [evt] (and (cloud? evt) (k? evt :gitproxy) (k? evt :fetch_ssh_info) (kv? evt :backend "codon") (finish? evt)))
     :elapsed))
 
 (defstat gitproxy-mean-service-time
   (mean 60
-    (fn [evt] (and (cloud? evt) (k? evt :gitproxy) (k? evt :run) (kv? evt :at "finish")))
+    (fn [evt] (and (cloud? evt) (k? evt :gitproxy) (k? evt :run) (finish? evt)))
     :elapsed))
 
 (defstat codon-launches-per-minute
@@ -677,12 +889,12 @@
 
 (defstat codon-mean-fetch-time
   (mean 60
-    (fn [evt] (and (k? evt :codon) (k? evt :production) (k? evt :fetch_repo) (kv? evt :at "finish")))
+    (fn [evt] (and (k? evt :codon) (k? evt :production) (k? evt :fetch_repo) (finish? evt)))
     :elapsed))
 
 (defstat codon-mean-stow-time
   (mean 60
-    (fn [evt] (and (k? evt :codon) (k? evt :production) (k? evt :stow_repo) (kv? evt :at "finish")))
+    (fn [evt] (and (k? evt :codon) (k? evt :production) (k? evt :stow_repo) (finish? evt)))
     :elapsed))
 
 (defstat codon-fetch-errors-per-minute
@@ -691,11 +903,11 @@
 
 (defstat codon-stow-errors-per-minute
   (per-minute
-    (fn [evt] (and (k? evt :codon) (k? evt :production) (k? evt :stow_repo) (kv? evt :at "finish") (not (kv? evt :exit_status 0)) (not (kv? evt :out "200"))))))
+    (fn [evt] (and (k? evt :codon) (k? evt :production) (k? evt :stow_repo) (finish? evt) (not (kv? evt :exit_status 0)) (not (kv? evt :out "200"))))))
 
 (defstat codon-mean-service-time
   (mean 60
-    (fn [evt] (and (k? evt :codon) (k? evt :production) (k? evt :await) (kv? evt :at "finish") (k? evt :service_elapsed)))
+    (fn [evt] (and (k? evt :codon) (k? evt :production) (k? evt :await) (finish? evt) (k? evt :service_elapsed)))
     :service_elapsed))
 
 (defstat codon-mean-age
@@ -767,7 +979,7 @@
 
 ; api
 
-(defstat releases-per-minute
+(defstat api-releases-per-minute
   (per-minute
     (fn [evt] (and (cloud? evt) (k? evt :capture_release)))))
 
@@ -848,31 +1060,74 @@
    hermes-processes-last
    hermes-ports-last
 
-   ; runtime
+   ; railgun
+   railgun-running-count
+   railgun-denied-count
+   railgun-packed-count
+   railgun-loaded-count
+   railgun-critical-count
+   railgun-accepting-count
+   railgun-load-avg-15m-mean
+   railgun-ps-running-total-last
+   railgun-ps-running-web-last
+   railgun-ps-running-worker-last
+   railgun-ps-running-clock-last
+   railgun-ps-running-console-last
+   railgun-ps-running-rake-last
+   railgun-ps-running-other-last
+   railgun-runs-per-minute
+   railgun-returns-per-minute
+   railgun-kills-per-minute
+   railgun-subscribes-per-minute
+   railgun-unsubscribes-per-minute
+   railgun-status-batches-per-minute
+   railgun-gcs-per-minute
+   railgun-kill-time-mean
+   railgun-save-time-mean
+   railgun-unpack-time-mean
+   railgun-setup-time-mean
+   railgun-launch-time-mean
+   railgun-status-batch-time-mean
+   railgun-gc-time-mean
+   railgun-s3-requests-per-minute
+   railgun-s3-errors-per-minute
+   railgun-s3-time-mean
+   railgun-s3-canary-requests-per-minute
+   railgun-s3-canary-errors-per-minute
+   railgun-s3-canary-time-mean
+   railgun-r10-per-minute
+   railgun-r11-per-minute
+   railgun-r12-per-minute
+   railgun-r14-per-minute
+   railgun-r15-per-minute
+   railgun-r10-apps-per-minute
+   railgun-r11-apps-per-minute
+   railgun-r12-apps-per-minute
+   railgun-r14-apps-per-minute
+   railgun-r15-apps-per-minute
+   railgun-inits-per-minute
+   railgun-traps-per-minute
+   railgun-exits-per-minute
    railgun-unhandled-exceptions-per-minute
-   ps-up-total-last
-   ps-up-web-last
-   ps-up-worker-last
-   ps-up-other-last
-   ps-created-last
-   ps-starting-last
-   ps-idles-per-minute
-   ps-unidles-per-minute
-   ps-crashed-last
-   ps-timeouts-per-minute
-   ps-launch-time-mean
-   ps-running-total-last
-   ps-running-web-last
-   ps-running-worker-last
-   ps-running-other-last
-   ps-run-requests-per-minute
-   ps-runs-per-minute
-   ps-returns-per-minute
-   ps-stop-requests-per-minute
-   ps-stops-per-minute
-   ps-converges-per-second
-   ps-lost-last
-   psmgr-errors-per-minute
+   railgun-pings-per-minute
+   railgun-heartbeats-per-minute
+   railgun-events-per-second
+
+   ; psmgr
+   psmgr-ps-up-total-last
+   psmgr-ps-up-web-last
+   psmgr-ps-up-worker-last
+   psmgr-ps-up-other-last
+   psmgr-ps-created-last
+   psmgr-ps-starting-last
+   psmgr-ps-crashed-last
+   psmgr-ps-lost-last
+   psmgr-idles-per-minute
+   psmgr-unidles-per-minute
+   psmgr-run-requests-per-minute
+   psmgr-kill-requests-per-minute
+   psmgr-converges-per-second
+   psmgr-unhandled-exceptions-per-minute
 
    ; packaging
    gitproxy-connections-per-minute
@@ -911,7 +1166,7 @@
    codex-errors-per-minute
 
    ; api
-   releases-per-minute
+   api-releases-per-minute
    api-errors-per-minute
 
    ; data
