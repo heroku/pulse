@@ -51,13 +51,28 @@ body {
 	font-family: 'Helvetica Neue';
 	color: white;
 	background-color: #1C1C1C;
-	padding-top: 50px;
+	padding-top: 25px;
 	text-align: center;
+}
+
+#index {
+  color: white;
+}
+
+#index a:link {
+  text-decoration: none;
+  color: white;
+}
+
+#index a:visited {
+  text-decoration: none;
+  color: white;
 }
 
 table {
   margin-left: auto;
   margin-right: auto;
+  margin-top: 25px;
 }
 
 td {

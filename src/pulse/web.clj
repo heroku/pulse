@@ -234,6 +234,12 @@
         [:script {:type "text/javascript" :src "javascripts/pulse.js"}]]
       [:body
         [:id#content
+          [:id#index
+            [:a {:href "/"}          "home"]      " | "
+            [:a {:href "/railgun"}   "railgun"]   " | "
+            [:a {:href "/routing"}   "routing"]   " | "
+            [:a {:href "/packaging"} "packaging"] " | "
+            [:a {:href "/api"}       "api"]]
           [:table
             (for [row graphs]
               [:tr
