@@ -1086,7 +1086,7 @@
 
 (defstat api-s3-copy-time
   (mean 60
-    (fn [evt] (and (cloud? evt) (kv? evt :source "core") (k? evt :s3_helper) (k? evt :copy)))
+    (fn [evt] (and (cloud? evt) (kv? evt :source "core") (k? evt :s3_helper) (k? evt :copy) (kv? evt :event "finish")))
     :elapsed))
 
 
