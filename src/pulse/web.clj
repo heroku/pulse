@@ -180,7 +180,7 @@
     ["railgun evt/sec"     "railgun-events-per-second"]]])
 
 (def graphs-psmgr
-  nil)
+  [])
 
 (def graphs-packaging
   [[["gitproxy con/min"    "gitproxy-connections-per-minute"]
@@ -237,6 +237,7 @@
           [:id#index
             [:a {:href "/"}          "home"]      " | "
             [:a {:href "/railgun"}   "railgun"]   " | "
+            [:a {:href "/psmgr"}     "psmgr"]     " | "
             [:a {:href "/routing"}   "routing"]   " | "
             [:a {:href "/packaging"} "packaging"] " | "
             [:a {:href "/api"}       "api"]]
