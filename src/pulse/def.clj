@@ -1069,11 +1069,11 @@
 
 (defstat api-codex-provisions-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (kv? evt :source "core") (k? evt :init_codex) (kv? evt :stateless_codex "false") (kv? evt :at "start")))))
+    (fn [evt] (and (cloud? evt) (kv? evt :source "core") (k? evt :init_codex) (kv? evt :stateless_codex false) (kv? evt :at "start")))))
 
 (defstat api-codex-provision-time
   (mean 60
-    (fn [evt] (and (cloud? evt) (kv? evt :source "core") (k? evt :init_codex) (kv? evt :stateless_codex "false") (kv? evt :at "finish")))
+    (fn [evt] (and (cloud? evt) (kv? evt :source "core") (k? evt :init_codex) (kv? evt :stateless_codex false) (kv? evt :at "finish")))
     :elapsed))
 
 (defstat api-s3-copies-per-minute
