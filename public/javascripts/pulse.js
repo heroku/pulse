@@ -62,10 +62,10 @@ function pulseUpdate() {
           }
           var statOpts = pulseMerge(pulseSparklineOpts, pulseMerge({chartRangeMax: statMax}, statColor));
           $(sparklineId).sparkline(statBuff, statOpts);
-          $(scalarId).html(Math.round(statVal));
+          $(scalarId).html(formatVal(statVal));
         } else if ($(scalarId) != null) {
           $(sparklineId).sparkline(statBuff, pulseSparklineOpts);
-          $(scalarId).html(Math.round(statVal));
+          $(scalarId).html(formatVal(statVal));
         }
       }
       console.log("at=rendered request_id=" + thisRequestId);
@@ -75,6 +75,16 @@ function pulseUpdate() {
       setTimeout(pulseUpdate, 500);
     }
   );
+}
+
+function formatVal(value) {
+  if (typeof value != "number")
+    return null;
+
+  if (value > 2 || value == 0)
+    return Math.round(value);
+
+  return value.toFixed(2);
 }
 
 function pulseInit() {
