@@ -1002,7 +1002,7 @@
 
 (defstat api-worker-jobs-delay
   (mean 60
-    (fn [evt] (and (cloud? evt) (kv? evt :source "core") (k? evt :worker) (kv? evt :at "start")))
+    (fn [evt] (and (cloud? evt) (kv? evt :source "core") (k? evt :worker) (kv? evt :at "start") (kv? evt :attempts 0)))
     :queue_time))
 
 (defstat api-worker-jobs-time
