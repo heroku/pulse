@@ -988,10 +988,6 @@
 
 ; api
 
-(defstat api-releases-per-minute
-  (per-minute
-    (fn [evt] (and (cloud? evt) (k? evt :capture_release)))))
-
 (defstat api-errors-per-minute
   (per-minute
     (fn [evt] (and (cloud? evt) (kv? evt :source "core") (k? evt :api_error)))))
@@ -1037,7 +1033,7 @@
 
 (defstat api-releases-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (kv? evt :source "core") (k? evt :app) (k? evt :release) (kv? evt :at "start")))))
+    (fn [evt] (and (cloud? evt) (k? evt :capture_release)))))
 
 (defstat api-deploys-per-minute
   (per-minute
@@ -1269,7 +1265,6 @@
    codex-errors-per-minute
 
    ; api
-   api-releases-per-minute
    api-errors-per-minute
    api-worker-jobs-per-minute
    api-worker-jobs-delay
