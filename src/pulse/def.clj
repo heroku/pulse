@@ -1157,6 +1157,10 @@ api-deployhooks-time
     (fn [evt] (and (cloud? evt) (core? evt) (k? evt :s3_helper) (k? evt :copy) (finish? evt)))
     :elapsed))
 
+(defstat api-unhandled-exceptions-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (core? evt) (or (k? evt :unhandled-exception) (and (k? evt :worker) (error? evt)))))))
+
 (defstat api-events-per-second
   (per-second core?))
 
@@ -1377,6 +1381,7 @@ api-deployhooks-time
    api-s3-copies-per-minute
    api-s3-copy-unhandled-exceptions-per-minute
    api-s3-copy-time
+   api-unhandled-exceptions-per-minute
    api-events-per-second
 
    ; data
