@@ -259,6 +259,9 @@
 (defn finish? [evt]
   (kv? evt :at "finish"))
 
+(defn error? [evt]
+  (kv? evt :at "error"))
+
 ; global
 
 (defstat events-per-second
@@ -1107,16 +1110,29 @@
 
 (defstat api-codex-provisions-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :init_codex) (kv? evt :stateless_codex false) (kv? evt :at "start")))))
+    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :init_codex) (kv? evt :stateless_codex false) (start? evt)))))
 
 (defstat api-codex-provision-time
   (mean 60
     (fn [evt] (and (cloud? evt) (core? evt) (k? evt :repo_up)))
     :elapsed))
 
+(defstat api-taps-sessions-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :taps) (start? evt)))))
+
+(defstat api-taps-unhandled-exceptions-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :taps) (error? evt)))))
+
+(defstat api-taps-time
+  (mean 60
+    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :taps) (finish? evt)))
+    :elapsed))
+
 (defstat api-s3-copies-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :s3_helper) (k? evt :copy) (kv? evt :event "start")))))
+    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :s3_helper) (k? evt :copy) (start? evt)))))
 
 (defstat api-s3-copy-unhandled-exceptions-per-minute
   (per-minute
@@ -1124,7 +1140,7 @@
 
 (defstat api-s3-copy-time
   (mean 60
-    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :s3_helper) (k? evt :copy) (kv? evt :event "finish")))
+    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :s3_helper) (k? evt :copy) (finish? evt)))
     :elapsed))
 
 (defstat api-events-per-second
@@ -1337,6 +1353,9 @@
    api-configs-per-minute
    api-codex-provisions-per-minute
    api-codex-provision-time
+   api-taps-sessions-per-minute
+   api-taps-unhandled-exceptions-per-minute
+   api-taps-time
    api-s3-copies-per-minute
    api-s3-copy-unhandled-exceptions-per-minute
    api-s3-copy-time
