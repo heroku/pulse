@@ -219,7 +219,7 @@
     ["codex err/min"       "codex-errors-per-minute"]]])
 
 (def graphs-api
-  [[["user errors/min"  "api-errors-per-minute"]
+  [[["user errors/min"      "api-errors-per-minute"]
     ["jobs/min"             "api-worker-jobs-per-minute"]
     ["jobs delay"           "api-worker-jobs-delay"]
     ["jobs duration"        "api-worker-jobs-time"]
