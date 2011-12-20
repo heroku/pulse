@@ -1413,12 +1413,12 @@
    api-config-changes-per-minute
    api-logs-per-minute
    api-ps-per-minute
+   api-configs-per-minute
    api-shen-provisions-per-minute
    api-shen-async-provisions-per-minute
    api-shen-async-provision-time
    api-shen-sync-provisions-per-minute
    api-shen-sync-provision-time
-   api-configs-per-minute
    api-codex-provisions-per-minute
    api-codex-provision-time
    api-taps-sessions-per-minute
