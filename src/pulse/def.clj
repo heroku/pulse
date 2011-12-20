@@ -1111,7 +1111,7 @@
 
 (defstat api-codex-provision-time
   (mean 60
-    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :init_codex) (kv? evt :stateless_codex false) (kv? evt :at "finish")))
+    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :repo_up)))
     :elapsed))
 
 (defstat api-s3-copies-per-minute
