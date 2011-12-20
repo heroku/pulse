@@ -1168,7 +1168,7 @@
   (per-minute
     (fn [evt] (and (core? evt) (k? evt :logplex) (k? evt :create_channel) (start? evt)))))
 
-(defstat api-logplex-deprovision-per-minute
+(defstat api-logplex-deprovisions-per-minute
   (per-minute
      (fn [evt] (and (core? evt) (k? evt :logplex) (k? evt :delete_channel) (start? evt)))))
 
@@ -1433,7 +1433,7 @@
    api-s3-copy-time
    api-logplex-api-requests-per-minute
    api-logplex-provisions-per-minute
-   api-logplex-deprovision-per-minute
+   api-logplex-deprovisions-per-minute
    api-logplex-sessions-per-minute
    api-logplex-api-errors-per-minute
    api-logplex-api-unhandled-exceptions-per-minute

@@ -256,7 +256,7 @@
     ["s3 copy duration"    "api-s3-copy-time"]]
    [["api lplex req/min"   "api-logplex-api-requests-per-minute"]
     ["api lplex prov/min"  "api-logplex-provisions-per-minute"]
-    ["api lplex dprov/min" "api-logplex-deprovision-per-minute"]
+    ["api lplex dprov/min" "api-logplex-deprovisions-per-minute"]
     ["api lplex sess/min"  "api-logplex-sessions-per-minute"]
     ["api lplex err/min"   "api-logplex-api-errors-per-minute"]
     ["api lplex excp/min"  "api-logplex-api-unhandled-exceptions-per-minute"]
