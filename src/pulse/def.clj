@@ -1023,7 +1023,7 @@
     :elapsed))
 
 (defstat api-requests-per-second
-  (per-minute
+  (per-second
     (fn [evt] (and (core? evt) (k? evt :access_info)))))
 
 (defstat api-request-user-errors-per-minute
