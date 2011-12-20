@@ -1130,6 +1130,20 @@
     (fn [evt] (and (cloud? evt) (core? evt) (k? evt :taps) (finish? evt)))
     :elapsed))
 
+(defstat api-deployhooks-runs-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :deployhooks) (kv? evt :action "run") (start? evt)))))
+
+(defstat api-deployhooks-user-errors-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :deployhooks) (kv? evt :action "run") (k? evt :user_error)))))
+
+(defstat api-deployhooks-unhandled-exceptions-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :deployhooks) (kv? evt :action "run") (k? evt :error)))))
+
+api-deployhooks-time
+
 (defstat api-s3-copies-per-minute
   (per-minute
     (fn [evt] (and (cloud? evt) (core? evt) (k? evt :s3_helper) (k? evt :copy) (start? evt)))))
@@ -1356,6 +1370,10 @@
    api-taps-sessions-per-minute
    api-taps-unhandled-exceptions-per-minute
    api-taps-time
+   api-deployhooks-runs-per-minute
+   api-deployhooks-user-errors-per-minute
+   api-deployhooks-unhandled-exceptions-per-minute
+   api-deployhooks-time
    api-s3-copies-per-minute
    api-s3-copy-unhandled-exceptions-per-minute
    api-s3-copy-time
