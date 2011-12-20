@@ -1002,24 +1002,24 @@
 
 (defstat api-worker-jobs-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :worker) (kv? evt :at "start")))))
+    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :worker) (start? evt)))))
 
 (defstat api-worker-retries-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :worker) (>? evt :attempts 0)))))
+    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :worker) (start? evt) (>? evt :attempts 0)))))
 
 (defstat api-worker-unhandled-exceptions-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :worker) (kv? evt :at "error")))))
+    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :worker) (error? evt)))))
 
 (defstat api-worker-jobs-delay
   (mean 60
-    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :worker) (kv? evt :at "start") (kv? evt :attempts 0)))
+    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :worker) (start? evt) (kv? evt :attempts 0)))
     :queue_time))
 
 (defstat api-worker-jobs-time
   (mean 60
-    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :worker) (kv? evt :at "finish")))
+    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :worker) (finish? evt)))
     :elapsed))
 
 (defstat api-requests-per-second
