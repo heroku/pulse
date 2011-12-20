@@ -988,10 +988,6 @@
 
 ; api
 
-(defstat api-errors-per-minute
-  (per-minute
-    (fn [evt] (and (cloud? evt) (kv? evt :source "core") (k? evt :api_error)))))
-
 (defstat api-worker-jobs-per-minute
   (per-minute
     (fn [evt] (and (cloud? evt) (kv? evt :source "core") (k? evt :worker) (kv? evt :at "start")))))
@@ -1014,14 +1010,18 @@
   (per-minute
     (fn [evt] (and (cloud? evt) (kv? evt :source "core") (k? evt :access_info)))))
 
-(defstat api-request-time
-  (mean 60
-    (fn [evt] (and (cloud? evt) (kv? evt :source "core") (k? evt :access_info)))
-    :elapsed))
+(defstat api-request-user-errors-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (kv? evt :source "core") (k? evt :api_error)))))
 
 (defstat api-request-unhandled-exceptions-per-minute
   (per-minute
     (fn [evt] (and (cloud? evt) (kv? evt :source "core") (k? evt :unhandled-exception)))))
+
+(defstat api-request-time
+  (mean 60
+    (fn [evt] (and (cloud? evt) (kv? evt :source "core") (k? evt :access_info)))
+    :elapsed))
 
 (defstat api-developer-actions-per-minute
   (per-minute
