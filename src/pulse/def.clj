@@ -1105,6 +1105,8 @@
     (fn [evt] (and (cloud? evt) (core? evt) (k? evt :s3_helper) (k? evt :copy) (kv? evt :event "finish")))
     :elapsed))
 
+(defstat api-events-per-second
+  (per-second core?))
 
 ; data
 
@@ -1311,6 +1313,7 @@
    api-s3-copies-per-minute
    api-s3-copy-unhandled-exceptions-per-minute
    api-s3-copy-time
+   api-events-per-second
 
    ; data
    shen-errors-per-minute
