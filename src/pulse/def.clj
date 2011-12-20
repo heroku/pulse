@@ -1099,7 +1099,7 @@
     (fn [evt] (and (cloud? evt) (core? evt) (k? evt :db_up)))
     :elapsed))
 
-(defstat api-shen-provisions-per-minute
+(defstat api-shen-sync-provisions-per-minute
   (per-minute
     (fn [evt] (and (cloud? evt) (core? evt) (k? evt :shen) (k? evt :create) (kv?  evt :async false) (start? evt)))))
 
@@ -1142,7 +1142,10 @@
   (per-minute
     (fn [evt] (and (cloud? evt) (core? evt) (k? evt :deployhooks) (kv? evt :action "run") (k? evt :error)))))
 
-api-deployhooks-time
+(defstat api-deployhooks-time
+  (mean 60
+    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :deployhooks) (kv? evt :action "run") (finish? evt)))
+    :elapsed))
 
 (defstat api-s3-copies-per-minute
   (per-minute
@@ -1155,6 +1158,53 @@ api-deployhooks-time
 (defstat api-s3-copy-time
   (mean 60
     (fn [evt] (and (cloud? evt) (core? evt) (k? evt :s3_helper) (k? evt :copy) (finish? evt)))
+    :elapsed))
+
+(defstat api-logplex-api-requests-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :logplex) (start? evt)))))
+
+(defstat api-logplex-provisions-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :logplex) (k? evt :create_channel) (start? evt)))))
+
+(defstat api-logplex-deprovision-per-minute
+  (per-minute
+     (fn [evt] (and (cloud? evt) (core? evt) (k? evt :logplex) (k? evt :delete_channel) (start? evt)))))
+
+(defstat api-logplex-sessions-per-minute
+  (per-minute
+     (fn [evt] (and (cloud? evt) (core? evt) (k? evt :logplex) (k? evt :create_session) (start? evt)))))
+
+(defstat api-logplex-api-errors-per-minute
+  (per-minute
+     (fn [evt] (and (cloud? evt) (core? evt) (k? evt :logplex) (error? evt)))))
+
+(defstat api-logplex-api-unhandled-exceptions-per-minute
+  (per-minute
+     (fn [evt] (and (cloud? evt) (core? evt) (k? evt :logplex) (error? evt)))))
+
+(defstat api-logplex-api-time
+  (mean 60
+     (fn [evt] (and (cloud? evt) (core? evt) (k? evt :logplex) (finish? evt)))
+     :elapsed))
+
+(defstat api-psmgr-api-requests-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :service_api) (start? evt)))))
+
+(defstat api-psmgr-api-errors-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :service_api)
+                   (or (kv? evt :event "unprocessable") (kv? evt :event "timeout") (kv? evt :event "broken") (error? evt))))))
+
+(defstat api-psmgr-api-unhandled-exceptions-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :service_api) (error? evt)))))
+
+(defstat api-psmgr-api-time
+  (mean 60
+    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :service_api) (finish? evt)))
     :elapsed))
 
 (defstat api-unhandled-exceptions-per-minute
@@ -1381,6 +1431,17 @@ api-deployhooks-time
    api-s3-copies-per-minute
    api-s3-copy-unhandled-exceptions-per-minute
    api-s3-copy-time
+   api-logplex-api-requests-per-minute
+   api-logplex-provisions-per-minute
+   api-logplex-deprovision-per-minute
+   api-logplex-sessions-per-minute
+   api-logplex-api-errors-per-minute
+   api-logplex-api-unhandled-exceptions-per-minute
+   api-logplex-api-time
+   api-psmgr-api-requests-per-minute
+   api-psmgr-api-errors-per-minute
+   api-psmgr-api-unhandled-exceptions-per-minute
+   api-psmgr-api-time
    api-unhandled-exceptions-per-minute
    api-events-per-second
 
