@@ -998,218 +998,218 @@
 ; api
 
 (defn core? [evt]
-  (kv? evt :source "core"))
+  (and (cloud? evt) (kv? evt :source "core")))
 
 (defstat api-worker-jobs-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :worker) (start? evt)))))
+    (fn [evt] (and (core? evt) (k? evt :worker) (start? evt)))))
 
 (defstat api-worker-retries-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :worker) (start? evt) (>? evt :attempts 0)))))
+    (fn [evt] (and (core? evt) (k? evt :worker) (start? evt) (>? evt :attempts 0)))))
 
 (defstat api-worker-unhandled-exceptions-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :worker) (error? evt)))))
+    (fn [evt] (and (core? evt) (k? evt :worker) (error? evt)))))
 
 (defstat api-worker-jobs-delay
   (mean 60
-    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :worker) (start? evt) (kv? evt :attempts 0)))
+    (fn [evt] (and (core? evt) (k? evt :worker) (start? evt) (kv? evt :attempts 0)))
     :queue_time))
 
 (defstat api-worker-jobs-time
   (mean 60
-    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :worker) (finish? evt)))
+    (fn [evt] (and (core? evt) (k? evt :worker) (finish? evt)))
     :elapsed))
 
 (defstat api-requests-per-second
   (per-minute
-    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :access_info)))))
+    (fn [evt] (and (core? evt) (k? evt :access_info)))))
 
 (defstat api-request-user-errors-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :api_error)))))
+    (fn [evt] (and (core? evt) (k? evt :api_error)))))
 
 (defstat api-request-unhandled-exceptions-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :unhandled-exception)))))
+    (fn [evt] (and (core? evt) (k? evt :unhandled-exception)))))
 
 (defstat api-request-time
   (mean 60
-    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :access_info)))
+    (fn [evt] (and (core? evt) (k? evt :access_info)))
     :elapsed))
 
 (defstat api-developer-actions-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :developer_action)))))
+    (fn [evt] (and (core? evt) (k? evt :developer_action)))))
 
 (defstat api-creates-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :developer_action) (kv? evt :action "create_app")))))
+    (fn [evt] (and (core? evt) (k? evt :developer_action) (kv? evt :action "create_app")))))
 
 (defstat api-destroys-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :app) (k? evt :destroy) (start? evt)))))
+    (fn [evt] (and (core? evt) (k? evt :app) (k? evt :destroy) (start? evt)))))
 (defstat api-releases-per-minute
   (per-minute
     (fn [evt] (and (cloud? evt) (k? evt :capture_release)))))
 
 (defstat api-deploys-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :developer_action) (kv? evt :action "deploy")))))
+    (fn [evt] (and (core? evt) (k? evt :developer_action) (kv? evt :action "deploy")))))
 
 (defstat api-runs-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :developer_action) (kv? evt :action "ps_run")))))
+    (fn [evt] (and (core? evt) (k? evt :developer_action) (kv? evt :action "ps_run")))))
 
 (defstat api-restarts-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :developer_action) (kv? evt :action "restart_ps")))))
+    (fn [evt] (and (core? evt) (k? evt :developer_action) (kv? evt :action "restart_ps")))))
 
 (defstat api-scales-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :developer_action) (kv? evt :action "ps_scale")))))
+    (fn [evt] (and (core? evt) (k? evt :developer_action) (kv? evt :action "ps_scale")))))
 
 (defstat api-config-changes-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :developer_action) (or (kv? evt :action "config_add") (kv? evt :action "config_remove"))))))
+    (fn [evt] (and (core? evt) (k? evt :developer_action) (or (kv? evt :action "config_add") (kv? evt :action "config_remove"))))))
 
 (defstat api-logs-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :developer_action) (kv? evt :action "logs")))))
+    (fn [evt] (and (core? evt) (k? evt :developer_action) (kv? evt :action "logs")))))
 
 (defstat api-ps-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :service_api) (kv? evt :action "visible") (kv? evt :attempt 1) (start? evt)))))
+    (fn [evt] (and (core? evt) (k? evt :service_api) (kv? evt :action "visible") (kv? evt :attempt 1) (start? evt)))))
 
 (defstat api-configs-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :developer_action) (kv? evt :action "config_list")))))
+    (fn [evt] (and (core? evt) (k? evt :developer_action) (kv? evt :action "config_list")))))
 
 (defstat api-shen-provisions-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :shen) (k? evt :create) (start? evt)))))
+    (fn [evt] (and (core? evt) (k? evt :shen) (k? evt :create) (start? evt)))))
 
 (defstat api-shen-async-provisions-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :shen) (k? evt :create) (kv? evt :async true) (start? evt)))))
+    (fn [evt] (and (core? evt) (k? evt :shen) (k? evt :create) (kv? evt :async true) (start? evt)))))
 
 (defstat api-shen-async-provision-time
   (mean 60
-    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :db_up)))
+    (fn [evt] (and (core? evt) (k? evt :db_up)))
     :elapsed))
 
 (defstat api-shen-sync-provisions-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :shen) (k? evt :create) (kv?  evt :async false) (start? evt)))))
+    (fn [evt] (and (core? evt) (k? evt :shen) (k? evt :create) (kv?  evt :async false) (start? evt)))))
 
 (defstat api-shen-sync-provision-time
   (mean 60
-    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :shen) (k? evt :create) (kv?  evt :async false) (finish? evt)))
+    (fn [evt] (and (core? evt) (k? evt :shen) (k? evt :create) (kv?  evt :async false) (finish? evt)))
     :elapsed))
 
 (defstat api-codex-provisions-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :init_codex) (kv? evt :stateless_codex false) (start? evt)))))
+    (fn [evt] (and (core? evt) (k? evt :init_codex) (kv? evt :stateless_codex false) (start? evt)))))
 
 (defstat api-codex-provision-time
   (mean 60
-    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :repo_up)))
+    (fn [evt] (and (core? evt) (k? evt :repo_up)))
     :elapsed))
 
 (defstat api-taps-sessions-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :taps) (start? evt)))))
+    (fn [evt] (and (core? evt) (k? evt :taps) (start? evt)))))
 
 (defstat api-taps-unhandled-exceptions-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :taps) (error? evt)))))
+    (fn [evt] (and (core? evt) (k? evt :taps) (error? evt)))))
 
 (defstat api-taps-time
   (mean 60
-    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :taps) (finish? evt)))
+    (fn [evt] (and (core? evt) (k? evt :taps) (finish? evt)))
     :elapsed))
 
 (defstat api-deployhooks-runs-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :deployhooks) (kv? evt :action "run") (start? evt)))))
+    (fn [evt] (and (core? evt) (k? evt :deployhooks) (kv? evt :action "run") (start? evt)))))
 
 (defstat api-deployhooks-user-errors-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :deployhooks) (kv? evt :action "run") (k? evt :user_error)))))
+    (fn [evt] (and (core? evt) (k? evt :deployhooks) (kv? evt :action "run") (k? evt :user_error)))))
 
 (defstat api-deployhooks-unhandled-exceptions-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :deployhooks) (kv? evt :action "run") (k? evt :error)))))
+    (fn [evt] (and (core? evt) (k? evt :deployhooks) (kv? evt :action "run") (k? evt :error)))))
 
 (defstat api-deployhooks-time
   (mean 60
-    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :deployhooks) (kv? evt :action "run") (finish? evt)))
+    (fn [evt] (and (core? evt) (k? evt :deployhooks) (kv? evt :action "run") (finish? evt)))
     :elapsed))
 
 (defstat api-s3-copies-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :s3_helper) (k? evt :copy) (start? evt)))))
+    (fn [evt] (and (core? evt) (k? evt :s3_helper) (k? evt :copy) (start? evt)))))
 
 (defstat api-s3-copy-unhandled-exceptions-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :s3_helper) (k? evt :copy) (kv? evt :event "failed")))))
+    (fn [evt] (and (core? evt) (k? evt :s3_helper) (k? evt :copy) (kv? evt :event "failed")))))
 
 (defstat api-s3-copy-time
   (mean 60
-    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :s3_helper) (k? evt :copy) (finish? evt)))
+    (fn [evt] (and (core? evt) (k? evt :s3_helper) (k? evt :copy) (finish? evt)))
     :elapsed))
 
 (defstat api-logplex-api-requests-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :logplex) (start? evt)))))
+    (fn [evt] (and (core? evt) (k? evt :logplex) (start? evt)))))
 
 (defstat api-logplex-provisions-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :logplex) (k? evt :create_channel) (start? evt)))))
+    (fn [evt] (and (core? evt) (k? evt :logplex) (k? evt :create_channel) (start? evt)))))
 
 (defstat api-logplex-deprovision-per-minute
   (per-minute
-     (fn [evt] (and (cloud? evt) (core? evt) (k? evt :logplex) (k? evt :delete_channel) (start? evt)))))
+     (fn [evt] (and (core? evt) (k? evt :logplex) (k? evt :delete_channel) (start? evt)))))
 
 (defstat api-logplex-sessions-per-minute
   (per-minute
-     (fn [evt] (and (cloud? evt) (core? evt) (k? evt :logplex) (k? evt :create_session) (start? evt)))))
+     (fn [evt] (and (core? evt) (k? evt :logplex) (k? evt :create_session) (start? evt)))))
 
 (defstat api-logplex-api-errors-per-minute
   (per-minute
-     (fn [evt] (and (cloud? evt) (core? evt) (k? evt :logplex) (error? evt)))))
+     (fn [evt] (and (core? evt) (k? evt :logplex) (error? evt)))))
 
 (defstat api-logplex-api-unhandled-exceptions-per-minute
   (per-minute
-     (fn [evt] (and (cloud? evt) (core? evt) (k? evt :logplex) (error? evt)))))
+     (fn [evt] (and (core? evt) (k? evt :logplex) (error? evt)))))
 
 (defstat api-logplex-api-time
   (mean 60
-     (fn [evt] (and (cloud? evt) (core? evt) (k? evt :logplex) (finish? evt)))
+     (fn [evt] (and (core? evt) (k? evt :logplex) (finish? evt)))
      :elapsed))
 
 (defstat api-psmgr-api-requests-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :service_api) (start? evt)))))
+    (fn [evt] (and (core? evt) (k? evt :service_api) (start? evt)))))
 
 (defstat api-psmgr-api-errors-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :service_api)
+    (fn [evt] (and (core? evt) (k? evt :service_api)
                    (or (kv? evt :event "unprocessable") (kv? evt :event "timeout") (kv? evt :event "broken") (error? evt))))))
 
 (defstat api-psmgr-api-unhandled-exceptions-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :service_api) (error? evt)))))
+    (fn [evt] (and (core? evt) (k? evt :service_api) (error? evt)))))
 
 (defstat api-psmgr-api-time
   (mean 60
-    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :service_api) (finish? evt)))
+    (fn [evt] (and (core? evt) (k? evt :service_api) (finish? evt)))
     :elapsed))
 
 (defstat api-unhandled-exceptions-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (core? evt) (or (k? evt :unhandled-exception) (and (k? evt :worker) (error? evt)))))))
+    (fn [evt] (and (core? evt) (or (k? evt :unhandled-exception) (and (k? evt :worker) (error? evt)))))))
 
 (defstat api-events-per-second
   (per-second core?))
