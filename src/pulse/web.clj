@@ -220,7 +220,7 @@
 
 (def graphs-api
   [[["api jobs/min"        "api-worker-jobs-per-minute"]
-    ["api retry/min"       "api-retries-per-minute"]
+    ["api retry/min"       "api-worker-retries-per-minute"]
     ["api jobs delay"      "api-worker-jobs-delay"]
     ["api jobs time"       "api-worker-jobs-time"]
     ["api jobs excp/min"   "api-worker-unhandled-exceptions-per-minute"]]
