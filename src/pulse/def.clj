@@ -1083,6 +1083,28 @@
   (per-minute
     (fn [evt] (and (cloud? evt) (core? evt) (k? evt :developer_action) (kv? evt :action "config_list")))))
 
+(defstat api-shen-provisions-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :shen) (k? evt :create) (start? evt)))))
+
+(defstat api-shen-async-provisions-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :shen) (k? evt :create) (kv? evt :async true) (start? evt)))))
+
+(defstat api-shen-async-provision-time
+  (mean 60
+    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :db_up)))
+    :elapsed))
+
+(defstat api-shen-provisions-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :shen) (k? evt :create) (kv?  evt :async false) (start? evt)))))
+
+(defstat api-shen-sync-provision-time
+  (mean 60
+    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :shen) (k? evt :create) (kv?  evt :async false) (finish? evt)))
+    :elapsed))
+
 (defstat api-codex-provisions-per-minute
   (per-minute
     (fn [evt] (and (cloud? evt) (core? evt) (k? evt :init_codex) (kv? evt :stateless_codex false) (kv? evt :at "start")))))
@@ -1307,6 +1329,11 @@
    api-config-changes-per-minute
    api-logs-per-minute
    api-ps-per-minute
+   api-shen-provisions-per-minute
+   api-shen-async-provisions-per-minute
+   api-shen-async-provision-time
+   api-shen-sync-provisions-per-minute
+   api-shen-sync-provision-time
    api-configs-per-minute
    api-codex-provisions-per-minute
    api-codex-provision-time
