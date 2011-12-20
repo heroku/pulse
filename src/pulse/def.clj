@@ -245,13 +245,16 @@
   (.contains (or (k evt) "") v))
 
 (defn >? [evt k v]
-  (? (k evt) v))
+  (> (k evt) v))
 
 (defn >=? [evt k v]
   (>= (k evt) v))
 
 (defn cloud? [evt]
   (kv? evt :cloud (conf/cloud)))
+
+(defn start? [evt]
+  (kv? evt :at "start"))
 
 (defn finish? [evt]
   (kv? evt :at "finish"))
