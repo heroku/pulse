@@ -1072,6 +1072,10 @@
   (per-minute
     (fn [evt] (and (cloud? evt) (core? evt) (k? evt :developer_action) (kv? evt :action "logs")))))
 
+(defstat api-ps-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (core? evt) (k? evt :service_api) (kv? evt :action "visible") (kv? evt :attempt 1) (start? evt)))))
+
 (defstat api-configs-per-minute
   (per-minute
     (fn [evt] (and (cloud? evt) (core? evt) (k? evt :developer_action) (kv? evt :action "config_list")))))
@@ -1297,6 +1301,7 @@
    api-scales-per-minute
    api-config-changes-per-minute
    api-logs-per-minute
+   api-ps-per-minute
    api-configs-per-minute
    api-codex-provisions-per-minute
    api-codex-provision-time
