@@ -244,6 +244,9 @@
 (defn cont? [evt k v]
   (.contains (or (k evt) "") v))
 
+(defn >? [evt k v]
+  (? (k evt) v))
+
 (defn >=? [evt k v]
   (>= (k evt) v))
 
@@ -992,6 +995,14 @@
   (per-minute
     (fn [evt] (and (cloud? evt) (kv? evt :source "core") (k? evt :worker) (kv? evt :at "start")))))
 
+(defstat api-worker-retries-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (kv? evt :source "core") (k? evt :worker) (>? evt :attempts 0)))))
+
+(defstat api-worker-unhandled-exceptions-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (kv? evt :source "core") (k? evt :worker) (kv? evt :at "error")))))
+
 (defstat api-worker-jobs-delay
   (mean 60
     (fn [evt] (and (cloud? evt) (kv? evt :source "core") (k? evt :worker) (kv? evt :at "start") (kv? evt :attempts 0)))
@@ -1001,10 +1012,6 @@
   (mean 60
     (fn [evt] (and (cloud? evt) (kv? evt :source "core") (k? evt :worker) (kv? evt :at "finish")))
     :elapsed))
-
-(defstat api-worker-unhandled-exceptions-per-minute
-  (per-minute
-    (fn [evt] (and (cloud? evt) (kv? evt :source "core") (k? evt :worker) (kv? evt :at "error")))))
 
 (defstat api-requests-per-second
   (per-minute
@@ -1265,14 +1272,15 @@
    codex-errors-per-minute
 
    ; api
-   api-errors-per-minute
    api-worker-jobs-per-minute
+   api-worker-retries-per-minute
+   api-worker-unhandled-exceptions-per-minute
    api-worker-jobs-delay
    api-worker-jobs-time
-   api-worker-unhandled-exceptions-per-minute
    api-requests-per-second
-   api-request-time
+   api-request-user-errors-per-minute
    api-request-unhandled-exceptions-per-minute
+   api-request-time
    api-developer-actions-per-minute
    api-creates-per-minute
    api-releases-per-minute
