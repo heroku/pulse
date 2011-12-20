@@ -224,7 +224,7 @@
     ["jobs delay"           "api-worker-jobs-delay"]
     ["jobs duration"        "api-worker-jobs-time"]
     ["jobs errors/min"      "api-worker-unhandled-exceptions-per-minute"]
-    ["req/min"              "api-requests-per-minute"]
+    ["req/sec"              "api-requests-per-second"]
     ["req time"             "api-request-time"]]
    [["req errors/min"       "api-request-unhandled-exceptions-per-minute"]
     ["dev actions/min"      "api-developer-actions-per-minute"]

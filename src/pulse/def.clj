@@ -1010,7 +1010,7 @@
   (per-minute
     (fn [evt] (and (cloud? evt) (kv? evt :source "core") (k? evt :worker) (kv? evt :at "error")))))
 
-(defstat api-requests-per-minute
+(defstat api-requests-per-second
   (per-minute
     (fn [evt] (and (cloud? evt) (kv? evt :source "core") (k? evt :access_info)))))
 
@@ -1270,7 +1270,7 @@
    api-worker-jobs-delay
    api-worker-jobs-time
    api-worker-unhandled-exceptions-per-minute
-   api-requests-per-minute
+   api-requests-per-second
    api-request-time
    api-request-unhandled-exceptions-per-minute
    api-developer-actions-per-minute
