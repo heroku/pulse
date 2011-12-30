@@ -945,53 +945,53 @@
 
 (defstat slugc-compiles-per-minute
   (per-minute
-    (fn [evt] (and (slugc? evt) (k? evt :bin) (kv? evt :event "start")))))
+    (fn [evt] (and (slugc? evt) (k? evt :bin) (or (start? evt) (kv? evt :event "start"))))))
 
 (defstat slugc-aspen-compiles-per-minute
   (per-minute
-    (fn [evt] (and (slugc? evt) (k? evt :bin) (kv? evt :event "start") (kv? evt :major_stack "aspen")))))
+    (fn [evt] (and (slugc? evt) (k? evt :bin) (or (start? evt) (kv? evt :event "start")) (kv? evt :major_stack "aspen")))))
 
 (defstat slugc-bamboo-compiles-per-minute
   (per-minute
-    (fn [evt] (and (slugc? evt) (k? evt :bin) (kv? evt :event "start") (kv? evt :major_stack "bamboo")))))
+    (fn [evt] (and (slugc? evt) (k? evt :bin) (or (start? evt) (kv? evt :event "start")) (kv? evt :major_stack "bamboo")))))
 
 (defstat slugc-cedar-compiles-per-minute
   (per-minute
-    (fn [evt] (and (slugc? evt) (k? evt :bin) (kv? evt :event "start") (kv? evt :major_stack "cedar")))))
+    (fn [evt] (and (slugc? evt) (k? evt :bin) (or (start? evt) (kv? evt :event "start")) (kv? evt :major_stack "cedar")))))
 
 (defstat slugc-failures-per-minute
   (per-minute
-    (fn [evt] (and (slugc? evt) (k? evt :bin) (kv? evt :event "fail")))))
+    (fn [evt] (and (slugc? evt) (k? evt :bin) (or (kv? evt :at "fail") (kv? evt :event "fail"))))))
 
 (defstat slugc-errors-per-minute
   (per-minute
-    (fn [evt] (and (slugc? evt) (k? evt :bin) (kv? evt :event "error")))))
+    (fn [evt] (and (slugc? evt) (k? evt :bin) (or (error? evt) (kv? evt :event "error"))))))
 
 (defstat slugc-successes-per-minute
   (per-minute
-    (fn [evt] (and (slugc? evt) (k? evt :bin) (kv? evt :event "finish")))))
+    (fn [evt] (and (slugc? evt) (k? evt :bin) (or (finish? evt) (kv? evt :event "finish"))))))
 
 (defstat slugc-mean-stow-time
   (mean 60
-    (fn [evt] (and (slugc? evt) (k? evt :store_in_s3) (kv? evt :event "finish")))
+    (fn [evt] (and (slugc? evt) (k? evt :store_in_s3) (or (finish? evt) (kv? evt :event "finish"))))
     :elapsed))
 
 (defstat slugc-mean-release-time
   (mean 60
-    (fn [evt] (and (slugc? evt) (k? evt :post_release) (kv? evt :event "finish")))
+    (fn [evt] (and (slugc? evt) (k? evt :post_release) (or (finish? evt) (kv? evt :event "finish"))))
     :elapsed))
 
 (defstat slugc-stow-errors-per-minute
   (per-minute
-    (fn [evt] (and (slugc? evt) (k? evt :store_in_s3) (kv? evt :event "error")))))
+    (fn [evt] (and (slugc? evt) (k? evt :store_in_s3) (or (error? evt) (kv? evt :event "error"))))))
 
 (defstat slugc-release-errors-per-minute
   (per-minute
-    (fn [evt] (and (slugc? evt) (k? evt :post_release) (kv? evt :event "error")))))
+    (fn [evt] (and (slugc? evt) (k? evt :post_release) (or (error? evt) (kv? evt :event "error"))))))
 
 (defstat slugc-mean-compile-time
   (mean 60
-    (fn [evt] (and (slugc? evt) (k? evt :bin) (kv? evt :event "finish")))
+    (fn [evt] (and (slugc? evt) (k? evt :bin) (or (finish? evt) (kv? evt :event "finish"))))
     :elapsed))
 
 (defstat codex-errors-per-minute
@@ -1156,7 +1156,7 @@
 
 (defstat api-s3-copy-unhandled-exceptions-per-minute
   (per-minute
-    (fn [evt] (and (core? evt) (k? evt :s3_helper) (k? evt :copy) (kv? evt :event "failed")))))
+    (fn [evt] (and (core? evt) (k? evt :s3_helper) (k? evt :copy) (or (kv? evt :at "failed") (kv? evt :event "failed"))))))
 
 (defstat api-s3-copy-time
   (mean 60
