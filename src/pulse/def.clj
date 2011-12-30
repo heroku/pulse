@@ -262,6 +262,9 @@
 (defn error? [evt]
   (kv? evt :at "error"))
 
+(defn emit? [evt]
+  (kv? evt :at "emit"))
+
 ; global
 
 (defstat events-per-second
@@ -539,35 +542,35 @@
 
 (defstat railgun-denied-count
   (last-count
-    (fn [evt] (and (railgun? evt) (k? evt :stats) (kv? evt :at "emit")))
+    (fn [evt] (and (railgun? evt) (k? evt :stats) (emit? evt)))
     :instance_id
     :deny
     40))
 
 (defstat railgun-packed-count
   (last-count
-    (fn [evt] (and (railgun? evt) (k? evt :stats) (kv? evt :at "emit")))
+    (fn [evt] (and (railgun? evt) (k? evt :stats) (emit? evt)))
     :instance_id
     :packed
     40))
 
 (defstat railgun-loaded-count
   (last-count
-    (fn [evt] (and (railgun? evt) (k? evt :stats) (kv? evt :at "emit")))
+    (fn [evt] (and (railgun? evt) (k? evt :stats) (emit? evt)))
     :instance_id
     (fn [evt] (kv? evt :load_status "loaded"))
     40))
 
 (defstat railgun-critical-count
   (last-count
-    (fn [evt] (and (railgun? evt) (k? evt :stats) (kv? evt :at "emit")))
+    (fn [evt] (and (railgun? evt) (k? evt :stats) (emit? evt)))
     :instance_id
     (fn [evt] (kv? evt :load_status "critical"))
     40))
 
 (defstat railgun-accepting-count
   (last-count
-    (fn [evt] (and (railgun? evt) (k? evt :stats) (kv? evt :at "emit")))
+    (fn [evt] (and (railgun? evt) (k? evt :stats) (emit? evt)))
     :instance_id
     (fn [evt] (kv? evt :run_factor 1))
     40))
@@ -673,11 +676,11 @@
 
 (defstat railgun-s3-requests-per-minute
   (per-minute
-    (fn [evt] (and (railgun? evt) (k? evt :save_slug_attempt) (kv? evt :at "start")))))
+    (fn [evt] (and (railgun? evt) (k? evt :save_slug_attempt) (start? evt)))))
 
 (defstat railgun-s3-errors-per-minute
   (per-minute
-    (fn [evt] (and (railgun? evt) (k? evt :save_slug_attempt) (kv? evt :at "error")))))
+    (fn [evt] (and (railgun? evt) (k? evt :save_slug_attempt) (error? evt)))))
 
 (defstat railgun-s3-time-mean
   (mean 70
@@ -686,11 +689,11 @@
 
 (defstat railgun-s3-canary-requests-per-minute
   (per-minute
-    (fn [evt] (and (railgun? evt) (k? evt :check_s3) (kv? evt :at "start")))))
+    (fn [evt] (and (railgun? evt) (k? evt :check_s3) (start? evt)))))
 
 (defstat railgun-s3-canary-errors-per-minute
   (per-minute
-    (fn [evt] (and (railgun? evt) (k? evt :check_s3) (kv? evt :at "error")))))
+    (fn [evt] (and (railgun? evt) (k? evt :check_s3) (error? evt)))))
 
 (defstat railgun-s3-canary-time-mean
   (mean 70
@@ -744,7 +747,7 @@
 
 (defstat railgun-inits-per-minute
   (per-minute
-    (fn [evt] (and (railgun? evt) (k? evt :init_railgun) (kv? evt :at "start")))))
+    (fn [evt] (and (railgun? evt) (k? evt :init_railgun) (start? evt)))))
 
 (defstat railgun-traps-per-minute
   (per-minute
@@ -886,21 +889,21 @@
 
 (defstat codon-up-last
   (last-count
-    (fn [evt] (and (k? evt :codon) (k? evt :production) (k? evt :spawn_heartbeat) (kv? evt :at "emit")))
+    (fn [evt] (and (k? evt :codon) (k? evt :production) (k? evt :spawn_heartbeat) (emit? evt)))
     :hostname
     (constantly true)
     3))
 
 (defstat codon-busy-last
   (last-count
-    (fn [evt] (and (k? evt :codon) (k? evt :production) (k? evt :spawn_heartbeat) (kv? evt :at "emit")))
+    (fn [evt] (and (k? evt :codon) (k? evt :production) (k? evt :spawn_heartbeat) (emit? evt)))
     :hostname
     (fn [evt] (kv? evt :busy true))
     3))
 
 (defstat codon-compiling-last
   (last-count
-    (fn [evt] (and (k? evt :codon) (k? evt :production) (k? evt :spawn_heartbeat) (kv? evt :at "emit")))
+    (fn [evt] (and (k? evt :codon) (k? evt :production) (k? evt :spawn_heartbeat) (emit? evt)))
     :hostname
     (fn [evt] (kv? evt :compiling true))
     3))
@@ -930,7 +933,7 @@
 
 (defstat codon-mean-age
   (mean 60
-    (fn [evt] (and (k? evt :codon) (k? evt :production) (k? evt :spawn_heartbeat) (kv? evt :at "emit")))
+    (fn [evt] (and (k? evt :codon) (k? evt :production) (k? evt :spawn_heartbeat) (emit? evt)))
     :age))
 
 (defstat codon-unhandled-exceptions-per-minute
