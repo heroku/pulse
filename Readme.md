@@ -63,4 +63,4 @@ Ensure that Aortas are running and dyno-reachable at `AORTA_URLS`, and that the 
 * [Splunk](http://www.splunk.com/): Log visibility software
 * [Loggly](http://www.loggly.com/): Logging as a service
 * [Papertrail](https://papertrailapp.com): Hosted cloud log management
-* [Leech](https://github.com/heroku/leech): Log tailing and filtering, based on Pulse
+* [Leech web](https://github.com/heroku/leech-web) and [Leech drain](https://github.com/heroku/leech-web): Log tailing and filtering
