@@ -65,7 +65,7 @@
 
 (def nginx-access-re
   ;  http_host                                                               http_method,_url,_version       http_status,_bytes,_referrer,_user_agent,_domain
-  #"^([0-9\.]+) - - \[\d\d\/[a-zA-z]{3}\/\d\d\d\d:\d\d:\d\d:\d\d -\d\d00\] \"([a-zA-Z]+) (\S+) HTTP\/(...)\" (\d+) (\d+) \"([^\"]+)\" \"([^\"]+)\" (\S+)$")
+  #"^([0-9\.]+) - - \[\d\d\/[a-zA-z]{3}\/\d\d\d\d:\d\d:\d\d:\d\d [\-\+]\d\d00\] \"([a-zA-Z]+) (\S+) HTTP\/(...)\" (\d+) (\d+) \"([^\"]+)\" \"([^\"]+)\" (\S+)$")
 
 (defn inflate-nginx-access [evt]
   (if (= (:source evt) "nginx")
