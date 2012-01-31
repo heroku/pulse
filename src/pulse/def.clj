@@ -769,6 +769,34 @@
   (per-minute
     (fn [evt] (and (railgun? evt) (k? evt :heartbeat)))))
 
+(defstat railgun-runtime-bus-publishes-per-minute
+  (per-minute
+    (fn [evt] (and (railgun? evt) (k? evt :bus) (k? evt :queue) (kv? evt :at "publish")))))
+
+(defstat railgun-runtime-bus-processing-per-minute
+  (per-minute
+    (fn [evt] (and (railgun? evt) (k? evt :bus) (k? evt :queue) (kv? evt :at "processing")))))
+
+(defstat railgun-runtime-bus-expired-per-minute
+  (per-minute
+    (fn [evt] (and (railgun? evt) (k? evt :bus) (k? evt :message) (kv? evt :status "expired")))))
+
+(defstat railgun-runtime-bus-invalid-per-minute
+  (per-minute
+    (fn [evt] (and (railgun? evt) (k? evt :bus) (k? evt :message) (kv? evt :status "invalid")))))
+
+(defstat railgun-runtime-bus-abondoned-per-minute
+  (per-minute
+    (fn [evt] (and (railgun? evt) (k? evt :bus) (k? evt :queue) (k? evt :warning) (k? evt :abandoning_pending_messages)))))
+
+(defstat railgun-runtime-bus-failed-pushes-per-minute
+  (per-minute
+    (fn [evt] (and (railgun? evt) (k? evt :bus) (k? evt :pool) (k? evt :skipping_failed_connection)))))
+
+(defstat railgun-runtime-bus-failed-lpops-per-minute
+  (per-minute
+    (fn [evt] (and (railgun? evt) (k? evt :bus) (k? evt :pool) (kv? evt :operation "blpop_single") (kv? evt :at "exception")))))
+
 (defstat railgun-events-per-second
   (per-second railgun?))
 
@@ -1341,6 +1369,13 @@
    railgun-unhandled-exceptions-per-minute
    railgun-pings-per-minute
    railgun-heartbeats-per-minute
+   railgun-runtime-bus-publishes-per-minute
+   railgun-runtime-bus-processing-per-minute
+   railgun-runtime-bus-expired-per-minute
+   railgun-runtime-bus-invalid-per-minute
+   railgun-runtime-bus-abondoned-per-minute
+   railgun-runtime-bus-failed-pushes-per-minute
+   railgun-runtime-bus-failed-lpops-per-minute
    railgun-events-per-second
 
    ; psmgr

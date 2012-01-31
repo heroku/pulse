@@ -43,7 +43,7 @@
     ["hermes h99 app/min"  "hermes-h99-apps-per-minute"]]
    [["psmgr ps up total"   "psmgr-ps-up-total-last"]
     ["psmgr ps up web"     "psmgr-ps-up-web-last"]
-    ["psngr ps up worker"  "psmgr-ps-up-worker-last"]
+    ["psmgr ps up worker"  "psmgr-ps-up-worker-last"]
     ["psmgr ps up other"   "psmgr-ps-up-other-last"]
     ["psmgr ps starting"   "psmgr-ps-starting-last"]
     ["psmgr ps crashed"    "psmgr-ps-crashed-last"]
@@ -176,7 +176,14 @@
     ["railgun exit/min"    "railgun-exits-per-minute"]
     ["railgun excp/min"    "railgun-unhandled-exceptions-per-minute"]
     ["railgun ping/min"    "railgun-pings-per-minute"]
-    ["railgun beat/min"    "railgun-heartbeats-per-minute"]
+    ["railgun beat/min"    "railgun-heartbeats-per-minute"]]
+   [["bus pub/min"         "railgun-runtime-bus-publishes-per-minute"]
+    ["bus processing/min"  "railgun-runtime-bus-processing-per-minute"]
+    ["bus expired/min"     "railgun-runtime-bus-expired-per-minute"]
+    ["bus invalid/min"     "railgun-runtime-bus-invalid-per-minute"]
+    ["bus abandoned/min"   "railgun-runtime-bus-abondoned-per-minute"]
+    ["bus push fails/min"  "railgun-runtime-bus-failed-pushes-per-minute"]
+    ["bus lpops fails/min" "railgun-runtime-bus-failed-lpops-per-minute"]
     ["railgun evt/sec"     "railgun-events-per-second"]]])
 
 (def graphs-psmgr
