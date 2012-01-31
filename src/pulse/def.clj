@@ -866,6 +866,23 @@
   (per-minute
     (fn [evt] (and (cloud? evt) (kv? evt :level "err") (kv? evt :source "psmgr")))))
 
+(defstat psmgr-runtime-bus-receives-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :file "run/redis_helper") (k? evt :queue) (kv? evt :event "received")))))
+
+(defstat psmgr-runtime-bus-timeouts-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :file "run/redis_helper") (k? evt :queue) (kv? evt :event "timeout")))))
+
+(defstat psmgr-runtime-bus-processed-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :file "run/redis_helper") (k? evt :queue) (kv? evt :event "processed")))))
+
+(defstat psmgr-runtime-bus-depth
+  (last
+    (fn [evt] (and (cloud? evt) (k? evt :psmgr) (k? evt :helper) (kv? evt :function "lengths") (kv? evt :event "emit")))
+    :redis))
+
 ; packaging
 
 (defstat gitproxy-connections-per-minute
@@ -1393,6 +1410,10 @@
    psmgr-kill-requests-per-minute
    psmgr-converges-per-second
    psmgr-unhandled-exceptions-per-minute
+   psmgr-runtime-bus-receives-per-minute
+   psmgr-runtime-bus-timeouts-per-minute
+   psmgr-runtime-bus-processed-per-minute
+   psmgr-runtime-bus-depth
 
    ; packaging
    gitproxy-connections-per-minute
