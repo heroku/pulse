@@ -1386,6 +1386,7 @@
    railgun-unhandled-exceptions-per-minute
    railgun-pings-per-minute
    railgun-heartbeats-per-minute
+   railgun-events-per-second
    railgun-runtime-bus-publishes-per-minute
    railgun-runtime-bus-processing-per-minute
    railgun-runtime-bus-expired-per-minute
@@ -1393,7 +1394,6 @@
    railgun-runtime-bus-abondoned-per-minute
    railgun-runtime-bus-failed-pushes-per-minute
    railgun-runtime-bus-failed-lpops-per-minute
-   railgun-events-per-second
 
    ; psmgr
    psmgr-ps-up-total-last
@@ -1410,10 +1410,10 @@
    psmgr-kill-requests-per-minute
    psmgr-converges-per-second
    psmgr-unhandled-exceptions-per-minute
+   psmgr-runtime-bus-depth
    psmgr-runtime-bus-receives-per-minute
    psmgr-runtime-bus-timeouts-per-minute
    psmgr-runtime-bus-processed-per-minute
-   psmgr-runtime-bus-depth
 
    ; packaging
    gitproxy-connections-per-minute
