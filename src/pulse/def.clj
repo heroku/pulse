@@ -270,8 +270,8 @@
 (defstat events-per-second
   (per-second (constantly true)))
 
-(defstat events-per-second-by-source
-  (per-second-by-key (constantly true) :source))
+; (defstat events-per-second-by-source
+;   (per-second-by-key (constantly true) :source))
 
 (defstat events-per-second-unparsed
   (per-second :unparsed))
@@ -288,20 +288,20 @@
   (per-minute
     (fn [evt] (and (cloud? evt) (k? evt :amqp_message) (kv? evt :action "timeout")))))
 
-(defstat amqp-publishes-per-second-by-exchange
-  (per-second-by-key
-    (fn [evt] (and (cloud? evt) (k? evt :amqp_publish)))
-    :exchange))
+; (defstat amqp-publishes-per-second-by-exchange
+;   (per-second-by-key
+;     (fn [evt] (and (cloud? evt) (k? evt :amqp_publish)))
+;     :exchange))
 
-(defstat amqp-receives-per-second-by-exchange
-  (per-second-by-key
-    (fn [evt] (and (cloud? evt) (k? evt :amqp_message) (kv? evt :action "received")))
-    :exchange))
+; (defstat amqp-receives-per-second-by-exchange
+;   (per-second-by-key
+;     (fn [evt] (and (cloud? evt) (k? evt :amqp_message) (kv? evt :action "received")))
+;     :exchange))
 
-(defstat amqp-timeouts-per-minute-by-exchange
-  (per-minute-by-key
-    (fn [evt] (and (cloud? evt) (k? evt :amqp_message) (kv? evt :action "timeout")))
-    :exchange))
+; (defstat amqp-timeouts-per-minute-by-exchange
+;   (per-minute-by-key
+;     (fn [evt] (and (cloud? evt) (k? evt :amqp_message) (kv? evt :action "timeout")))
+;     :exchange))
 
 ; routing
 
@@ -311,8 +311,8 @@
 (defstat nginx-requests-per-second
   (per-second nginx-request?))
 
-(defstat nginx-requests-per-second-by-domain
-  (per-second-by-key nginx-request? :http_domain))
+; (defstat nginx-requests-per-second-by-domain
+;   (per-second-by-key nginx-request? :http_domain))
 
 (defstat nginx-requests-domains-per-minute
   (per-minute-unique nginx-request? :http_domain))
@@ -409,11 +409,11 @@
 (defstat hermes-requests-apps-per-minute
   (per-minute-unique hermes-request? :app_id))
 
-(defstat hermes-requests-per-second-by-app-id
-  (per-second-by-key hermes-request? :app_id))
+; (defstat hermes-requests-per-second-by-app-id
+;   (per-second-by-key hermes-request? :app_id))
 
-(defstat hermes-requests-per-second-by-instance-id
-  (per-second-by-key hermes-request? :app_id))
+; (defstat hermes-requests-per-second-by-instance-id
+;  (per-second-by-key hermes-request? :app_id))
 
 (defn hermes-per-minute [code]
   (per-minute
@@ -1272,18 +1272,18 @@
   [
   ; global
    events-per-second
-   events-per-second-by-source
+   ;events-per-second-by-source
    events-per-second-unparsed
    amqp-publishes-per-second
    amqp-receives-per-second
    amqp-timeouts-per-minute
-   amqp-publishes-per-second-by-exchange
-   amqp-receives-per-second-by-exchange
-   amqp-timeouts-per-minute-by-exchange
+   ; amqp-publishes-per-second-by-exchange
+   ; amqp-receives-per-second-by-exchange
+   ; amqp-timeouts-per-minute-by-exchange
 
    ; routing
    nginx-requests-per-second
-   nginx-requests-per-second-by-domain
+   ; nginx-requests-per-second-by-domain
    nginx-requests-domains-per-minute
    nginx-500-per-minute
    nginx-502-per-minute
@@ -1305,8 +1305,8 @@
    rendezvous-rendezvous-per-minute
    hermes-requests-per-second
    hermes-requests-apps-per-minute
-   hermes-requests-per-second-by-app-id
-   hermes-requests-per-second-by-instance-id
+   ; hermes-requests-per-second-by-app-id
+   ; hermes-requests-per-second-by-instance-id
    hermes-h10-per-minute
    hermes-h11-per-minute
    hermes-h12-per-minute
