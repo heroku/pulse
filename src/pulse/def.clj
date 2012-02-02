@@ -242,7 +242,8 @@
   (contains? evt k))
 
 (defn cont? [evt k v]
-  (.contains (or (k evt) "") v))
+  (let [^String s (or (k evt) "")]
+    (.contains s v)))
 
 (defn >? [evt k v]
   (> (k evt) v))

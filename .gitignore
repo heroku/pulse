@@ -3,3 +3,5 @@
 lib
 *.xml
 *.jar
+classes
+.lein-deps-sum

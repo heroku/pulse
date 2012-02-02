@@ -21,7 +21,7 @@
         (cond
           (re-match? #"^[a-zA-Z0-9\:\.\-\_]+$" v)
             v
-          (neg? (.indexOf v "\""))
+          (neg? (.indexOf ^String v "\""))
             (str "\"" v "\"")
           :else
             (str "'" v "'"))
