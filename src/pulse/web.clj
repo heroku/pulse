@@ -6,7 +6,7 @@
         ring.middleware.basic-auth
         ring.middleware.file
         ring.middleware.file-info
-        ring.middleware.stacktrace
+        ;; ring.middleware.stacktrace
         ring.adapter.jetty
         hiccup.core)
   (:require [ring.util.codec :as codec]
@@ -416,7 +416,7 @@
     (wrap-params)
     (wrap-force-https)
     (wrap-logging)
-    (wrap-stacktrace)))
+    #_(wrap-stacktrace)))
 
 (defn -main []
   (log :fn "main" :at "start")
