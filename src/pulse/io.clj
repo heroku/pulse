@@ -5,7 +5,8 @@
             [clj-redis.client :as redis])
   (:import (clojure.lang LineNumberingPushbackReader)
            (java.io InputStreamReader BufferedReader PrintWriter)
-           (java.net Socket SocketException ConnectException)))
+           (java.net Socket SocketException ConnectException)
+           (org.apache.commons.codec.digest DigestUtils)))
 
 (defn log [& data]
   (apply log/log :ns "io" data))
@@ -32,6 +33,14 @@
       (Thread/sleep 100)
       (recur))))
 
+(defn shard-channel [[stat-name]]
+  (let [hash (DigestUtils/sha stat-name)
+        merger-count (Integer. (or (System/getenv "MERGER_COUNT") "2"))
+        shard (mod (first hash) merger-count)]
+    (str "stats.received." shard)))
+
+(alter-var-root #'shard-channel memoize)
+
 (defn init-bleeders [aorta-urls apply-queue]
   (log :fn "init-bleeders" :at "start")
   (doseq [aorta-url aorta-urls]
@@ -48,6 +57,9 @@
       (log :fn "init-publishers" :at "spawn" :chan chan :index i)
       (util/spawn-loop (fn []
         (let [data (queue/take publish-queue)
+              chan (if (ifn? chan)
+                     (chan data)
+                     chan)
               data-str (try
                          (ser data)
                          (catch Exception e

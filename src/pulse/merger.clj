@@ -36,15 +36,17 @@
              [stat-def stat-state] (get stats-map stat-name)]
          (stat/merge-apply stat-def stat-state pub))))))
 
-(defn -main []
+(defn -main [shard]
   (log :fn "main" :at "start")
   (let [apply-queue (queue/init 2000)
         publish-queue (queue/init 100)
         stats-map (init-stats def/all)]
     (queue/init-watcher apply-queue "apply")
     (queue/init-watcher publish-queue "publish")
-    (io/init-publishers publish-queue (conf/redis-url) "stats.merged" json/generate-string (conf/publish-threads))
+    (io/init-publishers publish-queue (conf/redis-url) "stats.merged"
+                        json/generate-string (conf/publish-threads))
     (init-emitter stats-map publish-queue)
     (init-appliers stats-map apply-queue (conf/apply-threads))
-    (io/init-subscriber (conf/redis-url) "stats.received" read-string apply-queue))
+    (io/init-subscriber (conf/redis-url) (str "stats.received." shard)
+                        read-string apply-queue))
   (log :fn "main" :at "finish"))
