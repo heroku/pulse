@@ -33,11 +33,13 @@
       (Thread/sleep 100)
       (recur))))
 
-(defn shard-channel [[stat-name]]
+(defn shard-for [^String stat-name]
   (let [hash (DigestUtils/sha stat-name)
-        merger-count (Integer. (or (System/getenv "MERGER_COUNT") "2"))
-        shard (mod (first hash) merger-count)]
-    (str "stats.received." shard)))
+        merger-count (Integer. (or (System/getenv "MERGER_COUNT") "2"))]
+    (mod (first hash) merger-count)))
+
+(defn shard-channel [[stat-name]]
+  (str "stats.received." (shard-for stat-name)))
 
 (alter-var-root #'shard-channel memoize)
 
