@@ -1055,7 +1055,7 @@
 
 (defstat api-worker-retries-per-minute
   (per-minute
-    (fn [evt] (and (core? evt) (k? evt :worker) (start? evt) (>? evt :attempts 0)))))
+    (fn [evt] (and (core? evt) (k? evt :worker) (start? evt) (k? evt :attempts) (>? evt :attempts 0)))))
 
 (defstat api-worker-unhandled-exceptions-per-minute
   (per-minute
