@@ -622,7 +622,7 @@
 
 (defstat railgun-kills-per-minute
   (per-minute
-    (fn [evt] (and (railgun? evt) (k? evt :ps_watch) (k? evt :trap_exit)))))
+    (fn [evt] (and (railgun? evt) (k? evt :ps_terminate) (k? evt :term_pid) (start? evt)))))
 
 (defstat railgun-subscribes-per-minute
   (per-minute
