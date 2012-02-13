@@ -29,14 +29,12 @@
       (let [pub (stat/merge-emit stat-def stat-state)]
         (queue/offer publish-queue [stat-name pub]))))))
 
-(defn init-appliers [stats-map apply-queue n]
-  (log :fn "init-appliers" :at "start")
-  (dotimes [i n]
-     (log :fn "init-appliers" :at "spawn" :index i)
-     (util/spawn-loop (fn []
-       (let [[stat-name pub] (queue/take apply-queue)
-             [stat-def stat-state] (get stats-map stat-name)]
-         (stat/merge-apply stat-def stat-state pub))))))
+(defn init-applier [stats-map apply-queue]
+  (log :fn "init-applier" :at "start")
+  (util/spawn-loop (fn []
+    (let [[stat-name pub] (queue/take apply-queue)
+          [stat-def stat-state] (get stats-map stat-name)]
+      (stat/merge-apply stat-def stat-state pub)))))
 
 (defn -main [shard]
   (log :fn "main" :at "start")
@@ -48,7 +46,7 @@
     (io/init-publishers publish-queue (conf/redis-url) "stats.merged"
                         json/generate-string (conf/publish-threads))
     (init-emitter stats-map publish-queue)
-    (init-appliers stats-map apply-queue (conf/apply-threads))
+    (init-applier stats-map apply-queue)
     (io/init-subscriber (conf/redis-url) (str "stats.received." shard)
                         read-string apply-queue))
   (log :fn "main" :at "finish"))

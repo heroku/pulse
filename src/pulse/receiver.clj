@@ -24,15 +24,13 @@
       (let [pub (stat/receive-emit stat-def stat-state)]
         (queue/offer publish-queue [(:name stat-def) pub]))))))
 
-(defn init-appliers [stats apply-queue n]
-  (log :fn "init-appliers" :at "start")
-  (dotimes [i n]
-     (log :fn "init-appliers" :at "spawn" :index i)
-     (util/spawn-loop (fn []
-       (let [line (queue/take apply-queue)
-             evt (or (parse/parse-line line) {:line line :unparsed true})]
-         (doseq [[stat-def stat-state] stats]
-           (stat/receive-apply stat-def stat-state evt)))))))
+(defn init-applier [stats apply-queue]
+  (log :fn "init-applier" :at "start")
+  (util/spawn-loop (fn []
+    (let [line (queue/take apply-queue)
+          evt (or (parse/parse-line line) {:line line :unparsed true})]
+      (doseq [[stat-def stat-state] stats]
+        (stat/receive-apply stat-def stat-state evt))))))
 
 (defn -main []
   (log :fn "main" :at "start")
@@ -44,6 +42,6 @@
     (io/init-publishers publish-queue (conf/redis-url) io/shard-channel
                         pr-str (conf/publish-threads))
     (init-emitter stats-states publish-queue)
-    (init-appliers stats-states apply-queue (conf/apply-threads))
+    (init-applier stats-states apply-queue)
     (io/init-bleeders (conf/aorta-urls) apply-queue)
   (log :fn "main" :at "finish")))
