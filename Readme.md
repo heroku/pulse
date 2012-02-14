@@ -41,7 +41,7 @@ Ensure that Aortas are running and dyno-reachable at `AORTA_URLS`, and that the 
     $ heroku addons:add redistogo:small
     $ heroku config:add ...
     $ git push heroku master
-    $ heroku scale receiver=16 merger=1 web=2
+    $ heroku scale receiver=60 merger0=1 merger1=1 web=2
 
 
 ## Viewing stats graphs
