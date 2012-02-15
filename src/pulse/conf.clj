@@ -20,6 +20,7 @@
 (defn deploy [] (env! "DEPLOY"))
 (defn cloud [] (env! "CLOUD"))
 (defn publish-threads [] (Integer/parseInt (env! "PUBLISH_THREADS")))
+(defn merger-count [] 2)
 
 (defn api-password []
   (second (str/split (:auth (util/url-parse (api-url))) #":")))

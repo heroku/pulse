@@ -1,12 +1,12 @@
 (ns pulse.io
   (:require [pulse.util :as util]
+            [pulse.conf :as conf]
             [pulse.log :as log]
             [pulse.queue :as queue]
             [clj-redis.client :as redis])
   (:import (clojure.lang LineNumberingPushbackReader)
            (java.io InputStreamReader BufferedReader PrintWriter)
-           (java.net Socket SocketException ConnectException)
-           (org.apache.commons.codec.digest DigestUtils)))
+           (java.net Socket SocketException ConnectException)))
 
 (defn log [& data]
   (apply log/log :ns "io" data))
@@ -33,15 +33,11 @@
       (Thread/sleep 100)
       (recur))))
 
-(defn shard-for [^String stat-name]
-  (let [hash (DigestUtils/sha stat-name)
-        merger-count (Integer. (or (System/getenv "MERGER_COUNT") "2"))]
-    (mod (first hash) merger-count)))
+(defn shard-for [stat-name]
+  (mod (hash stat-name) (conf/merger-count)))
 
 (defn shard-channel [[stat-name]]
   (str "stats.received." (shard-for stat-name)))
-
-(alter-var-root #'shard-channel memoize)
 
 (defn init-bleeders [aorta-urls apply-queue]
   (log :fn "init-bleeders" :at "start")
