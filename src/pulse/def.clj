@@ -61,7 +61,7 @@
          (let [val (val-fn evt)]
            (if (nil? val)
              (do
-               (log :fn "mean" :at "nil-val" :msg (:msg evt))
+               (prn :fn "mean" :at "nil-val" :msg (:msg evt))
                receive-buffer)
              [window-start (inc window-count) (+ window-sum val)]))))
    :receive-emit
