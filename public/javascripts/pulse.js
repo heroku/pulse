@@ -72,7 +72,7 @@ function pulseUpdate() {
     },
     function() {
       console.log("at=complete request_id=" + thisRequestId);
-      setTimeout(pulseUpdate, 500);
+      setTimeout(pulseUpdate, 1000);
     }
   );
 }
