@@ -191,7 +191,7 @@
     ["bus lpops fails/min" "railgun-runtime-bus-failed-lpops-per-minute"]]])
 
 (def graphs-psmgr
-  [])
+  [[["psmgr evt/sec"       "psmgr-events-per-second"]]])
 
 (def graphs-packaging
   [[["gitproxy con/min"    "gitproxy-connections-per-minute"]

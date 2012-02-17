@@ -884,6 +884,10 @@
     (fn [evt] (and (cloud? evt) (k? evt :psmgr) (k? evt :helper) (kv? evt :function "lengths") (kv? evt :event "emit")))
     :redis))
 
+(defstat psmgr-events-per-second
+  (per-second
+    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr")))))
+
 ; packaging
 
 (defstat gitproxy-connections-per-minute
@@ -1415,6 +1419,7 @@
    psmgr-runtime-bus-receives-per-minute
    psmgr-runtime-bus-timeouts-per-minute
    psmgr-runtime-bus-processed-per-minute
+   psmgr-events-per-second
 
    ; packaging
    gitproxy-connections-per-minute
