@@ -325,6 +325,14 @@
    :headers {"Content-Type" "text/html"}
    :body "Not Found"})
 
+(defn wrap-canonical-host [handler canonical-host]
+  (fn [req]
+    (if (= (:server-name req) canonical-host)
+      (handler req)
+      (redirect (format "%s://%s/"
+                  (if (conf/force-https?) "https" "http")
+                  canonical-host)))))
+
 (defn wrap-cros-headers [handler]
   (fn [req]
     (let [resp (handler req)]
@@ -409,6 +417,7 @@
   (-> core-app
     (wrap-file "public")
     (wrap-file-info)
+    (wrap-canonical-host (conf/canonical-host))
     (wrap-only #(wrap-basic-auth % api-auth?) #(= "/stats" (:uri %)))
     (wrap-only wrap-cros-headers #(= "/stats" (:uri %)))
     (wrap-only wrap-openid-proxy #(not= "/stats" (:uri %)))

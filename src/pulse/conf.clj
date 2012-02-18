@@ -19,6 +19,7 @@
 (defn api-url [] (env! "API_URL"))
 (defn deploy [] (env! "DEPLOY"))
 (defn cloud [] (env! "CLOUD"))
+(defn canonical-host [] (env! "CANONICAL_HOST"))
 (defn publish-threads [] (Integer/parseInt (env! "PUBLISH_THREADS")))
 (defn merger-count [] 5)
 
