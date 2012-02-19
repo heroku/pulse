@@ -25,8 +25,8 @@
   (util/spawn-tick 1000 (fn []
     (log :fn "init-emitter" :at "tick")
     (doseq [[stat-name [stat-def stat-state]] stats-map]
-      (log :fn "init-emitter" :at "emit" :name stat-name)
       (let [pub (stat/merge-emit stat-def stat-state)]
+        (log :fn "init-emitter" :at "emit" :name stat-name :value (and (number? pub) pub))
         (queue/offer publish-queue [stat-name pub]))))))
 
 (defn init-applier [stats-map apply-queue]
