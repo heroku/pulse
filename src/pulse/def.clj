@@ -760,7 +760,7 @@
 
 (defstat railgun-unhandled-exceptions-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (k? evt :railgun) (k? evt :exception) (not (k? evt :site)) (not (k? evt :reraise))))))
+    (fn [evt] (and (cloud? evt) (k? evt :railgun) (k? evt :exception) (not (k? evt :site)) (not (k? evt :reraise)) (not (k? evt :trapping))))))
 
 (defstat railgun-pings-per-minute
   (per-minute
