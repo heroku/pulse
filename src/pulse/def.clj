@@ -760,7 +760,8 @@
 
 (defstat railgun-unhandled-exceptions-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (k? evt :railgun) (k? evt :exception) (not (k? evt :site)) (not (k? evt :reraise)) (not (k? evt :trapping))))))
+    (fn [evt] (and (cloud? evt) (k? evt :railgun) (k? evt :exception)
+                   (not (k? evt :site)) (not (k? evt :reraise)) (not (k? evt :trapping))))))
 
 (defstat railgun-pings-per-minute
   (per-minute
@@ -785,10 +786,6 @@
 (defstat railgun-runtime-bus-invalid-per-minute
   (per-minute
     (fn [evt] (and (railgun? evt) (k? evt :bus) (k? evt :message) (kv? evt :status "invalid")))))
-
-(defstat railgun-runtime-bus-abondoned-per-minute
-  (per-minute
-    (fn [evt] (and (railgun? evt) (k? evt :bus) (k? evt :queue) (k? evt :warning) (k? evt :abandoning_pending_messages)))))
 
 (defstat railgun-runtime-bus-failed-pushes-per-minute
   (per-minute
@@ -1396,7 +1393,6 @@
    railgun-runtime-bus-processing-per-minute
    railgun-runtime-bus-expired-per-minute
    railgun-runtime-bus-invalid-per-minute
-   railgun-runtime-bus-abondoned-per-minute
    railgun-runtime-bus-failed-pushes-per-minute
    railgun-runtime-bus-failed-lpops-per-minute
 
