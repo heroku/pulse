@@ -8,10 +8,20 @@ $(document).ready(function() {
 
   // calculate graph location
   function setPosition(loc) {
-    this.up = 0;
-    this.right = (loc.left + width > screen.availWidth) ? screen.availWidth - (loc.left + width) : -50;
-    this.left = 0;
-    this.down = (loc.top + height > screen.availHeight) ? screen.availHeight - (loc.top + height) : -50;
+    var fullHeight = height;
+    var fullWidth = width;
+    if (loc.top + fullHeight > screen.availHeight) {
+      this.up = screen.availHeight - (loc.top + fullHeight + 1);
+    } else {
+      this.up = 0;
+    }
+    this.right = 0;
+    this.down = 0;
+    if (loc.left + fullWidth > screen.availWidth) {
+      this.left = screen.availWidth - (loc.left + fullWidth + 1);
+    } else {
+      this.left = 0;
+    }
   }
 
   // insert graph
