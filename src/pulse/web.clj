@@ -290,7 +290,7 @@
         [:script {:type "text/javascript"} (str "var pulseApiUrl=\"" (conf/api-url) "\"")]
         [:script {:type "text/javascript"} (str "var graphiteApiUrl=\"" (conf/graphite-url) "\"")]
         [:script {:type "text/javascript" :src (conf/scales-url)}]
-        [:script {:type "text/javascript" :src "javascripts/pulse.js"}]]
+        [:script {:type "text/javascript" :src "javascripts/pulse.js"}]
         [:script {:type "text/javascript" :src "javascripts/pulsite.js"}]]
       [:body
         [:id#content
