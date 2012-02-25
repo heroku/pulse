@@ -2,7 +2,8 @@ $(document).ready(function() {
   var id;
   var metric;
   var timer;
-  var options = 'width=800&height=400&margin=30&areaMode=all&fontSize=14&from=-1hours';
+  var period = graphitePeriod || 3600;
+  var options = 'width=800&height=400&margin=30&areaMode=all&fontSize=14&from=-' + period + 'seconds';
   var url = graphiteApiUrl + '/render/?' + options + '&target=pulse.';
   function loadGraph() {
     var style = 'style="position: absolute; margin: -50px 0 0 -150px;"';

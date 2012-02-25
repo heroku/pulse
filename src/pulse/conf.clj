@@ -21,6 +21,7 @@
 (defn cloud [] (env! "CLOUD"))
 (defn canonical-host [] (env! "CANONICAL_HOST"))
 (defn graphite-url [] (env! "GRAPHITE_URL"))
+(defn graphite-period [] (env! "GRAPHITE_PERIOD"))
 (defn publish-threads [] (Integer/parseInt (env! "PUBLISH_THREADS")))
 (defn merger-count [] 5)
 
