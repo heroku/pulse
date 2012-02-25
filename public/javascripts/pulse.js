@@ -37,10 +37,10 @@ var requestId = 0;
 function pulseUpdate() {
   var thisRequestId = requestId;
   requestId++;
-  console.log("at=request request_id=" + thisRequestId);
+  //console.log("at=request request_id=" + thisRequestId);
   pulseGet(pulseApiUrl,
     function(stats) {
-      console.log("at=response request_id=" + thisRequestId);
+      //console.log("at=response request_id=" + thisRequestId);
       for (var statName in stats) {
         var statBuff = stats[statName];
         var statVal = statBuff[statBuff.length - 1];
@@ -68,10 +68,10 @@ function pulseUpdate() {
           $(scalarId).html(formatVal(statVal));
         }
       }
-      console.log("at=rendered request_id=" + thisRequestId);
+      //console.log("at=rendered request_id=" + thisRequestId);
     },
     function() {
-      console.log("at=complete request_id=" + thisRequestId);
+      //console.log("at=complete request_id=" + thisRequestId);
       setTimeout(pulseUpdate, 1000);
     }
   );
