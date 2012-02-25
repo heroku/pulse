@@ -850,11 +850,11 @@
 
 (defstat psmgr-run-requests-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (k? evt :amqp_message) (kv? evt :action "publish") (kv? evt :exchange "ps.run")))))
+    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :file "run/redis_helper") (kv? evt :fun "publish") (kv? evt :event "publish") (kv? evt :queue "ps.run")))))
 
 (defstat psmgr-kill-requests-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (k? evt :amqp_message) (kv? evt :action "publish") (k? evt :exchange) (cont? evt :exchange "ps.kill.")))))
+   (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :file "run/redis_helper") (kv? evt :fun "publish") (kv? evt :event "publish") (cont? evt :queue "ps.kill.")))))
 
 (defstat psmgr-converges-per-second
   (per-second
