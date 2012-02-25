@@ -2,10 +2,10 @@ $(document).ready(function() {
   var id;
   var metric;
   var timer;
-  var period = graphitePeriod || 3600;
-  var options = 'width=800&height=400&margin=30&areaMode=all&fontSize=14&from=-' + period + 'seconds';
-  var url = graphiteApiUrl + '/render/?' + options + '&target=pulse.';
   function loadGraph() {
+    var period = graphitePeriod || 3600;
+    var options = 'width=800&height=400&margin=30&areaMode=all&fontSize=14&from=-' + period + 'seconds';
+    var url = graphiteApiUrl + '/render/?' + options + '&target=pulse.';
     var style = 'style="position: absolute; margin: -50px 0 0 -150px;"';
     $('#' + id).before('<img id="hoverGraph" src="' + url + metric + '" ' + style + '>');
     console.log("opening " + url + metric);
