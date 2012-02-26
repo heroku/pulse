@@ -32,7 +32,6 @@ $(document).ready(function() {
     var url = graphiteApiUrl + '/render/?' + shape + options + period + '&target=pulse.';
     var pos = new setPosition($('#' + id).position());
     var coords = pos.up + ' ' + pos.right + ' ' + pos.down + ' ' + pos.left;
-    console.log('coords: ' + coords);
     var style = 'style="position: absolute; margin: ' + coords + ';"';
     $('#' + id).before('<img id="hoverGraph" src="' + url + metric + '" ' + style + '>');
   }
