@@ -37,7 +37,7 @@ $(document).ready(function() {
   }
 
   // main
-  $('td').hover(function() {
+  $('td').toggle(function() {
     id = $(this).find('span').attr('id');
     metric = id.replace(/-sparkline$/, '');
     timer = setTimeout(loadGraph, 500);
