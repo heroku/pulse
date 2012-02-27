@@ -6,6 +6,16 @@ $(document).ready(function() {
   var height = 400;
   var margin = 30;
 
+  // main
+  $('td').toggle(function() {
+    id = $(this).find('span').attr('id');
+    metric = id.replace(/-sparkline$/, '');
+    timer = setTimeout(loadGraph, 500);
+  }, function() {
+    $('#hoverGraph').remove();
+    clearTimeout(timer);
+  });
+
   // calculate graph location
   function setPosition(loc) {
     var fullHeight = height;
@@ -35,14 +45,4 @@ $(document).ready(function() {
     var style = 'style="position: absolute; margin: ' + coords + ';"';
     $('#' + id).before('<img id="hoverGraph" src="' + url + metric + '" ' + style + '>');
   }
-
-  // main
-  $('td').toggle(function() {
-    id = $(this).find('span').attr('id');
-    metric = id.replace(/-sparkline$/, '');
-    timer = setTimeout(loadGraph, 500);
-  }, function() {
-    $('#hoverGraph').remove();
-    clearTimeout(timer);
-  });
 });
