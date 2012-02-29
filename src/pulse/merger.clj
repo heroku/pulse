@@ -6,7 +6,7 @@
             [pulse.io :as io]
             [pulse.stat :as stat]
             [pulse.def :as def]
-            [clj-json.core :as json]))
+            [cheshire.core :as json]))
 
 (defn log [& data]
   (apply log/log :ns "merger" data))
