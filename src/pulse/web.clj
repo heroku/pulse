@@ -65,7 +65,7 @@
    [["runtime bus depth"   "psmgr-runtime-bus-depth"]
     ["psmgr bus rec/min"   "psmgr-runtime-bus-receives-per-minute"]
     ["psmgr bus tout/min"  "psmgr-runtime-bus-timeouts-per-minute"]
-    ["psmgr bus proc/min"  "psmgr-runtime-bus-processed-per-minute"]
+    ["psmgr bus pub/min"   "psmgr-runtime-bus-published-per-minute"]
     ["amqp pub/sec"        "amqp-publishes-per-second"]
     ["amqp rec/sec"        "amqp-receives-per-second"]
     ["amqp tout/min"       "amqp-timeouts-per-minute"]]

@@ -872,9 +872,9 @@
   (per-minute
     (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :file "run/redis_helper") (k? evt :queue) (kv? evt :event "timeout")))))
 
-(defstat psmgr-runtime-bus-processed-per-minute
+(defstat psmgr-runtime-bus-published-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :file "run/redis_helper") (k? evt :queue) (kv? evt :event "processed")))))
+    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :file "run/redis_helper") (k? evt :queue) (kv? evt :event "published")))))
 
 (defstat psmgr-runtime-bus-depth
   (last
@@ -1414,7 +1414,7 @@
    psmgr-runtime-bus-depth
    psmgr-runtime-bus-receives-per-minute
    psmgr-runtime-bus-timeouts-per-minute
-   psmgr-runtime-bus-processed-per-minute
+   psmgr-runtime-bus-published-per-minute
    psmgr-events-per-second
 
    ; packaging
