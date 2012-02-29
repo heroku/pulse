@@ -11,42 +11,11 @@
 (defn log [& data]
   (apply log/log :ns "io" data))
 
-(defn bleeder [aorta-url handler]
-  (let [{:keys [^String host ^Integer port auth]} (util/url-parse aorta-url)]
-    (loop []
-      (log :fn "bleeder" :at "connect" :aorta_host host)
-      (try
-        (with-open [socket (Socket. host port)
-                    in     (-> (.getInputStream socket) (InputStreamReader.) (BufferedReader.))
-                    out    (-> (.getOutputStream socket) (PrintWriter.))]
-          (.println out auth)
-          (.flush out)
-          (loop []
-            (when-let [line (.readLine in)]
-              (handler line)
-              (recur))))
-        (log/log :fn "bleeder" :at "eof" :aorta_host host)
-        (catch ConnectException e
-          (log/log :fn "bleeder" :at "connect_exception" :aorta_host host))
-        (catch SocketException e
-          (log/log :fn "bleeder" :at "socket_exception" :aorta_host host)))
-      (Thread/sleep 100)
-      (recur))))
-
 (defn shard-for [stat-name]
   (mod (hash stat-name) (conf/merger-count)))
 
 (defn shard-channel [[stat-name]]
   (str "stats.received." (shard-for stat-name)))
-
-(defn init-bleeders [aorta-urls apply-queue]
-  (log :fn "init-bleeders" :at "start")
-  (doseq [aorta-url aorta-urls]
-    (let [{aorta-host :host} (util/url-parse aorta-url)]
-      (log :fn "init-bleeder" :at "spawn" :aorta_host aorta-host)
-      (util/spawn (fn []
-        (bleeder aorta-url (fn [line]
-          (queue/offer apply-queue line))))))))
 
 (defn init-publishers [publish-queue redis-url chan ser workers]
   (let [redis (redis/init {:url redis-url})]

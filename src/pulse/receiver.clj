@@ -6,7 +6,8 @@
             [pulse.io :as io]
             [pulse.parse :as parse]
             [pulse.stat :as stat]
-            [pulse.def :as def]))
+            [pulse.def :as def]
+            [drain.adapter :as drain]))
 
 (defn log [& data]
   (apply log/log :ns "receiver" data))
@@ -27,10 +28,12 @@
 (defn init-applier [stats apply-queue]
   (log :fn "init-applier" :at "start")
   (util/spawn-loop (fn []
-    (let [line (queue/take apply-queue)
-          evt (or (parse/parse-line line) {:line line :unparsed true})]
+    (let [evt (queue/take apply-queue)]
       (doseq [[stat-def stat-state] stats]
         (stat/receive-apply stat-def stat-state evt))))))
+
+(defn init-drain [port apply-queue]
+  (drain/server port (partial queue/offer apply-queue)))
 
 (defn -main []
   (log :fn "main" :at "start")
@@ -43,5 +46,5 @@
                         pr-str (conf/publish-threads))
     (init-emitter stats-states publish-queue)
     (init-applier stats-states apply-queue)
-    (io/init-bleeders (conf/aorta-urls) apply-queue)
+    (init-drain (conf/port) apply-queue)
   (log :fn "main" :at "finish")))
