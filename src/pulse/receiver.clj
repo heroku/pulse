@@ -33,6 +33,7 @@
         (stat/receive-apply stat-def stat-state evt))))))
 
 (defn init-drain [port apply-queue]
+  (log :fn "init-drain" :at "start")
   (drain/server port (partial queue/offer apply-queue)))
 
 (defn -main []

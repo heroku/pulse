@@ -40,8 +40,10 @@
           (swap! listeners assoc (.getChannel e) downstream))
         (let [payload (-> (.getMessage e)
                           (.getContent)
-                          (.toString CharsetUtil/UTF_8))]
-          (on-message (json/parse-string payload true)))))
+                          (.toString CharsetUtil/UTF_8))
+              event (json/parse-string payload true)]
+          (when event
+            (on-message event)))))
     (exceptionCaught [ctx e]
       (.printStackTrace (.getCause e)))))
 
