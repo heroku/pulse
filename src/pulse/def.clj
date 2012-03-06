@@ -885,6 +885,15 @@
   (per-second
     (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr")))))
 
+(defstat psmgr-api-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :function "post") (kv? evt :block "finish")))))
+
+(defstat psmgr-api-time
+  (mean 60
+    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :function "post") (kv? evt :block "finish")))
+    :elapsed))
+
 ; packaging
 
 (defstat gitproxy-connections-per-minute
@@ -1416,6 +1425,8 @@
    psmgr-runtime-bus-timeouts-per-minute
    psmgr-runtime-bus-published-per-minute
    psmgr-events-per-second
+   psmgr-api-per-minute
+   psmgr-api-time
 
    ; packaging
    gitproxy-connections-per-minute
