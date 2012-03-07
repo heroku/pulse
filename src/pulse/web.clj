@@ -191,9 +191,11 @@
    ])
 
 (def graphs-psmgr
-  [[["psmgr evt/sec"       "psmgr-events-per-second"]
-    ["psmgr api/min"       "psmgr-api-per-minute"]
-    ["psmgr api time"      "psmgr-api-time"]]])
+  [[["evt/sec"             "psmgr-events-per-second"]
+    ["api/min"             "psmgr-api-per-minute"]
+    ["api time"            "psmgr-api-time"]
+    ["shushu/min"          "psmgr-shushu-per-minute"]
+    ["shushu time"         "psmgr-shushu-time"]]])
 
 (def graphs-packaging
   [[["gitproxy con/min"    "gitproxy-connections-per-minute"]
