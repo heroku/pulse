@@ -903,6 +903,16 @@
     (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :event "shushu")))
     :elapsed))
 
+(defstat psmgr-shushu-opened
+  (last
+   (fn [evt] (and (cloud? evt) (k? evt :psmgr) (k? evt :helper) (kv? evt :function "lengths") (kv? evt :event "emit")))
+    :opened))
+
+(defstat psmgr-shushu-closed
+  (last
+   (fn [evt] (and (cloud? evt) (k? evt :psmgr) (k? evt :helper) (kv? evt :function "lengths") (kv? evt :event "emit")))
+    :closed))
+
 ; packaging
 
 (defstat gitproxy-connections-per-minute
@@ -1438,6 +1448,8 @@
    psmgr-api-time
    psmgr-shushu-per-minute
    psmgr-shushu-time
+   psmgr-shushu-opened
+   psmgr-shushu-closed
 
    ; packaging
    gitproxy-connections-per-minute
