@@ -1,4 +1,5 @@
 (ns pulse.util
+  (:require [cheshire.custom :as chesh])
   (:import (java.util.concurrent Executors TimeUnit)
            (java.net URI)
            (java.util UUID)))
@@ -38,3 +39,5 @@
 
 (defn update [m k f]
   (assoc m k (f (get m k))))
+
+(chesh/add-encoder clojure.lang.PersistentQueue chesh/encode-seq)
