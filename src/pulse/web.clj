@@ -197,7 +197,11 @@
     ["shushu/min"          "psmgr-shushu-per-minute"]
     ["shushu time"         "psmgr-shushu-time"]
     ["shushu opened"       "psmgr-shushu-opened"]
-    ["shushu closed"       "psmgr-shushu-closed"]]])
+    ["shushu closed"       "psmgr-shushu-closed"]]
+   [["runs/min"            "psmgr-runs-per-minute"]
+    ["lost runs/min"       "psmgr-lost-runs-per-minute"]
+    ["cycles/min"          "psmgr-cycles-per-minute"]
+    ["idles/min"           "psmgr-idles-per-minute"]]])
 
 (def graphs-packaging
   [[["gitproxy con/min"    "gitproxy-connections-per-minute"]

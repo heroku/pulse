@@ -905,13 +905,25 @@
 
 (defstat psmgr-shushu-opened
   (last
-   (fn [evt] (and (cloud? evt) (k? evt :psmgr) (k? evt :helper) (kv? evt :function "lengths") (kv? evt :event "emit")))
+   (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (k? evt :helper) (kv? evt :function "lengths") (kv? evt :event "emit")))
     :opened))
 
 (defstat psmgr-shushu-closed
   (last
-   (fn [evt] (and (cloud? evt) (k? evt :psmgr) (k? evt :helper) (kv? evt :function "lengths") (kv? evt :event "emit")))
+   (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (k? evt :helper) (kv? evt :function "lengths") (kv? evt :event "emit")))
     :closed))
+
+(defstat psmgr-runs-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :event "run")))))
+
+(defstat psmgr-cycles-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :event "cycle")))))
+
+(defstat psmgr-lost-runs-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :event "lost_run")))))
 
 ; packaging
 
@@ -1450,6 +1462,9 @@
    psmgr-shushu-time
    psmgr-shushu-opened
    psmgr-shushu-closed
+   psmgr-runs-per-minute
+   psmgr-cycles-per-minute
+   psmgr-lost-runs-per-minute
 
    ; packaging
    gitproxy-connections-per-minute
