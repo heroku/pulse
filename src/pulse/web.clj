@@ -10,7 +10,7 @@
         ring.adapter.jetty
         hiccup.core)
   (:require [ring.util.codec :as codec]
-            [clj-json.core :as json]
+            [cheshire.core :as json]
             [clj-redis.client :as redis]
             [pulse.conf :as conf]
             [pulse.util :as util]
