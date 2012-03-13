@@ -45,21 +45,6 @@
 (defn parse-long [s]
   (if s (Long/parseLong s)))
 
-(def base-re
-  #"^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?[\-\+]\d\d:00) [0-9\.]+ [a-z0-7]+\.([a-z]+) ([a-zA-Z0-9\/\-\_\.]+)(\[([a-zA-Z0-9\.]+)\])?:? - ((([a-z0-9\-\_]+)?\.(\d+)@([a-z.\-]+))|(([a-z\_\-]+)-(\d+)\.([a-z.\-]+)))?([a-zA-Z0-9\-\_\.]+)?( -)? (.*)$")
-
-(defn parse-base [l]
-  (let [m (re-matcher base-re l)]
-    (if (.find m)
-      {:timestamp (.group m 1)
-       :level (.group m 3)
-       :source (.group m 4)
-       :ps (.group m 6)
-       :slot (or (.group m 9) (.group m 13))
-       :instance_id (parse-long (or (.group m 10) (.group m 14)))
-       :cloud (or (.group m 11) (.group m 15))
-       :msg (.group m 18)})))
-
 (defn inflate-default [evt]
   (merge evt (parse-msg-attrs (:msg evt))))
 
@@ -94,12 +79,12 @@
 (defn log [& data]
   (apply log/log :ns "parse" data))
 
-(defn parse-line [l]
+(defn parse-evt [evt]
   (try
-    (if-let [evt (parse-base l)]
-      (or (inflate-nginx-access evt)
-          (inflate-varnish-access evt)
-          (inflate-default evt)))
+    (or (inflate-nginx-access evt)
+        (inflate-varnish-access evt)
+        (inflate-default evt))
     (catch Exception e
-      (log :fn "parse-line" :at "exception" :line l)
+      (log :fn "parse-line" :at "exception" :evt evt)
       (throw e))))
+

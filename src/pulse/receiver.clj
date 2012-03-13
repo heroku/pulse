@@ -28,7 +28,7 @@
   (util/spawn-tick 1250 (partial #'emitter stats publish-queue)))
 
 (defn applier [stats apply-queue]
-  (let [evt (queue/take apply-queue)]
+  (let [evt (parse/parse-evt (queue/take apply-queue))]
     (doseq [[stat-def stat-state] stats]
       (stat/receive-apply stat-def stat-state evt))))
 
