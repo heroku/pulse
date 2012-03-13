@@ -14,23 +14,27 @@
 
 (defn init-stats [stat-defs]
   (map
-    (fn [stat-def]
-      [stat-def (stat/receive-init stat-def)])
-    stat-defs))
+   (fn [stat-def]
+     [stat-def (stat/receive-init stat-def)])
+   stat-defs))
+
+(defn emitter [stats publish-queue]
+  (doseq [[stat-def stat-state] stats]
+    (let [pub (stat/receive-emit stat-def stat-state)]
+      (queue/offer publish-queue [(:name stat-def) pub]))))
 
 (defn init-emitter [stats publish-queue]
   (log :fn "init-emitter" :at "start")
-  (util/spawn-tick 1250 (fn []
+  (util/spawn-tick 1250 (partial #'emitter stats publish-queue)))
+
+(defn applier [stats apply-queue]
+  (let [evt (queue/take apply-queue)]
     (doseq [[stat-def stat-state] stats]
-      (let [pub (stat/receive-emit stat-def stat-state)]
-        (queue/offer publish-queue [(:name stat-def) pub]))))))
+      (stat/receive-apply stat-def stat-state evt))))
 
 (defn init-applier [stats apply-queue]
   (log :fn "init-applier" :at "start")
-  (util/spawn-loop (fn []
-    (let [evt (queue/take apply-queue)]
-      (doseq [[stat-def stat-state] stats]
-        (stat/receive-apply stat-def stat-state evt))))))
+  (util/spawn-loop (partial #'applier stats apply-queue)))
 
 (defn init-drain [port apply-queue]
   (log :fn "init-drain" :at "start")
@@ -48,4 +52,4 @@
     (init-emitter stats-states publish-queue)
     (init-applier stats-states apply-queue)
     (init-drain (conf/port) apply-queue)
-  (log :fn "main" :at "finish")))
+    (log :fn "main" :at "finish")))
