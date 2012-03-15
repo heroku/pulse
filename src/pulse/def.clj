@@ -20,13 +20,24 @@
       0
       (float (/ (coll-sum c) n)))))
 
+(def failures (atom #{}))
+(def successes (atom #{}))
+(def stat-keys (atom #{}))
+
+(defn check-pred-fn [pred-fn evt context]
+  (let [result (pred-fn evt)]
+    ;; (swap! stat-keys into (clojure.core/keys evt))
+    ;; (def eee evt)
+    ;; (swap! (if result successes failures) conj [pred-fn context])
+    result))
+
 (defn max [time-buffer pred-fn val-fn]
   {:receive-init
      (fn []
        [(util/millis) nil])
    :receive-apply
      (fn [[window-start window-max :as window] evt]
-       (if-not (pred-fn evt)
+       (if-not (check-pred-fn pred-fn evt :max)
          window
          (let [val (val-fn evt)]
            (cond
@@ -56,7 +67,7 @@
        [(util/millis) 0 0])
    :receive-apply
      (fn [[window-start window-count window-sum :as receive-buffer] evt]
-       (if-not (pred-fn evt)
+       (if-not (check-pred-fn pred-fn evt :mean)
          receive-buffer
          (let [val (val-fn evt)]
            (if (nil? val)
@@ -88,7 +99,7 @@
        [(util/millis) 0])
    :receive-apply
      (fn [[window-start window-count] event]
-       [window-start (if (pred-fn event) (inc window-count) window-count)])
+       [window-start (if (check-pred-fn pred-fn event :rate) (inc window-count) window-count)])
    :receive-emit
      (fn [[window-start window-count]]
        [window-start (util/millis) window-count])
@@ -119,7 +130,7 @@
        [(util/millis) {}])
    :receive-apply
      (fn [[window-start window-counts] event]
-       [window-start (if (pred-fn event) (util/update window-counts (str (key-fn event)) safe-inc) window-counts)])
+       [window-start (if (check-pred-fn pred-fn event :rate-by-key) (util/update window-counts (str (key-fn event)) safe-inc) window-counts)])
    :receive-emit
      (fn [[window-start window-counts]]
        [window-start (util/millis) window-counts])
@@ -152,7 +163,7 @@
        [(util/millis) #{}])
    :receive-apply
      (fn [[window-start window-hits] event]
-       [window-start (if (pred-fn event) (conj window-hits (key-fn event)) window-hits)])
+       [window-start (if (check-pred-fn pred-fn event :rate-unique) (conj window-hits (key-fn event)) window-hits)])
    :receive-emit
      (fn [window]
        window)
@@ -179,7 +190,7 @@
        nil)
    :receive-apply
      (fn [last-val event]
-       (if (pred-fn event)
+       (if (check-pred-fn pred-fn event :last)
          (val-fn event)
          last-val))
    :receive-emit
@@ -201,7 +212,7 @@
        {})
    :receive-apply
      (fn [last-timed-vals evt]
-       (if (pred-fn evt)
+       (if (check-pred-fn pred-fn evt :last-agg)
          (assoc last-timed-vals (part-fn evt) [(util/millis) (val-fn evt)])
          last-timed-vals))
    :receive-emit
@@ -307,7 +318,12 @@
 ; routing
 
 (defn nginx-request? [evt]
-  (and (and (cloud? evt) (kv? evt :source "nginx") (k? evt :http_status))))
+  (when (and (cloud? evt) (kv? evt :source "nginx"))
+    (def eee evt))
+  (let [r (and (and (cloud? evt) (kv? evt :source "nginx") (k? evt :http_status)))]
+    (when r
+      (def rrr evt))
+    r))
 
 (defstat nginx-requests-per-second
   (per-second nginx-request?))
