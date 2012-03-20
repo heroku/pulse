@@ -402,7 +402,7 @@
     (fn [evt] (and (kv? evt :app "rendezvous") (kv? evt :fn "join") (kv? evt :at "rendezvous")))))
 
 (defn hermes-request? [evt]
-  (and (cloud? evt) (k? evt :hermes_proxy)))
+  (and (cloud? evt) (kv? evt :mod "hermes_proxy")))
 
 (defstat hermes-requests-per-second
   (per-second hermes-request?))
