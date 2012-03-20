@@ -24,7 +24,7 @@
 (defn graphite-url [] (env! "GRAPHITE_URL"))
 (defn graphite-period [] (env! "GRAPHITE_PERIOD"))
 (defn publish-threads [] (Integer/parseInt (env! "PUBLISH_THREADS")))
-(defn merger-count [] 5)
+(defn merger-count [] (Integer/parseInt (env! "MERGER_COUNT")))
 
 (defn api-password []
   (second (str/split (:auth (util/url-parse (api-url))) #":")))
