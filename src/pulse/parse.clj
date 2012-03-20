@@ -46,7 +46,9 @@
   (if s (Long/parseLong s)))
 
 (defn inflate-default [evt]
-  (merge evt (parse-msg-attrs (:msg evt))))
+  (if (:msg evt)
+    (merge evt (parse-msg-attrs (:msg evt)))
+    evt))
 
 (def nginx-access-re
   ;; http_host                                                               http_method,_url,_version       http_status,_bytes,_referrer,_user_agent,_domain
@@ -87,4 +89,3 @@
     (catch Exception e
       (log :fn "parse-line" :at "exception" :evt evt)
       (throw e))))
-
