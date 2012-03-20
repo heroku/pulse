@@ -467,34 +467,34 @@
 
 (defstat hermes-lockstep-updates-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (k? evt :services_callback) (k? evt :txid)))))
+    (fn [evt] (and (cloud? evt) (kv? evt :mod "services_callback") (k? evt :txid)))))
 
 (defstat hermes-lockstep-connections-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (k? evt :services_callback) (kv? evt :event "connect")))))
+    (fn [evt] (and (cloud? evt) (kv? evt :mod "services_callback") (kv? evt :at "connect")))))
 
 (defstat hermes-lockstep-disconnections-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (k? evt :services_callback ) (kv? evt :event "disconnect")))))
+    (fn [evt] (and (cloud? evt) (kv? evt :mod "services_callback") (kv? evt :at "disconnect")))))
 
 (defstat hermes-lockstep-mean-latency
   (mean 70
-    (fn [evt] (and (cloud? evt) (k? evt :hermes_clock) (k? evt :STATS) (k? evt :last_service_latency)))
+    (fn [evt] (and (cloud? evt) (kv? evt :mod "hermes_clock") (kv? evt :at "stats") (k? evt :last_service_latency)))
     :last_service_latency))
 
 (defstat hermes-lockstep-max-latency
   (max 70
-    (fn [evt] (and (cloud? evt) (k? evt :hermes_clock) (k? evt :STATS) (k? evt :last_service_latency)))
+    (fn [evt] (and (cloud? evt) (kv? evt :mod "hermes_clock") (kv? evt :at "stats") (k? evt :last_service_latency)))
     :last_service_latency))
 
 (defstat hermes-lockstep-mean-stillness
   (mean 70
-    (fn [evt] (and (cloud? evt) (k? evt :hermes_clock) (k? evt :STATS) (k? evt :last_service_update)))
+    (fn [evt] (and (cloud? evt) (kv? evt :mod "hermes_clock") (kv? evt :at "stats") (k? evt :last_service_update)))
     :last_service_update))
 
 (defstat hermes-lockstep-max-stillness
   (max 70
-    (fn [evt] (and (cloud? evt) (k? evt :hermes_clock) (k? evt :STATS) (k? evt :last_service_update)))
+    (fn [evt] (and (cloud? evt) (kv? evt :mod "hermes_clock") (kv? evt :at "stats") (k? evt :last_service_update)))
     :last_service_update))
 
 (defstat hermes-elevated-route-lookups-per-minute
@@ -519,13 +519,13 @@
 
 (defstat hermes-processes-last
   (last-sum
-    (fn [evt] (and (cloud? evt) (k? evt :hermes_clock) (k? evt :STATS)))
+    (fn [evt] (and (cloud? evt) (kv? evt :mod "hermes_clock") (kv? evt :at "stats")))
     :instance_id
     :processes))
 
 (defstat hermes-ports-last
   (last-sum
-    (fn [evt] (and (cloud? evt) (k? evt :hermes_clock) (k? evt :STATS)))
+    (fn [evt] (and (cloud? evt) (kv? evt :mod "hermes_clock") (kv? evt :at "stats")))
     :instance_id
     :ports))
 
