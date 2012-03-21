@@ -4,7 +4,7 @@
            (java.util.concurrent Executors)
            (org.jboss.netty.bootstrap ServerBootstrap)
            (org.jboss.netty.channel ChannelPipelineFactory Channels
-                                    SimpleChannelUpstreamHandler)
+                                    Channel SimpleChannelUpstreamHandler)
            (org.jboss.netty.channel.socket.nio NioServerSocketChannelFactory)
            (org.jboss.netty.handler.codec.frame DelimiterBasedFrameDecoder
                                                 Delimiters)
@@ -31,6 +31,24 @@
   (Thread/sleep interval)
   (recur interval))
 
+(defn heartbeat? [payload]
+  (= "" payload))
+
+(defn ack [event ^Channel channel]
+  (.write channel (format "{\"ack\": \"%s\"}" (:id event))))
+
+(defn handle-event [on-message e]
+  (let [payload (-> (.getMessage e)
+                    (.getContent)
+                    (.toString CharsetUtil/UTF_8))]
+    (when-not (heartbeat? payload)
+      (try
+        (let [event (json/parse-string payload true)]
+          (when (on-message event)
+            (ack event (.getChannel e))))
+        (catch org.codehaus.jackson.JsonParseException e
+          (println "Invalid JSON:" payload))))))
+
 (defn channel-handler [on-message downstream]
   (proxy [SimpleChannelUpstreamHandler] []
     (messageReceived [ctx e]
@@ -38,12 +56,7 @@
         (if (= "POST" (-> e .getMessage .getMethod str))
           (.write (.getChannel e) (http-ack))
           (swap! listeners assoc (.getChannel e) downstream))
-        (let [payload (-> (.getMessage e)
-                          (.getContent)
-                          (.toString CharsetUtil/UTF_8))
-              event (json/parse-string payload true)]
-          (when event
-            (on-message event)))))
+        (handle-event on-message e)))
     (exceptionCaught [ctx e]
       (.printStackTrace (.getCause e)))))
 
