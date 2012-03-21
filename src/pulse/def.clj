@@ -913,6 +913,11 @@
    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (k? evt :helper) (kv? evt :function "lengths") (kv? evt :event "emit")))
     :closed))
 
+(defstat psmgr-shushu-delay
+  (mean 60
+    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :event "shushu")))
+    :delay))
+
 (defstat psmgr-runs-per-minute
   (per-minute
     (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :event "run")))))
@@ -1460,6 +1465,7 @@
    psmgr-api-time
    psmgr-shushu-per-minute
    psmgr-shushu-time
+   psmgr-shushu-delay
    psmgr-shushu-opened
    psmgr-shushu-closed
    psmgr-runs-per-minute

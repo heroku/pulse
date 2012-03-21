@@ -193,15 +193,16 @@
 (def graphs-psmgr
   [[["evt/sec"             "psmgr-events-per-second"]
     ["api/min"             "psmgr-api-per-minute"]
-    ["api time"            "psmgr-api-time"]
-    ["shushu/min"          "psmgr-shushu-per-minute"]
-    ["shushu time"         "psmgr-shushu-time"]
-    ["shushu opened"       "psmgr-shushu-opened"]
-    ["shushu closed"       "psmgr-shushu-closed"]]
+    ["api time"            "psmgr-api-time"]]
    [["runs/min"            "psmgr-runs-per-minute"]
     ["lost runs/min"       "psmgr-lost-runs-per-minute"]
     ["cycles/min"          "psmgr-cycles-per-minute"]
-    ["idles/min"           "psmgr-idles-per-minute"]]])
+    ["idles/min"           "psmgr-idles-per-minute"]]
+   [["shushu/min"          "psmgr-shushu-per-minute"]
+    ["shushu time"         "psmgr-shushu-time"]
+    ["shushu delay"        "psmgr-shushu-delay"]
+    ["shushu opened"       "psmgr-shushu-opened"]
+    ["shushu closed"       "psmgr-shushu-closed"]]])
 
 (def graphs-packaging
   [[["gitproxy con/min"    "gitproxy-connections-per-minute"]
