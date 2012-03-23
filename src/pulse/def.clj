@@ -802,42 +802,42 @@
 
 (defstat psmgr-ps-up-total-last
   (last
-    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :function "counts") (kv? evt :event "emit")))
+    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :fun "counts") (kv? evt :event "emit")))
     :up))
 
 (defstat psmgr-ps-up-web-last
   (last
-    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :function "counts") (kv? evt :event "emit")))
+    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :fun "counts") (kv? evt :event "emit")))
     :web))
 
 (defstat psmgr-ps-up-worker-last
   (last
-    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :function "counts") (kv? evt :event "emit")))
+    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :fun "counts") (kv? evt :event "emit")))
     :worker))
 
 (defstat psmgr-ps-up-other-last
   (last
-    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :function "counts") (kv? evt :event "emit")))
+    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :fun "counts") (kv? evt :event "emit")))
     :other))
 
 (defstat psmgr-ps-created-last
   (last
-    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :function "counts") (kv? evt :event "emit")))
+    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :fun "counts") (kv? evt :event "emit")))
     :created))
 
 (defstat psmgr-ps-starting-last
   (last
-    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :function "counts") (kv? evt :event "emit")))
+    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :fun "counts") (kv? evt :event "emit")))
     :starting))
 
 (defstat psmgr-ps-crashed-last
   (last
-    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :function "counts") (kv? evt :event "emit")))
+    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :fun "counts") (kv? evt :event "emit")))
     :crashed))
 
 (defstat psmgr-ps-lost-last
   (last
-    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :function "counts") (kv? evt :event "emit")))
+    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :fun "counts") (kv? evt :event "emit")))
     :lost))
 
 (defstat psmgr-idles-per-minute
@@ -878,7 +878,7 @@
 
 (defstat psmgr-runtime-bus-depth
   (last
-    (fn [evt] (and (cloud? evt) (k? evt :psmgr) (k? evt :helper) (kv? evt :function "lengths") (kv? evt :event "emit")))
+    (fn [evt] (and (cloud? evt) (k? evt :psmgr) (k? evt :helper) (kv? evt :fun "lengths") (kv? evt :event "emit")))
     :redis))
 
 (defstat psmgr-events-per-second
@@ -905,12 +905,12 @@
 
 (defstat psmgr-shushu-opened
   (last
-   (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (k? evt :helper) (kv? evt :function "lengths") (kv? evt :event "emit")))
+   (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (k? evt :helper) (kv? evt :fun "lengths") (kv? evt :event "emit")))
     :opened))
 
 (defstat psmgr-shushu-closed
   (last
-   (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (k? evt :helper) (kv? evt :function "lengths") (kv? evt :event "emit")))
+   (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (k? evt :helper) (kv? evt :fun "lengths") (kv? evt :event "emit")))
     :closed))
 
 (defstat psmgr-shushu-delay
