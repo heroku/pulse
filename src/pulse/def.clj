@@ -878,7 +878,7 @@
 
 (defstat psmgr-runtime-bus-depth
   (last
-    (fn [evt] (and (cloud? evt) (k? evt :psmgr) (k? evt :helper) (kv? evt :fun "lengths") (kv? evt :event "emit")))
+    (fn [evt] (and (cloud? evt) (k? evt :psmgr) (kv? evt :fun "lengths") (kv? evt :event "emit")))
     :redis))
 
 (defstat psmgr-events-per-second
@@ -905,12 +905,12 @@
 
 (defstat psmgr-shushu-opened
   (last
-   (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (k? evt :helper) (kv? evt :fun "lengths") (kv? evt :event "emit")))
+   (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :fun "lengths") (kv? evt :event "emit")))
     :opened))
 
 (defstat psmgr-shushu-closed
   (last
-   (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (k? evt :helper) (kv? evt :fun "lengths") (kv? evt :event "emit")))
+   (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :fun "lengths") (kv? evt :event "emit")))
     :closed))
 
 (defstat psmgr-shushu-delay
