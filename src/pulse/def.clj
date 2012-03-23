@@ -878,7 +878,7 @@
 
 (defstat psmgr-runtime-bus-depth
   (last
-    (fn [evt] (and (cloud? evt) (k? evt :psmgr) (kv? evt :fun "lengths") (kv? evt :event "emit")))
+    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :fun "lengths") (kv? evt :event "emit")))
     :redis))
 
 (defstat psmgr-events-per-second
