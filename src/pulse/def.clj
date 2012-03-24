@@ -1101,19 +1101,19 @@
 
 (defstat api-response-500-errors
   (per-minute
-    (fn [evt] (and (k? evt :nginx) (kv? evt :http_domain "api.heroku.com") (kv? evt :http_status 500)))))
+    (fn [evt] (and nginx-request? (kv? evt :http_domain "api.heroku.com") (kv? evt :http_status 500)))))
 
 (defstat api-response-502-errors
   (per-minute
-    (fn [evt] (and (k? evt :nginx) (kv? evt :http_domain "api.heroku.com") (kv? evt :http_status 502)))))
+    (fn [evt] (and nginx-request? (kv? evt :http_domain "api.heroku.com") (kv? evt :http_status 502)))))
 
 (defstat api-response-503-errors
   (per-minute
-    (fn [evt] (and (k? evt :nginx) (kv? evt :http_domain "api.heroku.com") (kv? evt :http_status 503)))))
+    (fn [evt] (and nginx-request? (kv? evt :http_domain "api.heroku.com") (kv? evt :http_status 503)))))
 
 (defstat api-response-504-errors
   (per-minute
-    (fn [evt] (and (k? evt :nginx) (kv? evt :http_domain "api.heroku.com") (kv? evt :http_status 504)))))
+    (fn [evt] (and nginx-request? (kv? evt :http_domain "api.heroku.com") (kv? evt :http_status 504)))))
 
 (defstat api-request-time
   (mean 60
