@@ -1,5 +1,4 @@
 (ns drain.adapter
-  (:require [cheshire.core :as json])
   (:import (java.net InetSocketAddress)
            (java.util.concurrent Executors)
            (org.jboss.netty.bootstrap ServerBootstrap)
@@ -34,20 +33,15 @@
 (defn heartbeat? [payload]
   (= "" payload))
 
-(defn ack [event ^Channel channel]
+(defn ack [^Channel channel event]
   (.write channel (format "{\"ack\": \"%s\"}" (:id event))))
 
 (defn handle-event [on-message e]
-  (let [payload (-> (.getMessage e)
-                    (.getContent)
-                    (.toString CharsetUtil/UTF_8))]
-    (when-not (heartbeat? payload)
-      (try
-        (let [event (json/parse-string payload true)]
-          (when (on-message event)
-            (ack event (.getChannel e))))
-        (catch org.codehaus.jackson.JsonParseException e
-          (println "Invalid JSON:" payload))))))
+  (let [line (-> (.getMessage e)
+                 (.getContent)
+                 (.toString CharsetUtil/UTF_8))]
+    (when-not (heartbeat? line)
+      (on-message line #_(partial ack channel)))))
 
 (defn channel-handler [on-message downstream]
   (proxy [SimpleChannelUpstreamHandler] []
