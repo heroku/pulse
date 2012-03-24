@@ -1301,6 +1301,12 @@
   (per-minute
     (fn [evt] (and (cloud? evt) (kv? evt :level "err") (kv? evt :source "shen")))))
 
+; internal
+
+(defstat pulse-events-per-second
+  (per-second
+    (fn [evt] (and (kv? evt :app "pulse") (kv? evt :deploy (conf/deploy))))))
+
 (def all
   [
   ; global
@@ -1545,4 +1551,7 @@
 
    ; data
    shen-errors-per-minute
+
+   ; internal
+   pulse-events-per-second
    ])

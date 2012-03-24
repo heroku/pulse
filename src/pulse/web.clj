@@ -293,6 +293,9 @@
     ["api worker excp/min" "api-unhandled-exceptions-per-minute"]
     ["api event/sec"       "api-events-per-second"]]])
 
+(def graphs-internal
+  [[["pulse event/sec" "pulse-events-per-second"]]])
+
 (defn view [graphs]
   (html
     [:html
@@ -315,7 +318,8 @@
             [:a {:href "/psmgr"}     "psmgr"]     " | "
             [:a {:href "/routing"}   "routing"]   " | "
             [:a {:href "/packaging"} "packaging"] " | "
-            [:a {:href "/api"}       "api"]]
+            [:a {:href "/api"}       "api"]       " | "
+            [:a {:href "/internal"}  "internal"]]
           [:table
             (for [row graphs]
               [:tr
@@ -387,6 +391,8 @@
       (view-handler graphs-packaging)
     (= uri "/api")
       (view-handler graphs-api)
+    (= uri "/internal")
+      (view-handler graphs-internal)
     :else
       (not-found-handler)))
 
