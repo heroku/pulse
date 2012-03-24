@@ -76,7 +76,6 @@
    [["railgun excp/min"    "railgun-unhandled-exceptions-per-minute"]
     ["psmgr excp/min"      "psmgr-unhandled-exceptions-per-minute"]
     ["api excp/min"        "api-unhandled-exceptions-per-minute"]
-    ["api 500 resp/min"    "api-response-500-errors"]
     ["codex err/min"       "codex-errors-per-minute"]
     ["gitproxy err/min"    "gitproxy-errors-per-minute"]
     ["shen err/min"        "shen-errors-per-minute"]
