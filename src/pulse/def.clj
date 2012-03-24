@@ -1125,9 +1125,21 @@
   (per-minute
     (fn [evt] (and (core? evt) (k? evt :api_error)))))
 
-(defstat api-request-unhandled-exceptions-per-minute
+(defstat api-response-500-errors
   (per-minute
-    (fn [evt] (and (core? evt) (k? evt :unhandled-exception)))))
+    (fn [evt] (and (core? evt) (k? evt :nginx) (kv? evt :http_domain "api.heroku.com") (kv? evt :http_status 500)))))
+
+(defstat api-response-502-errors
+  (per-minute
+    (fn [evt] (and (core? evt) (k? evt :nginx) (kv? evt :http_domain "api.heroku.com") (kv? evt :http_status 502)))))
+
+(defstat api-response-503-errors
+  (per-minute
+    (fn [evt] (and (core? evt) (k? evt :nginx) (kv? evt :http_domain "api.heroku.com") (kv? evt :http_status 503)))))
+
+(defstat api-response-504-errors
+  (per-minute
+    (fn [evt] (and (core? evt) (k? evt :nginx) (kv? evt :http_domain "api.heroku.com") (kv? evt :http_status 504)))))
 
 (defstat api-request-time
   (mean 60
@@ -1516,7 +1528,10 @@
    api-worker-jobs-time
    api-requests-per-second
    api-request-user-errors-per-minute
-   api-request-unhandled-exceptions-per-minute
+   api-response-500-errors
+   api-response-502-errors
+   api-response-503-errors
+   api-response-504-errors
    api-request-time
    api-developer-actions-per-minute
    api-creates-per-minute
