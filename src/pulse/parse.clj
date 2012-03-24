@@ -64,8 +64,8 @@
   (merge evt (parse-msg-attrs (:msg evt))))
 
 (def nginx-access-re
-  ;  http_host                                                               http_method,_url,_version       http_status,_bytes,_referrer,_user_agent,_domain
-  #"^([0-9\.]+) - - \[\d\d\/[a-zA-z]{3}\/\d\d\d\d:\d\d:\d\d:\d\d [\-\+]\d\d00\] \"([a-zA-Z]+) (\S+) HTTP\/(...)\" (\d+) (\d+) \"([^\"]+)\" \"([^\"]+)\" (\S+)$")
+  ;  http_host    ;http_user                                                       http_method,_url,_version       http_status,_bytes,_referrer,_user_agent,_domain
+  #"^([0-9\.]+) - (\S+) \[\d\d\/[a-zA-z]{3}\/\d\d\d\d:\d\d:\d\d:\d\d [\-\+]\d\d00\] \"([a-zA-Z]+) (\S+) HTTP\/(...)\" (\d+) (\d+) \"([^\"]+)\" \"([^\"]+)\" (\S+)$")
 
 (defn inflate-nginx-access [evt]
   (if (= (:source evt) "nginx")
@@ -73,14 +73,15 @@
       (if (.find m)
         (merge evt
           {:http_host (.group m 1)
-           :http_method (.group m 2)
-           :http_url (.group m 3)
-           :http_version (.group m 4)
-           :http_status (parse-long (.group m 5))
-           :http_bytes (parse-long (.group m 6))
-           :http_referrer (.group m 7)
-           :http_user_agent (.group m 8)
-           :http_domain (.group m 9)})))))
+           :http_user (.group m 2)
+           :http_method (.group m 3)
+           :http_url (.group m 4)
+           :http_version (.group m 5)
+           :http_status (parse-long (.group m 6))
+           :http_bytes (parse-long (.group m 7))
+           :http_referrer (.group m 8)
+           :http_user_agent (.group m 9)
+           :http_domain (.group m 10)})))))
 
 (def varnish-access-re
   #"^[0-9\.]+ - - .*\" (\d\d\d) .*$")
