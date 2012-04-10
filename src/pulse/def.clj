@@ -906,6 +906,16 @@
     (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :file "run/physical") (kv? evt :event "shushu")))
     :delay))
 
+(defstat psmgr-shushu-physical-opened
+  (last
+   (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :fun "lengths") (kv? evt :event "emit")))
+    :physical_opened))
+
+(defstat psmgr-shushu-physical-closed
+  (last
+   (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :fun "lengths") (kv? evt :event "emit")))
+    :physical_closed))
+
 (defstat psmgr-runs-per-minute
   (per-minute
     (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :event "run")))))
@@ -1470,6 +1480,8 @@
    psmgr-shushu-physical-per-minute
    psmgr-shushu-physical-time
    psmgr-shushu-physical-delay
+   psmgr-shushu-physical-opened
+   psmgr-shushu-physical-closed
    psmgr-runs-per-minute
    psmgr-cycles-per-minute
    psmgr-lost-runs-per-minute
