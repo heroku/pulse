@@ -870,11 +870,11 @@
 
 (defstat psmgr-shushu-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :event "shushu")))))
+    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :file "run/logical") (kv? evt :event "shushu")))))
 
 (defstat psmgr-shushu-time
   (mean 60
-    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :event "shushu")))
+    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :file "run/logical") (kv? evt :event "shushu")))
     :elapsed))
 
 (defstat psmgr-shushu-opened
@@ -889,7 +889,21 @@
 
 (defstat psmgr-shushu-delay
   (mean 60
-    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :event "shushu")))
+    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :file "run/logical") (kv? evt :event "shushu")))
+    :delay))
+
+(defstat psmgr-shushu-physical-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :file "run/physical") (kv? evt :event "shushu")))))
+
+(defstat psmgr-shushu-physical-time
+  (mean 60
+    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :file "run/physical") (kv? evt :event "shushu")))
+    :elapsed))
+
+(defstat psmgr-shushu-physical-delay
+  (mean 60
+    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :file "run/physical") (kv? evt :event "shushu")))
     :delay))
 
 (defstat psmgr-runs-per-minute
@@ -1453,6 +1467,9 @@
    psmgr-shushu-delay
    psmgr-shushu-opened
    psmgr-shushu-closed
+   psmgr-shushu-physical-per-minute
+   psmgr-shushu-physical-time
+   psmgr-shushu-physical-delay
    psmgr-runs-per-minute
    psmgr-cycles-per-minute
    psmgr-lost-runs-per-minute
