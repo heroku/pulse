@@ -202,12 +202,14 @@
     ["shushu time"         "psmgr-shushu-time"]
     ["shushu delay"        "psmgr-shushu-delay"]
     ["shushu opened"       "psmgr-shushu-opened"]
-    ["shushu closed"       "psmgr-shushu-closed"]]
+    ["shushu closed"       "psmgr-shushu-closed"]
+    ["shushu excp/min"     "psmgr-shushu-exceptions-per-minute"]]
    [["phy shushu/min"      "psmgr-shushu-physical-per-minute"]
     ["phy shushu time"     "psmgr-shushu-physical-time"]
     ["phy shushu delay"    "psmgr-shushu-physical-delay"]
     ["phy shushu opened"   "psmgr-shushu-physical-opened"]
-    ["phy shushu closed"   "psmgr-shushu-physical-closed"]]])
+    ["phy shushu closed"   "psmgr-shushu-physical-closed"]
+    ["phy shushu excp/min" "psmgr-shushu-physical-exceptions-per-minute"]]])
 
 (def graphs-packaging
   [[["gitproxy con/min"    "gitproxy-connections-per-minute"]

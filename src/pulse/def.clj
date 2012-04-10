@@ -872,6 +872,10 @@
   (per-minute
     (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :file "run/logical") (kv? evt :event "shushu")))))
 
+(defstat psmgr-shushu-exceptions-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :file "run/logical") (kv? evt :event "shushu_exception")))))
+
 (defstat psmgr-shushu-time
   (mean 60
     (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :file "run/logical") (kv? evt :event "shushu")))
@@ -895,6 +899,10 @@
 (defstat psmgr-shushu-physical-per-minute
   (per-minute
     (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :file "run/physical") (kv? evt :event "shushu")))))
+
+(defstat psmgr-shushu-physical-exceptions-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :file "run/physical") (kv? evt :event "shushu_exception")))))
 
 (defstat psmgr-shushu-physical-time
   (mean 60
@@ -1473,11 +1481,13 @@
    psmgr-api-per-minute
    psmgr-api-time
    psmgr-shushu-per-minute
+   psmgr-shushu-exceptions-per-minute
    psmgr-shushu-time
    psmgr-shushu-delay
    psmgr-shushu-opened
    psmgr-shushu-closed
    psmgr-shushu-physical-per-minute
+   psmgr-shushu-exceptions-physical-per-minute
    psmgr-shushu-physical-time
    psmgr-shushu-physical-delay
    psmgr-shushu-physical-opened
