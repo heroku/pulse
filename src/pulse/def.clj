@@ -939,6 +939,12 @@
   (per-minute
     (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :event "lost_run")))))
 
+; scheduler
+
+(defstat scheduler-execs-per-minute
+  (per-minute
+    (fn [evt] (and (kv? evt :app "scheduler") (kv? evt :event "exec")))))
+
 ; packaging
 
 (defstat gitproxy-connections-per-minute
@@ -1499,6 +1505,9 @@
    psmgr-runs-per-minute
    psmgr-cycles-per-minute
    psmgr-lost-runs-per-minute
+
+   ; scheduler   
+   scheduler-execs-per-minute
 
    ; packaging
    gitproxy-connections-per-minute
