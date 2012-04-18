@@ -943,7 +943,7 @@
 
 (defstat scheduler-execs-per-minute
   (per-minute
-    (fn [evt] (and (kv? evt :app "scheduler") (kv? evt :event "exec")))))
+    (fn [evt] (and (kv? evt :app "heroku-scheduler") (kv? evt :event "exec")))))
 
 ; packaging
 
