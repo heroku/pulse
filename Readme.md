@@ -22,38 +22,47 @@ The key consumers of the stats snapshot stream are processes of the `web` type. 
 Pulse is written in Clojure and deployed to Heroku itself using the platform's native Clojure support.
 
 
-## Running locally
+## Local deploy
 
 Ensure that Aorta is running at `AORTA_URL`, then:
 
-    $ cp .env.sample .env
-    $ mate .env
-    $ export $(cat .env)
-    $ lein deps
-    $ foreman start
+```bash
+$ cp .env.sample .env
+$ mate .env
+$ export $(cat .env)
+$ lein deps
+$ foreman start
+```
 
 
-## Running as Heroku app
+## Heroku platform deploy
 
 Ensure that Aortas are running and dyno-reachable at `AORTA_URLS`, and that the username in the `AORTA_URLS` are scoped to this particular deployment of Pulse. Then:
 
-    $ heroku create pulse-production --stack cedar
-    $ heroku addons:add redistogo:small
-    $ heroku config:add ...
-    $ git push heroku master
-    $ heroku scale receiver=60 merger0=1 merger1=1 web=2
+```bash
+$ DEPLOY=production/staging/you/etc
+$ heroku create pulse-$DEPLOY -s cedar
 
+$ heroku addons:add redistogo:large -r $DEPLOY
+$ heroku config:add BUILDPACK_URL=https://github.com/heroku/heroku-buildpack-clojure.git -r $DEPLOY
+$ heroku config:add DEPLOY=$DEPLOY -r $DEPLOY
+$ heroku config:add CLOUD=heroku.com -r $DEPLOY
+$ heroku config:add SESSION_SECRET=$(openssl rand -hex 16) -r $DEPLOY
+$ heroku config:add FORCE_HTTPS=true -r $DEPLOY
+$ heroku config:add GRAPHITE_PERIOD=21600 -r $DEPLOY
+$ heroku config:add PUBLISH_THREADS=2 -r $DEPLOY
+$ heroku config:add API_URL=... -r $DEPLOY
+$ heroku config:add GRAPHITE_URL=... -r $DEPLOY
+$ heroku config:add PROXY_URL=... -r $DEPLOY
+$ heroku config:add PROXY_SECRET=... -r $DEPLOY
+$ heroku config:add SCALES_URL=... -r $DEPLOY
+$ heroku config:add CANONICAL_HOST=... -r $DEPLOY
+$ heroku config:add REDIS_URL=... -r $DEPLOY
+$ heroku config:add AORTA_URLS=... -r $DEPLOY
 
-## Viewing stats graphs
-
-    $ heroku open
-
-
-## Viewing stats feed
-
-    $ heroku config
-    $ export REDIS_HOST="..."; export REDIS_PORT="..."; export REDIS_PASS="..."
-    $ redis-cli -h $REDIS_HOST -p $REDIS_PORT -x $REDIS_PASS subscribe stats.merged
+$ git push $DEPLOY master
+$ heroku scale receiver=60 merger0=1 merger1=1 merger2=1 merger3=1 merger4=1 web=5 -r $DEPLOY
+```
 
 
 ## See also
