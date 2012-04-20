@@ -385,7 +385,8 @@
   (and (cloud? evt) (kv? evt :mod "hermes_proxy")))
 
 (defstat hermes-requests-per-second
-  (per-second hermes-request?))
+  (per-second
+    (fn [evt] (and (hermes-request? evt) (k? evt :code)))))
 
 (defstat hermes-requests-apps-per-minute
   (per-minute-unique hermes-request? :app_id))
@@ -408,6 +409,9 @@
 
 (defstat hermes-h14-per-minute
   (hermes-per-minute "H14"))
+
+(defstat hermes-h18-per-minute
+  (hermes-per-minute "H18"))
 
 (defstat hermes-h99-per-minute
   (hermes-per-minute "H99"))
@@ -432,8 +436,15 @@
 (defstat hermes-h14-apps-per-minute
   (hermes-apps-per-minute "H14"))
 
+(defstat hermes-h18-apps-per-minute
+  (hermes-apps-per-minute "H18"))
+
 (defstat hermes-h99-apps-per-minute
   (hermes-apps-per-minute "H99"))
+
+(defstat hermes-econns-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (kv? evt :error_type "econn") (kv? evt :mod "hermes_proxy")))))
 
 (defstat hermes-errors-per-minute
   (per-minute
@@ -1376,13 +1387,16 @@
    hermes-h12-per-minute
    hermes-h13-per-minute
    hermes-h14-per-minute
+   hermes-h18-per-minute
    hermes-h99-per-minute
    hermes-h10-apps-per-minute
    hermes-h11-apps-per-minute
    hermes-h12-apps-per-minute
    hermes-h13-apps-per-minute
    hermes-h14-apps-per-minute
+   hermes-h18-apps-per-minute
    hermes-h99-apps-per-minute
+   hermes-econns-per-minute
    hermes-errors-per-minute
    hermes-lockstep-updates-per-minute
    hermes-lockstep-connections-per-minute
