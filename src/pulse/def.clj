@@ -446,6 +446,11 @@
   (per-minute
     (fn [evt] (and (cloud? evt) (kv? evt :error_type "econn") (kv? evt :mod "hermes_proxy")))))
 
+(defstat hermes-econns-apps-per-minute
+  (per-minute-unique
+    (fn [evt] (and (cloud? evt) (kv? evt :error_type "econn") (kv? evt :mod "hermes_proxy")))
+    :app_id))
+
 (defstat hermes-errors-per-minute
   (per-minute
     (fn [evt] (and (cloud? evt) (kv? evt :level "err") (kv? evt :source "hermes")))))
@@ -1395,6 +1400,7 @@
    hermes-h18-apps-per-minute
    hermes-h99-apps-per-minute
    hermes-econns-per-minute
+   hermes-econns-apps-per-minute
    hermes-errors-per-minute
    hermes-lockstep-updates-per-minute
    hermes-lockstep-connections-per-minute
