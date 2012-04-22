@@ -519,6 +519,18 @@
     :instance_id
     :ports))
 
+(defstat logplex-msg-processed
+  (last-sum
+    (fn [evt] (and (cloud? evt) (k? evt :logplex_stats) (k? evt :message_processed)))
+    :instance_id
+    :message_processed))
+
+(defstat logplex-drain-delivered
+  (last-sum
+    (fn [evt] (and (cloud? evt) (k? evt :logplex_stats) (k? evt :drain_delivered)))
+    :instance_id
+    :drain_delivered))
+
 ; railgun
 
 (defn railgun? [evt]
@@ -1416,6 +1428,8 @@
    hermes-catastrophic-redis-lookups-per-minute
    hermes-processes-last
    hermes-ports-last
+   logplex-msg-processed
+   logplex-drain-delivered
 
    ; railgun
    railgun-running-count

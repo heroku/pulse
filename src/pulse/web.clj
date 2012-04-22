@@ -133,7 +133,9 @@
     ["hermes slow rd/min"  "hermes-slow-redis-lookups-per-minute"]
     ["hermes cat rd/min"   "hermes-catastrophic-redis-lookups-per-minute"]
     ["hermes processes"    "hermes-processes-last"]
-    ["hermes ports"        "hermes-ports-last"]]])
+    ["hermes ports"        "hermes-ports-last"]]
+   [["logplex processed"   "logplex-msg-processed"]
+    ["logplex drained"     "logplex-drain-delivered"]]])
 
 (def graphs-railgun
   [[["railgun running"     "railgun-running-count"]
