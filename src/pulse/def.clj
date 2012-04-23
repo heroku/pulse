@@ -528,7 +528,7 @@
 (defstat logplex-drain-delivered
   (last-sum
     (fn [evt] (and (cloud? evt) (k? evt :logplex_stats) (k? evt :drain_delivered)))
-    :instance_id
+    (fn [evt] [(:instance_id evt) (:drain_id evt)])
     :drain_delivered))
 
 ; railgun
