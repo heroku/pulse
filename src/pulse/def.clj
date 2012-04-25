@@ -1472,22 +1472,22 @@
    hermes-errors-per-minute
    hermes-services-lockstep-updates-per-minute
    hermes-services-lockstep-connections-per-minute
-   hermes-services-lockstep-disconnections-per-minute
+   hermes-services-lockstep-disconnects-per-minute
    hermes-services-lockstep-mean-latency
    hermes-services-lockstep-mean-staleness
    hermes-procs-lockstep-updates-per-minute
    hermes-procs-lockstep-connections-per-minute
-   hermes-procs-lockstep-disconnections-per-minute
+   hermes-procs-lockstep-disconnects-per-minute
    hermes-procs-lockstep-mean-latency
    hermes-procs-lockstep-mean-staleness
    hermes-domains-lockstep-updates-per-minute
    hermes-domains-lockstep-connections-per-minute
-   hermes-domains-lockstep-disconnections-per-minute
+   hermes-domains-lockstep-disconnects-per-minute
    hermes-domains-lockstep-mean-latency
    hermes-domains-lockstep-mean-staleness
    hermes-domain-groups-lockstep-updates-per-minute
    hermes-domain-groups-lockstep-connections-per-minute
-   hermes-domain-groups-lockstep-disconnections-per-minute
+   hermes-domain-groups-lockstep-disconnects-per-minute
    hermes-domain-groups-lockstep-mean-latency
    hermes-domain-groups-lockstep-mean-staleness
    hermes-elevated-route-lookups-per-minute
