@@ -47,7 +47,7 @@
             period 60
             buff-size (count @stats-buff-a)]
         (if (< buff-size 10000)
-          (swap! stats-buff-a conj {"metric" metric "value" value "time" time "period" period})
+          (swap! stats-buff-a conj {"metric" metric "value" value "measure_time" time "measure_period" period})
           (log :fn "init-buffer" :at "drop" :buffer-size buff-size)))))))
 
 (defn -main []
