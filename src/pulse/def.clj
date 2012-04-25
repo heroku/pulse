@@ -523,24 +523,24 @@
 
 (defstat hermes-domain-groups-lockstep-updates-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (kv? evt :mod "domain-groups_callback") (kv? evt :at "msg")))))
+    (fn [evt] (and (cloud? evt) (kv? evt :mod "domain_groups_callback") (kv? evt :at "msg")))))
 
 (defstat hermes-domain-groups-lockstep-connections-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (kv? evt :mod "domain-groups_callback") (kv? evt :at "connect")))))
+    (fn [evt] (and (cloud? evt) (kv? evt :mod "domain_groups_callback") (kv? evt :at "connect")))))
 
 (defstat hermes-domain-groups-lockstep-disconnects-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (kv? evt :mod "domain-groups_callback") (kv? evt :at "disconnect")))))
+    (fn [evt] (and (cloud? evt) (kv? evt :mod "domain_groups_callback") (kv? evt :at "disconnect")))))
 
 (defstat hermes-domain-groups-lockstep-mean-latency
   (mean 70
-    (fn [evt] (and (cloud? evt) (kv? evt :mod "hermes_clock") (kv? evt :callback "domain-groups_callback") (k? evt :latency)))
+    (fn [evt] (and (cloud? evt) (kv? evt :mod "hermes_clock") (kv? evt :callback "domain_groups_callback") (k? evt :latency)))
     :latency))
 
 (defstat hermes-domain-groups-lockstep-mean-staleness
   (mean 70
-    (fn [evt] (and (cloud? evt) (kv? evt :mod "hermes_clock") (kv? evt :callback "domain-groups_callback") (k? evt :staleness)))
+    (fn [evt] (and (cloud? evt) (kv? evt :mod "hermes_clock") (kv? evt :callback "domain_groups_callback") (k? evt :staleness)))
     :staleness))
 
 (defstat hermes-elevated-route-lookups-per-minute
