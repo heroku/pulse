@@ -1470,13 +1470,26 @@
    hermes-econns-per-minute
    hermes-econns-apps-per-minute
    hermes-errors-per-minute
-   hermes-lockstep-updates-per-minute
-   hermes-lockstep-connections-per-minute
-   hermes-lockstep-disconnections-per-minute
-   hermes-lockstep-mean-latency
-   hermes-lockstep-max-latency
-   hermes-lockstep-mean-stillness
-   hermes-lockstep-max-stillness
+   hermes-services-lockstep-updates-per-minute
+   hermes-services-lockstep-connections-per-minute
+   hermes-services-lockstep-disconnections-per-minute
+   hermes-services-lockstep-mean-latency
+   hermes-services-lockstep-mean-staleness
+   hermes-procs-lockstep-updates-per-minute
+   hermes-procs-lockstep-connections-per-minute
+   hermes-procs-lockstep-disconnections-per-minute
+   hermes-procs-lockstep-mean-latency
+   hermes-procs-lockstep-mean-staleness
+   hermes-domains-lockstep-updates-per-minute
+   hermes-domains-lockstep-connections-per-minute
+   hermes-domains-lockstep-disconnections-per-minute
+   hermes-domains-lockstep-mean-latency
+   hermes-domains-lockstep-mean-staleness
+   hermes-domain-groups-lockstep-updates-per-minute
+   hermes-domain-groups-lockstep-connections-per-minute
+   hermes-domain-groups-lockstep-disconnections-per-minute
+   hermes-domain-groups-lockstep-mean-latency
+   hermes-domain-groups-lockstep-mean-staleness
    hermes-elevated-route-lookups-per-minute
    hermes-slow-route-lookups-per-minute
    hermes-catastrophic-route-lookups-per-minute
