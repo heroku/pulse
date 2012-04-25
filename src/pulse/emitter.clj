@@ -43,7 +43,7 @@
   (let [rd (redis/init {:url (conf/redis-url)})]
     (redis/subscribe rd ["stats.merged"] (fn [_ stat-json]
       (let [[metric value] (json/parse-string stat-json)
-            time (util/millis)
+            time (util/epoch)
             period 60
             buff-size (count @stats-buff-a)]
         (if (< buff-size 10000)

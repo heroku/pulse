@@ -36,6 +36,9 @@
 (defn millis []
   (System/currentTimeMillis))
 
+(defn epoch []
+  (Math/round (/ (System/currentTimeMillis) 1000.0)))
+
 (defn sleep [t]
   (Thread/sleep t))
 
