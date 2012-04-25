@@ -59,9 +59,10 @@ $ heroku config:add SCALES_URL=... -r $DEPLOY
 $ heroku config:add CANONICAL_HOST=... -r $DEPLOY
 $ heroku config:add REDIS_URL=... -r $DEPLOY
 $ heroku config:add AORTA_URLS=... -r $DEPLOY
+$ heroku config:add METRICS_URLS=... -r $DEPLOY
 
 $ git push $DEPLOY master
-$ heroku scale receiver=60 merger0=1 merger1=1 merger2=1 merger3=1 merger4=1 web=5 -r $DEPLOY
+$ heroku scale receiver=60 merger0=1 merger1=1 merger2=1 merger3=1 merger4=1 web=5 emitter=1 -r $DEPLOY
 ```
 
 

@@ -17,6 +17,7 @@
 (defn force-https? [] (boolean (env "FORCE_HTTPS")))
 (defn scales-url [] (env! "SCALES_URL"))
 (defn api-url [] (env! "API_URL"))
+(defn metrics-urls [] (str/split (env! "METRICS_URLS") #","))
 (defn deploy [] (env! "DEPLOY"))
 (defn cloud [] (env! "CLOUD"))
 (defn canonical-host [] (env! "CANONICAL_HOST"))

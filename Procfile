@@ -5,3 +5,4 @@ merger1:    lein trampoline run -m pulse.merger 1
 merger2:    lein trampoline run -m pulse.merger 2
 merger3:    lein trampoline run -m pulse.merger 3
 merger4:    lein trampoline run -m pulse.merger 4
+emitter:    lein trampoline run -m pulse.emitter

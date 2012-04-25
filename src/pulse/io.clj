@@ -30,7 +30,7 @@
           (log/log :fn "bleeder" :at "connect_exception" :aorta_host host))
         (catch SocketException e
           (log/log :fn "bleeder" :at "socket_exception" :aorta_host host)))
-      (Thread/sleep 100)
+      (util/sleep 100)
       (recur))))
 
 (defn shard-for [stat-name]

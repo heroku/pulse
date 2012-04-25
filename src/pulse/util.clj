@@ -36,5 +36,8 @@
 (defn millis []
   (System/currentTimeMillis))
 
+(defn sleep [t]
+  (Thread/sleep t))
+
 (defn update [m k f]
   (assoc m k (f (get m k))))
