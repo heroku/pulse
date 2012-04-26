@@ -17,8 +17,8 @@
     (log :fn "post" :at "start" :host host)
     (http/post metrics-url
       {:body (json/generate-string stats)
-       :socket-timeout 5000
-       :conn-timeout 5000
+       :socket-timeout 10000
+       :conn-timeout 10000
        :content-type :json})
     (log :fn "post" :at "finish" :host host)))
 
@@ -46,7 +46,7 @@
             time (util/epoch)
             period 60
             buff-size (count @stats-buff-a)]
-        (if (< buff-size 10000)
+        (if (< buff-size 1000)
           (swap! stats-buff-a conj {"metric" metric "value" value "measure_time" time "measure_period" period})
           (log :fn "init-buffer" :at "drop" :buffer-size buff-size)))))))
 
