@@ -15,12 +15,15 @@
 (defn post [metrics-url stats]
   (let [{:keys [host]} (util/url-parse metrics-url)]
     (log :fn "post" :at "start" :host host)
-    (http/post metrics-url
-      {:body (json/generate-string stats)
-       :socket-timeout 10000
-       :conn-timeout 10000
-       :content-type :json})
-    (log :fn "post" :at "finish" :host host)))
+    (try
+      (http/post metrics-url
+        {:body (json/generate-string stats)
+         :socket-timeout 5000
+         :conn-timeout 5000
+         :content-type :json})
+      (log :fn "post" :at "finish" :host host)
+      (catch Exception e
+	      (log :fn "post" :at "error" :host host :message (.getMessage e))))))
 
 (defn init-emitter []
   (log :fn "init-emitter" :at "start")
