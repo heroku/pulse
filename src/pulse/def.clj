@@ -746,6 +746,10 @@
     (fn [evt] (and (railgun? evt) (k? evt :save_slug_attempt) (finish? evt)))
     :elapsed))
 
+(defstat railgun-slug-download-fails-per-minute
+  (per-minute
+    (fn [evt] (and (railgun? evt) (k? evt :save_slug) (kv? evt :at "failed")))))
+
 (defstat railgun-s3-canary-requests-per-minute
   (per-minute
     (fn [evt] (and (railgun? evt) (k? evt :check_s3) (start? evt)))))
@@ -1532,6 +1536,7 @@
    railgun-s3-requests-per-minute
    railgun-s3-errors-per-minute
    railgun-s3-time-mean
+   railgun-slug-download-fails-per-minute
    railgun-s3-canary-requests-per-minute
    railgun-s3-canary-errors-per-minute
    railgun-s3-canary-time-mean
