@@ -1249,6 +1249,7 @@
 (defstat api-destroys-per-minute
   (per-minute
     (fn [evt] (and (core? evt) (k? evt :app) (k? evt :destroy) (start? evt)))))
+
 (defstat api-releases-per-minute
   (per-minute
     (fn [evt] (and (cloud? evt) (k? evt :capture_release)))))
