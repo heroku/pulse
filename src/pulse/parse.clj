@@ -29,17 +29,18 @@
       v))
 
 (def attrs-re
-  #"([a-zA-Z0-9_]+)(=?)([a-zA-Z0-9\.\_\-\:\/]*)")
+  #"([a-zA-Z0-9\_\-\.]+)=?(([a-zA-Z0-9\.\-\_\.]+)|(\"([^\"]+)\"))?")
 
 (defn parse-msg-attrs [msg]
   (let [m (re-matcher attrs-re msg)]
     (loop [a (java.util.HashMap.)]
       (if (.find m)
-        (do
-          (.put a
-            (keyword (.group m 1))
-            (if (= "" (.group m 2)) true (coerce-val (.group m 3))))
-          (recur a))
+        (let [v (or (.group m 3) (.group m 5))]
+          (do
+            (.put a
+              (keyword (.group m 1))
+              (if (nil? v) true (coerce-val v)))
+            (recur a)))
         a))))
 
 (defn parse-long [s]
