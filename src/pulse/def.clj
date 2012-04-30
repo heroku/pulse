@@ -1185,7 +1185,7 @@
 ; api
 
 (defn core? [evt]
-  (and (cloud? evt) (kv? evt :source "core")))
+  (and (cloud? evt) (or (kv? evt :source "core") (kv? evt :source "core-unicorn"))))
 
 (defstat api-worker-jobs-per-minute
   (per-minute
