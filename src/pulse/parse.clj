@@ -29,7 +29,7 @@
       v))
 
 (def attrs-re
-  #"([a-zA-Z0-9\_\-\.]+)=?(([a-zA-Z0-9\.\-\_\.]+)|(\"([^\"]+)\"))?")
+  #"([a-zA-Z0-9\_\-\.]+)=?(([a-zA-Z0-9\.\-\_\.\:\/]+)|(\"([^\"]+)\"))?")
 
 (defn parse-msg-attrs [msg]
   (let [m (re-matcher attrs-re msg)]
