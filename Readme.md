@@ -5,7 +5,7 @@ Real-time Heroku operations dashboard, powered by the Heroku event stream.
 
 ## Overview
 
-Pulse provides web-accessible, real-time metrics for the [Heroku platform](http://http://www.heroku.com/) kernel. Heroku engineers use Pulse internally to maintain ambient awareness of Heroku's distributed infrastructure and to quickly diagnose platform issues.
+Pulse provides web-accessible, real-time metrics for the [Heroku platform](http://www.heroku.com/) kernel. Heroku engineers use Pulse internally to maintain ambient awareness of Heroku's distributed infrastructure and to quickly diagnose platform issues.
 
 Pulse works by consuming, processing, and performing statistical calculations against the platform's unified [event log stream](http://adam.heroku.com/past/2011/4/1/logs_are_streams_not_files/). All Heroku components log extensively and in an easily machine-parsable format; by processing these logs, we can build various platform metrics, analytics, monitoring, auditing, and debugging tools orthogonally to the critical-path components themselves. Pulse is one such tool:
 
