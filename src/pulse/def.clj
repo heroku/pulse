@@ -1018,9 +1018,21 @@
 
 ; scheduler
 
+(defstat scheduler-scheduled-per-minute
+  (per-minute
+    (fn [evt] (and (kv? evt :app "heroku-scheduler") (kv? evt :event "scheduled")))))
+
 (defstat scheduler-execs-per-minute
   (per-minute
     (fn [evt] (and (kv? evt :app "heroku-scheduler") (kv? evt :event "exec")))))
+
+(defstat scheduler-missed-per-minute
+  (per-minute
+    (fn [evt] (and (kv? evt :app "heroku-scheduler") (kv? evt :event "missed")))))
+
+(defstat scheduler-exceptions-per-minute
+  (per-minute
+    (fn [evt] (and (kv? evt :app "heroku-scheduler") (kv? evt :event "exception")))))
 
 ; packaging
 
@@ -1606,7 +1618,10 @@
    psmgr-lost-runs-per-minute
 
    ; scheduler   
+   scheduler-scheduled-per-minute
    scheduler-execs-per-minute
+   scheduler-missed-per-minute
+   scheduler-exceptions-per-minute
 
    ; packaging
    gitproxy-connections-per-minute
