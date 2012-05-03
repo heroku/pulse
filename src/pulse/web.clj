@@ -230,6 +230,12 @@
     ["phy shushu opened"   "psmgr-shushu-physical-opened"]
     ["phy shushu closed"   "psmgr-shushu-physical-closed"]]])
 
+(def graphs-scheduler
+  [[["scheduled/min"  "scheduler-scheduled-per-minute"]
+    ["exec/min"       "scheduler-execs-per-minute"]
+    ["missed/min"     "scheduler-missed-per-minute"]
+    ["exception/min"  "scheduler-exceptions-per-minute"]]])
+
 (def graphs-packaging
   [[["gitproxy con/min"    "gitproxy-connections-per-minute"]
     ["gitproxy inv/min"    "gitproxy-invalids-per-minute"]
@@ -347,6 +353,7 @@
             [:a {:href "/routing"}   "routing"]   " | "
             [:a {:href "/packaging"} "packaging"] " | "
             [:a {:href "/api"}       "api"]       " | "
+            [:a {:href "/scheduler"} "scheduler"]     " | "
             [:a {:href "/internal"}  "internal"]]
           [:table
             (for [row graphs]
@@ -419,6 +426,8 @@
       (view-handler graphs-packaging)
     (= uri "/api")
       (view-handler graphs-api)
+    (= uri "/scheduler")
+      (view-handler graphs-scheduler)
     (= uri "/internal")
       (view-handler graphs-internal)
     :else
