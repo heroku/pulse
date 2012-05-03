@@ -325,7 +325,8 @@
     ["api psmgr time"      "api-psmgr-api-time"]
     ["api worker excp/min" "api-unhandled-exceptions-per-minute"]
     ["api event/sec"       "api-events-per-second"]]
-   [["api http redis excp/min" "api-http-redis-exceptions-per-minute"]]])
+   [["http redis retries/min" "api-http-redis-retries-per-minute"]
+    ["http redis timeouts/min" "api-http-redis-timeouts-per-minute"]]])
 
 (def graphs-internal
   [[["pulse event/sec" "pulse-events-per-second"]]])

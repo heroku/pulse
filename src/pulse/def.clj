@@ -1408,9 +1408,13 @@
      (fn [evt] (and (core? evt) (k? evt :logplex) (finish? evt)))
      :elapsed))
 
-(defstat api-http-redis-exceptions-per-minute
+(defstat api-http-redis-retries-per-minute
   (per-minute
-    (fn [evt] (and (core? evt) (k? evt :redis_helper) (k? evt :exception)))))
+    (fn [evt] (and (core? evt) (k? evt :redis_helper) (k? evt :retry)))))
+
+(defstat api-http-redis-timeouts-per-minute
+  (per-minute
+    (fn [evt] (and (core? evt) (k? evt :redis_helper) (kv? evt :at "error")))))
 
 (defstat api-psmgr-api-requests-per-minute
   (per-minute
@@ -1716,7 +1720,8 @@
    api-logplex-api-errors-per-minute
    api-logplex-api-unhandled-exceptions-per-minute
    api-logplex-api-time
-   api-http-redis-exceptions-per-minute
+   api-http-redis-retries-per-minute
+   api-http-redis-timeouts-per-minute
    api-psmgr-api-requests-per-minute
    api-psmgr-api-errors-per-minute
    api-psmgr-api-unhandled-exceptions-per-minute
