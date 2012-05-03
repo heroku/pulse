@@ -1124,6 +1124,13 @@
   (per-minute
     (fn [evt] (and (k? evt :codon) (k? evt :production) (k? evt :exception) (not (k? evt :site)) (not (k? evt :reraise))))))
 
+(defstat codon-queue-depth
+  (last-sum
+    (fn [evt] (and (k? evt :codon) (k? evt :production) (k? evt :monitor_queue) (kv? evt :at "emit")))
+    :queue
+    :depth
+    20))
+
 (defn slugc? [evt]
   (and (cloud? evt) (k? evt :slugc)))
 
@@ -1630,6 +1637,7 @@
    codon-mean-service-time
    codon-mean-age
    codon-unhandled-exceptions-per-minute
+   codon-queue-depth
    slugc-compiles-per-minute
    slugc-failures-per-minute
    slugc-errors-per-minute

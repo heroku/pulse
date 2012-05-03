@@ -264,7 +264,8 @@
     ["slugc stow err/min"  "slugc-stow-errors-per-minute"]
     ["slugc rel err/min"   "slugc-release-errors-per-minute"]
     ["slugc comp time"     "slugc-mean-compile-time"]
-    ["codex err/min"       "codex-errors-per-minute"]]])
+    ["codex err/min"       "codex-errors-per-minute"]
+    ["codon queue depth"   "codon-queue-depth"]]])
 
 (def graphs-api
   [[["api jobs/min"        "api-worker-jobs-per-minute"]
