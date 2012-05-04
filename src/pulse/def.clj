@@ -1030,6 +1030,10 @@
   (per-minute
     (fn [evt] (and (kv? evt :app "heroku-scheduler") (kv? evt :event "missed")))))
 
+(defstat scheduler-lost-per-minute
+  (per-minute
+    (fn [evt] (and (kv? evt :app "heroku-scheduler") (kv? evt :event "lost")))))
+
 (defstat scheduler-exceptions-per-minute
   (per-minute
     (fn [evt] (and (kv? evt :app "heroku-scheduler") (kv? evt :event "exception")))))
@@ -1632,6 +1636,7 @@
    scheduler-scheduled-per-minute
    scheduler-execs-per-minute
    scheduler-missed-per-minute
+   scheduler-lost-per-minute   
    scheduler-exceptions-per-minute
 
    ; packaging

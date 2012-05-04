@@ -234,6 +234,7 @@
   [[["scheduled/min"  "scheduler-scheduled-per-minute"]
     ["exec/min"       "scheduler-execs-per-minute"]
     ["missed/min"     "scheduler-missed-per-minute"]
+    ["lost/min"       "scheduler-lost-per-minute"]    
     ["exception/min"  "scheduler-exceptions-per-minute"]]])
 
 (def graphs-packaging
