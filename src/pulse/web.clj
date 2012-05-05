@@ -12,20 +12,12 @@
   (fn [req]
     (if (= (:server-name req) canonical-host)
       (handler req)
-      (redirect (format "%s://%s/"
-                  (if (conf/force-https?) "https" "http")
-                  canonical-host)))))
+      (redirect (format "https://%s/" canonical-host)))))
 
 (defn core-app [{:keys [uri] :as req}]
   {:status 404
    :headers {"Content-Type" "text/plain"}
    :body "Pulse no longer provides a web interface."})
-
-(defn wrap-force-https [handler]
-  (fn [{:keys [headers server-name uri] :as req}]
-    (if (and (conf/force-https?) (not= (get headers "x-forwarded-proto") "https"))
-      (redirect (format "https://%s%s" server-name uri))
-      (handler req))))
 
 (defn wrap-logging [handler]
   (fn [{:keys [request-method uri] :as req}]
@@ -47,7 +39,6 @@
 (defn app []
   (-> core-app
     (wrap-canonical-host (conf/canonical-host))
-    (wrap-force-https)
     (wrap-logging)))
 
 (defn -main []
