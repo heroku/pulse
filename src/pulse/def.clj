@@ -1016,28 +1016,6 @@
   (per-minute
     (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :event "lost_run")))))
 
-; scheduler
-
-(defstat scheduler-scheduled-per-minute
-  (per-minute
-    (fn [evt] (and (kv? evt :app "heroku-scheduler") (kv? evt :event "scheduled")))))
-
-(defstat scheduler-execs-per-minute
-  (per-minute
-    (fn [evt] (and (kv? evt :app "heroku-scheduler") (kv? evt :event "exec")))))
-
-(defstat scheduler-missed-per-minute
-  (per-minute
-    (fn [evt] (and (kv? evt :app "heroku-scheduler") (kv? evt :event "missed")))))
-
-(defstat scheduler-lost-per-minute
-  (per-minute
-    (fn [evt] (and (kv? evt :app "heroku-scheduler") (kv? evt :event "lost")))))
-
-(defstat scheduler-exceptions-per-minute
-  (per-minute
-    (fn [evt] (and (kv? evt :app "heroku-scheduler") (kv? evt :event "exception")))))
-
 ; packaging
 
 (defstat gitproxy-connections-per-minute
@@ -1391,13 +1369,6 @@
    psmgr-runs-per-minute
    psmgr-cycles-per-minute
    psmgr-lost-runs-per-minute
-
-   ; scheduler   
-   scheduler-scheduled-per-minute
-   scheduler-execs-per-minute
-   scheduler-missed-per-minute
-   scheduler-lost-per-minute   
-   scheduler-exceptions-per-minute
 
    ; packaging
    gitproxy-connections-per-minute
