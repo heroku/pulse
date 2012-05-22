@@ -413,6 +413,12 @@
 (defstat hermes-h18-per-minute
   (hermes-per-minute "H18"))
 
+(defstat hermes-h19-per-minute
+  (hermes-per-minute "H19"))
+
+(defstat hermes-h20-per-minute
+  (hermes-per-minute "H20"))
+
 (defstat hermes-h99-per-minute
   (hermes-per-minute "H99"))
 
@@ -438,6 +444,12 @@
 
 (defstat hermes-h18-apps-per-minute
   (hermes-apps-per-minute "H18"))
+
+(defstat hermes-h19-apps-per-minute
+  (hermes-apps-per-minute "H19"))
+
+(defstat hermes-h20-apps-per-minute
+  (hermes-apps-per-minute "H20"))
 
 (defstat hermes-h99-apps-per-minute
   (hermes-apps-per-minute "H99"))
@@ -1233,6 +1245,8 @@
    hermes-h13-per-minute
    hermes-h14-per-minute
    hermes-h18-per-minute
+   hermes-h19-per-minute
+   hermes-h20-per-minute
    hermes-h99-per-minute
    hermes-h10-apps-per-minute
    hermes-h11-apps-per-minute
@@ -1240,6 +1254,8 @@
    hermes-h13-apps-per-minute
    hermes-h14-apps-per-minute
    hermes-h18-apps-per-minute
+   hermes-h19-apps-per-minute
+   hermes-h20-apps-per-minute
    hermes-h99-apps-per-minute
    hermes-econns-per-minute
    hermes-econns-apps-per-minute
