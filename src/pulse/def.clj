@@ -628,7 +628,7 @@
 (defn railgun? [evt]
   (and (cloud? evt) (k? evt :railgun)))
 
-(defn build-railgun? [evt]
+(defn railgun-build? [evt]
   (and (railgun? evt) (kv? evt :cluster "build")))
 
 (defstat railgun-running-count
@@ -638,9 +638,9 @@
     (constantly true)
     40))
 
-(defstat build-railgun-running-count
+(defstat railgun-build-running-count
   (last-count
-    (fn [evt] (and (build-railgun? evt) (k? evt :heartbeat)))
+    (fn [evt] (and (railgun-build? evt) (k? evt :heartbeat)))
     :instance_id
     (constantly true)
     40))
@@ -1391,6 +1391,8 @@
    railgun-runtime-bus-invalid-per-minute
    railgun-runtime-bus-failed-pushes-per-minute
    railgun-runtime-bus-failed-lpops-per-minute
+
+   railgun-build-running-count
 
    ; psmgr
    psmgr-ps-up-total-last
