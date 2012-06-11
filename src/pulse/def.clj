@@ -1111,6 +1111,14 @@
   (per-minute
     (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :event "lost_run")))))
 
+(defstat psmgr-foregrounds-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :fun "foreground")))))
+
+(defstat psmgr-backgrounds-per-minute
+  (per-minute
+    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :fun "background")))))
+
 ; packaging
 
 (defstat gitproxy-connections-per-minute
@@ -1485,6 +1493,8 @@
    psmgr-runs-per-minute
    psmgr-cycles-per-minute
    psmgr-lost-runs-per-minute
+   psmgr-foregrounds-per-minute
+   psmgr-backgrounds-per-minute
 
    ; packaging
    gitproxy-connections-per-minute
