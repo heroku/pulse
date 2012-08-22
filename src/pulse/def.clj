@@ -1051,54 +1051,6 @@
     (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :function "post") (kv? evt :block "finish")))
     :elapsed))
 
-(defstat psmgr-shushu-per-minute
-  (per-minute
-    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :file "run/logical") (kv? evt :event "shushu")))))
-
-(defstat psmgr-shushu-time
-  (mean 60
-    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :file "run/logical") (kv? evt :event "shushu")))
-    :elapsed))
-
-(defstat psmgr-shushu-opened
-  (last
-   (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :fun "lengths") (kv? evt :event "emit")))
-    :opened))
-
-(defstat psmgr-shushu-closed
-  (last
-   (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :fun "lengths") (kv? evt :event "emit")))
-    :closed))
-
-(defstat psmgr-shushu-delay
-  (mean 60
-    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :file "run/logical") (kv? evt :event "shushu")))
-    :delay))
-
-(defstat psmgr-shushu-physical-per-minute
-  (per-minute
-    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :file "run/physical") (kv? evt :event "shushu")))))
-
-(defstat psmgr-shushu-physical-time
-  (mean 60
-    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :file "run/physical") (kv? evt :event "shushu")))
-    :elapsed))
-
-(defstat psmgr-shushu-physical-delay
-  (mean 60
-    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :file "run/physical") (kv? evt :event "shushu")))
-    :delay))
-
-(defstat psmgr-shushu-physical-opened
-  (last
-   (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :fun "lengths") (kv? evt :event "emit")))
-    :physical_opened))
-
-(defstat psmgr-shushu-physical-closed
-  (last
-   (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :fun "lengths") (kv? evt :event "emit")))
-    :physical_closed))
-
 (defstat psmgr-runs-per-minute
   (per-minute
     (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :event "run")))))
@@ -1480,16 +1432,6 @@
    psmgr-events-per-second
    psmgr-api-per-minute
    psmgr-api-time
-   psmgr-shushu-per-minute
-   psmgr-shushu-time
-   psmgr-shushu-delay
-   psmgr-shushu-opened
-   psmgr-shushu-closed
-   psmgr-shushu-physical-per-minute
-   psmgr-shushu-physical-time
-   psmgr-shushu-physical-delay
-   psmgr-shushu-physical-opened
-   psmgr-shushu-physical-closed
    psmgr-runs-per-minute
    psmgr-cycles-per-minute
    psmgr-lost-runs-per-minute
