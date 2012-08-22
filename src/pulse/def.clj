@@ -957,36 +957,6 @@
 
 ; psmgr
 
-(defstat psmgr-ps-up-worker-last
-  (last
-    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :fun "counts") (kv? evt :event "emit")))
-    :worker))
-
-(defstat psmgr-ps-up-other-last
-  (last
-    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :fun "counts") (kv? evt :event "emit")))
-    :other))
-
-(defstat psmgr-ps-created-last
-  (last
-    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :fun "counts") (kv? evt :event "emit")))
-    :created))
-
-(defstat psmgr-ps-starting-last
-  (last
-    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :fun "counts") (kv? evt :event "emit")))
-    :starting))
-
-(defstat psmgr-ps-crashed-last
-  (last
-    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :fun "counts") (kv? evt :event "emit")))
-    :crashed))
-
-(defstat psmgr-ps-lost-last
-  (last
-    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :fun "counts") (kv? evt :event "emit")))
-    :lost))
-
 (defstat psmgr-idles-per-minute
   (per-minute
     (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :function "up_to_up") (kv? evt :event "idle")))))
@@ -1022,11 +992,6 @@
 (defstat psmgr-runtime-bus-published-per-minute
   (per-minute
     (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :file "run/redis_helper") (k? evt :queue) (kv? evt :event "published")))))
-
-(defstat psmgr-runtime-bus-depth
-  (last
-    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :fun "lengths") (kv? evt :event "emit")))
-    :redis))
 
 (defstat psmgr-events-per-second
   (per-second
@@ -1401,19 +1366,12 @@
    build-railgun-ps-running-total-last
 
    ; psmgr
-   psmgr-ps-up-worker-last
-   psmgr-ps-up-other-last
-   psmgr-ps-created-last
-   psmgr-ps-starting-last
-   psmgr-ps-crashed-last
-   psmgr-ps-lost-last
    psmgr-idles-per-minute
    psmgr-unidles-per-minute
    psmgr-run-requests-per-minute
    psmgr-kill-requests-per-minute
    psmgr-converges-per-second
    psmgr-unhandled-exceptions-per-minute
-   psmgr-runtime-bus-depth
    psmgr-runtime-bus-receives-per-minute
    psmgr-runtime-bus-timeouts-per-minute
    psmgr-runtime-bus-published-per-minute
