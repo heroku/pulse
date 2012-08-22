@@ -957,16 +957,6 @@
 
 ; psmgr
 
-(defstat psmgr-ps-up-total-last
-  (last
-    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :fun "counts") (kv? evt :event "emit")))
-    :up))
-
-(defstat psmgr-ps-up-web-last
-  (last
-    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :fun "counts") (kv? evt :event "emit")))
-    :web))
-
 (defstat psmgr-ps-up-worker-last
   (last
     (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :fun "counts") (kv? evt :event "emit")))
@@ -1411,8 +1401,6 @@
    build-railgun-ps-running-total-last
 
    ; psmgr
-   psmgr-ps-up-total-last
-   psmgr-ps-up-web-last
    psmgr-ps-up-worker-last
    psmgr-ps-up-other-last
    psmgr-ps-created-last
