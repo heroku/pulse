@@ -59,7 +59,7 @@
        (if-not (pred-fn evt)
          receive-buffer
          (let [val (val-fn evt)]
-           (if (nil? val)
+           (if (or (nil? val) (not (number? val)))
              (do
                (prn :fn "mean" :at "nil-val" :msg (:msg evt))
                receive-buffer)
