@@ -11,28 +11,42 @@
 (defn receive-init [{init-fn :receive-init}]
   (AtomicReference. (init-fn)))
 
-(defn receive-apply [{apply-fn :receive-apply} ^AtomicReference stat-state event]
+(defn receive-apply [{apply-fn :receive-apply
+                      stat :name} ^AtomicReference stat-state event]
   (locking stat-state
     (let [current (.get stat-state)
-          applied (apply-fn current event)]
+          applied (try (apply-fn current event)
+                       (catch Exception e
+                         (println "Problem in apply for" stat "receiver.")
+                         (throw e)))]
       (.compareAndSet stat-state current applied))))
 
-(defn receive-emit [{init-fn :receive-init emit-fn :receive-emit}
+(defn receive-emit [{init-fn :receive-init emit-fn :receive-emit stat :name}
                     ^AtomicReference stat-state]
-  (emit-fn (.getAndSet stat-state (init-fn))))
+  (try (emit-fn (.getAndSet stat-state (init-fn)))
+       (catch Exception e
+         (println "Problem in emit for" stat "receiver.")
+         (throw e))))
 
 (defn merge-init [{init-fn :merge-init}]
   (AtomicReference. (init-fn)))
 
-(defn merge-apply [{apply-fn :merge-apply} ^AtomicReference stat-state pub]
+(defn merge-apply [{apply-fn :merge-apply stat :name}
+                   ^AtomicReference stat-state pub]
   (locking stat-state
     (let [current (.get stat-state)
-          applied (apply-fn current pub)]
+          applied (try (apply-fn current pub)
+                       (catch Exception e
+                         (println "Problem in apply for" stat "applier.")
+                         (throw e)))]
       (.compareAndSet stat-state current applied))))
 
-(defn merge-emit [{emit-fn :merge-emit} ^AtomicReference stat-state]
+(defn merge-emit [{emit-fn :merge-emit stat :name} ^AtomicReference stat-state]
   (locking stat-state
     (let [current (.get stat-state)
-          [applied pub] (emit-fn current)]
+          [applied pub] (try (emit-fn current)
+                             (catch Exception e
+                               (println "Problem in emit for" stat "applier.")
+                               (throw e)))]
       (.compareAndSet stat-state current applied)
       pub)))
