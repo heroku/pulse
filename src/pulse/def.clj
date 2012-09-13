@@ -828,20 +828,24 @@
 
 (defstat railgun-r14-per-minute
   (per-minute
-    (fn [evt] (and (railgun? evt) (k? evt :check_usage) (kv? evt :at "warn")))))
+    (fn [evt] (and (railgun? evt) (k? evt :check_usage)
+                   (kv? evt :resource "memory") (kv? evt :at "warn")))))
 
 (defstat railgun-r15-per-minute
   (per-minute
-    (fn [evt] (and (railgun? evt) (k? evt :check_usage) (kv? evt :at "kill")))))
+    (fn [evt] (and (railgun? evt) (k? evt :check_usage)
+                   (kv? evt :resource "memory") (kv? evt :at "kill")))))
 
 (defstat railgun-r14-apps-per-minute
   (per-minute-unique
-    (fn [evt] (and (railgun? evt) (k? evt :check_usage) (kv? evt :at "warn")))
+    (fn [evt] (and (railgun? evt) (k? evt :check_usage)
+                   (kv? evt :resource "memory") (kv? evt :at "warn")))
     :app_id))
 
 (defstat railgun-r15-apps-per-minute
   (per-minute-unique
-    (fn [evt] (and (railgun? evt) (k? evt :check_usage) (kv? evt :at "kill")))
+    (fn [evt] (and (railgun? evt) (k? evt :check_usage)
+                   (kv? evt :resource "memory") (kv? evt :at "kill")))
     :app_id))
 
 (defstat railgun-inits-per-minute
