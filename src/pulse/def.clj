@@ -836,6 +836,20 @@
     (fn [evt] (and (railgun? evt) (k? evt :check_usage)
                    (kv? evt :resource "memory") (kv? evt :at "kill")))))
 
+(defstat railgun-r16-per-minute
+  (per-minute
+    (fn [evt] (and (railgun? evt) (k? evt :sighup_user_pids) (kv? evt :at "detached")))))
+
+(defstat railgun-r17-per-minute
+  (per-minute
+    (fn [evt] (and (railgun? evt) (k? evt :check_usage)
+                   (kv? evt :resource "cpu") (kv? evt :at "warn")))))
+
+(defstat railgun-r18-per-minute
+  (per-minute
+    (fn [evt] (and (railgun? evt) (k? evt :check_usage)
+                   (kv? evt :resource "cpu") (kv? evt :at "kill")))))
+
 (defstat railgun-r14-apps-per-minute
   (per-minute-unique
     (fn [evt] (and (railgun? evt) (k? evt :check_usage)
@@ -846,6 +860,23 @@
   (per-minute-unique
     (fn [evt] (and (railgun? evt) (k? evt :check_usage)
                    (kv? evt :resource "memory") (kv? evt :at "kill")))
+    :app_id))
+
+(defstat railgun-r16-apps-per-minute
+  (per-minute-unique
+    (fn [evt] (and (railgun? evt) (k? evt :sighup_user_pids) (kv? evt :at "detached")))
+    :app_id))
+
+(defstat railgun-r17-apps-per-minute
+  (per-minute-unique
+    (fn [evt] (and (railgun? evt) (k? evt :check_usage)
+                   (kv? evt :resource "cpu") (kv? evt :at "warn")))
+    :app_id))
+
+(defstat railgun-r18-apps-per-minute
+  (per-minute-unique
+    (fn [evt] (and (railgun? evt) (k? evt :check_usage)
+                   (kv? evt :resource "cpu") (kv? evt :at "kill")))
     :app_id))
 
 (defstat railgun-inits-per-minute
@@ -1341,11 +1372,17 @@
    railgun-r12-per-minute
    railgun-r14-per-minute
    railgun-r15-per-minute
+   railgun-r16-per-minute
+   railgun-r17-per-minute
+   railgun-r18-per-minute
    railgun-r10-apps-per-minute
    railgun-r11-apps-per-minute
    railgun-r12-apps-per-minute
    railgun-r14-apps-per-minute
    railgun-r15-apps-per-minute
+   railgun-r16-apps-per-minute
+   railgun-r17-apps-per-minute
+   railgun-r18-apps-per-minute
    railgun-inits-per-minute
    railgun-traps-per-minute
    railgun-exits-per-minute
