@@ -862,11 +862,6 @@
                    (kv? evt :resource "memory") (kv? evt :at "kill")))
     :app_id))
 
-(defstat railgun-r16-apps-per-minute
-  (per-minute-unique
-    (fn [evt] (and (railgun? evt) (k? evt :sighup_user_pids) (kv? evt :at "detached")))
-    :app_id))
-
 (defstat railgun-r17-apps-per-minute
   (per-minute-unique
     (fn [evt] (and (railgun? evt) (k? evt :check_usage)
@@ -1380,7 +1375,6 @@
    railgun-r12-apps-per-minute
    railgun-r14-apps-per-minute
    railgun-r15-apps-per-minute
-   railgun-r16-apps-per-minute
    railgun-r17-apps-per-minute
    railgun-r18-apps-per-minute
    railgun-inits-per-minute
