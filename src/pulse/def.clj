@@ -1219,10 +1219,6 @@
     (fn [evt] (and (slugc? evt) (k? evt :bin) (or (finish? evt) (kv? evt :event "finish"))))
     :elapsed))
 
-(defstat codex-errors-per-minute
-  (per-minute
-    (fn [evt] (and (cloud? evt) (kv? evt :level "err") (kv? evt :source "codex")))))
-
 ; data
 
 (defstat shen-errors-per-minute
@@ -1454,7 +1450,6 @@
    slugc-stow-errors-per-minute
    slugc-release-errors-per-minute
    slugc-mean-compile-time
-   codex-errors-per-minute
 
    ; data
    shen-errors-per-minute
