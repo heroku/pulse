@@ -1081,7 +1081,7 @@
 
 (defstat gitproxy-mean-provision-time
   (mean 60
-    (fn [evt] (and (cloud? evt) (k? evt :gitproxy) (k? evt :fetch_ssh_info) (kv? evt :backend "codon") (finish? evt)))
+    (fn [evt] (and (cloud? evt) (k? evt :gitproxy) (k? evt :fetch_ssh_info) (finish? evt)))
     :elapsed))
 
 (defstat gitproxy-mean-service-time
