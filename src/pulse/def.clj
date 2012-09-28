@@ -1313,8 +1313,8 @@
    hermes-domain-groups-lockstep-mean-latency
    hermes-domain-groups-lockstep-mean-staleness
 ;  hermes-elevated-route-lookups-per-minute
-   hermes-slow-route-lookups-per-minute
-   hermes-catastrophic-route-lookups-per-minute
+;  hermes-slow-route-lookups-per-minute
+;  hermes-catastrophic-route-lookups-per-minute
    hermes-slow-redis-lookups-per-minute
    hermes-catastrophic-redis-lookups-per-minute
    hermes-processes-last
