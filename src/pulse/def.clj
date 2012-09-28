@@ -1243,7 +1243,7 @@
   (per-second
     (fn [evt] (and (kv? evt :app "pulse") (kv? evt :deploy (conf/deploy))))))
 
-(def all
+(def defaults
   [
   ; global
    events-per-second
@@ -1454,3 +1454,13 @@
    ; internal
    pulse-events-per-second
    ])
+
+(defn non-defaults [stat]
+  (for [cloud (conf/clouds)
+        :when (not= cloud (conf/default-cloud))
+        :let [scoped-name (scope-stat cloud (:name stat))
+              stat-sym (symbol (string/replace scoped-name "." "-"))]
+        :when (resolve stat-sym)]
+    (resolve stat-sym)))
+
+(def all (apply concat defaults (map non-defaults defaults)))
