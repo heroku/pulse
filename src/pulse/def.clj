@@ -248,7 +248,7 @@
                :let [scoped-name (scope-stat cloud stat-name)
                      scoped-var-name (symbol (string/replace scoped-name "." "-"))]]
            `(def ~scoped-var-name (assoc ~body-sym
-                                    :name (name '~scoped-name)
+                                    :name ~scoped-name
                                     :pred-fn (fn [evt#]
                                                (and (= :cloud evt# ~cloud)
                                                     ((:pred-fn ~body-sym) evt#)))))))))
