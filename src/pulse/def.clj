@@ -388,6 +388,7 @@
   (per-minute
    (fn [evt] (k? evt :cache_purge))))
 
+;; we only run a single rendezvous service for multiple clouds
 (defstat-single rendezvous-joins-per-minute
   (per-minute
     (fn [evt] (and (kv? evt :app "rendezvous") (kv? evt :fn "join") (kv? evt :at "start")))))
@@ -1176,82 +1177,6 @@
                       (finish? evt)))
         :elapsed))
 
-(defstat-single codon-launches-per-minute
-  (per-minute
-    (fn [evt] (and (k? evt :codon) (k? evt :production) (k? evt :monitor_processes) (kv? evt :at "launch")))))
-
-(defstat-single codon-receives-per-minute
-  (per-minute
-    (fn [evt] (and (k? evt :codon) (k? evt :production) (k? evt :receive) (kv? evt :at "dequeue") (not (kv? evt :timeout true))))))
-
-(defstat-single codon-exits-per-minute
-  (per-minute
-    (fn [evt] (and (k? evt :codon) (k? evt :production) (k? evt :receive) (kv? evt :at "exit")))))
-
-(defstat-single codon-cycles-per-minute
-  (per-minute
-    (fn [evt] (and (k? evt :codon) (k? evt :production) (k? evt :receive) (kv? evt :at "cycle")))))
-
-(defstat-single codon-up-last
-  (last-count
-    (fn [evt] (and (k? evt :codon) (k? evt :production) (k? evt :spawn_heartbeat) (emit? evt)))
-    :hostname
-    (constantly true)
-    3))
-
-(defstat-single codon-busy-last
-  (last-count
-    (fn [evt] (and (k? evt :codon) (k? evt :production) (k? evt :spawn_heartbeat) (emit? evt)))
-    :hostname
-    (fn [evt] (kv? evt :busy true))
-    3))
-
-(defstat-single codon-compiling-last
-  (last-count
-    (fn [evt] (and (k? evt :codon) (k? evt :production) (k? evt :spawn_heartbeat) (emit? evt)))
-    :hostname
-    (fn [evt] (kv? evt :compiling true))
-    3))
-
-(defstat-single codon-mean-fetch-time
-  (mean 60
-    (fn [evt] (and (k? evt :codon) (k? evt :production) (k? evt :fetch_repo) (finish? evt)))
-    :elapsed))
-
-(defstat-single codon-mean-stow-time
-  (mean 60
-    (fn [evt] (and (k? evt :codon) (k? evt :production) (k? evt :stow_repo) (finish? evt)))
-    :elapsed))
-
-(defstat-single codon-fetch-errors-per-minute
-  (per-minute
-    (fn [evt] (and (k? evt :codon) (k? evt :production) (k? evt :fetch_repo) (kv? evt :at "error")))))
-
-(defstat-single codon-stow-errors-per-minute
-  (per-minute
-    (fn [evt] (and (k? evt :codon) (k? evt :production) (k? evt :stow_repo) (finish? evt) (not (kv? evt :exit_status 0)) (not (kv? evt :out "200"))))))
-
-(defstat-single codon-mean-service-time
-  (mean 60
-    (fn [evt] (and (k? evt :codon) (k? evt :production) (k? evt :await) (finish? evt) (k? evt :service_elapsed)))
-    :service_elapsed))
-
-(defstat-single codon-mean-age
-  (mean 60
-    (fn [evt] (and (k? evt :codon) (k? evt :production) (k? evt :spawn_heartbeat) (emit? evt)))
-    :age))
-
-(defstat-single codon-unhandled-exceptions-per-minute
-  (per-minute
-    (fn [evt] (and (k? evt :codon) (k? evt :production) (k? evt :exception) (not (k? evt :site)) (not (k? evt :reraise))))))
-
-(defstat-single codon-queue-depth
-  (last-sum
-    (fn [evt] (and (k? evt :codon) (k? evt :production) (k? evt :monitor_queue) (kv? evt :at "emit")))
-    :queue
-    :depth
-    20))
-
 (defn slugc? [evt]
   (k? evt :slugc))
 
@@ -1510,21 +1435,6 @@
    gitproxy-mean-metadata-time
    gitproxy-mean-provision-time
    gitproxy-mean-service-time
-   codon-launches-per-minute
-   codon-receives-per-minute
-   codon-exits-per-minute
-   codon-cycles-per-minute
-   codon-up-last
-   codon-busy-last
-   codon-compiling-last
-   codon-mean-fetch-time
-   codon-mean-stow-time
-   codon-fetch-errors-per-minute
-   codon-stow-errors-per-minute
-   codon-mean-service-time
-   codon-mean-age
-   codon-unhandled-exceptions-per-minute
-   codon-queue-depth
    slugc-compiles-per-minute
    slugc-failures-per-minute
    slugc-errors-per-minute
