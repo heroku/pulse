@@ -1,6 +1,7 @@
 (ns pulse.def
   (:refer-clojure :exclude [last max])
   (:require [clojure.set :as set]
+            [clojure.string :as string]
             [pulse.util :as util]
             [pulse.conf :as conf]
             [pulse.log :as log]))
@@ -235,16 +236,22 @@
 (defmacro defstat-single [stat-name stat-body]
   `(def ~stat-name (merge ~stat-body {:name (name '~stat-name)})))
 
+(defn scope-stat [cloud stat-name]
+  (if (= cloud (conf/default-cloud))
+    (name stat-name)
+    (str cloud "." (name stat-name))))
+
 (defmacro defstat [stat-name stat-body]
   (let [body-sym (gensym)]
     `(let [~body-sym ~stat-body]
        ~@(for [cloud (conf/clouds)
-               :let [scoped-name (symbol (str cloud "-" (name stat-name)))]]
-           `(def ~scoped-name (assoc ~body-sym
-                                :name (name '~scoped-name)
-                                :pred-fn (fn [evt#]
-                                           (and (= :cloud evt# ~cloud)
-                                                ((:pred-fn ~body-sym) evt#)))))))))
+               :let [scoped-name (scope-stat cloud stat-name)
+                     scoped-var-name (symbol (string/replace scoped-name "." "-"))]]
+           `(def ~scoped-var-name (assoc ~body-sym
+                                    :name (name '~scoped-name)
+                                    :pred-fn (fn [evt#]
+                                               (and (= :cloud evt# ~cloud)
+                                                    ((:pred-fn ~body-sym) evt#)))))))))
 
 (defn kv? [m k v]
   (= (k m) v))
