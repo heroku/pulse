@@ -6,3 +6,4 @@ lib
 classes
 .lein-deps-sum
 /.lein-plugins/checksum
+/target/stale/dependencies

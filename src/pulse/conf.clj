@@ -13,7 +13,7 @@
 (defn aorta-urls [] (str/split (env! "AORTA_URLS") #","))
 (defn metrics-urls [] (str/split (env! "METRICS_URLS") #","))
 (defn deploy [] (env! "DEPLOY"))
-(defn cloud [] (env! "CLOUD"))
+(defn clouds [] (env! "CLOUDS"))
 (defn canonical-host [] (env! "CANONICAL_HOST"))
 (defn graphite-url [] (env! "GRAPHITE_URL"))
 (defn graphite-period [] (env! "GRAPHITE_PERIOD"))
