@@ -1,6 +1,7 @@
 (ns pulse.def
   (:refer-clojure :exclude [last max])
   (:require [clojure.set :as set]
+            [clojure.string :as string]
             [pulse.util :as util]
             [pulse.conf :as conf]
             [pulse.log :as log]))
@@ -231,9 +232,26 @@
   (let [recent-interval (or recent-interval 300)]
     (last-sum pred-fn part-fn (fn [evt] (if (cnt-fn evt) 1 0)) recent-interval)))
 
+;; for stats which apply across clouds
+(defmacro defstat-single [stat-name stat-body]
+  `(def ~stat-name (merge ~stat-body {:name (name '~stat-name)})))
+
+(defn scope-stat [cloud stat-name]
+  (if (= cloud (conf/default-cloud))
+    (name stat-name)
+    (str cloud "." (name stat-name))))
+
 (defmacro defstat [stat-name stat-body]
-  (let [stat-name-str (name stat-name)]
-    `(def ~stat-name (merge ~stat-body {:name (name ~stat-name-str)}))))
+  (let [body-sym (gensym)]
+    `(let [~body-sym ~stat-body]
+       ~@(for [cloud (conf/clouds)
+               :let [scoped-name (scope-stat cloud stat-name)
+                     scoped-var-name (symbol (string/replace scoped-name "." "-"))]]
+           `(def ~scoped-var-name (assoc ~body-sym
+                                    :name ~scoped-name
+                                    :pred-fn (fn [evt#]
+                                               (and (= :cloud evt# ~cloud)
+                                                    ((:pred-fn ~body-sym) evt#)))))))))
 
 (defn kv? [m k v]
   (= (k m) v))
@@ -251,9 +269,6 @@
 (defn >=? [evt k v]
   (>= (k evt) v))
 
-(defn cloud? [evt]
-  (kv? evt :cloud (conf/cloud)))
-
 (defn start? [evt]
   (kv? evt :at "start"))
 
@@ -268,29 +283,30 @@
 
 ; global
 
-(defstat events-per-second
+(defstat-single events-per-second
   (per-second (constantly true)))
 
-(defstat events-per-second-unparsed
+(defstat-single events-per-second-unparsed
   (per-second :unparsed))
 
 (defstat amqp-publishes-per-second
   (per-second
-    (fn [evt] (and (cloud? evt) (or (k? evt :amqp_publish) (and (k? evt :amqp_message) (kv? evt :action "publish")))))))
+   (fn [evt] (or (k? evt :amqp_publish)
+                (and (k? evt :amqp_message)
+                     (kv? evt :action "publish"))))))
 
 (defstat amqp-receives-per-second
   (per-second
-    (fn [evt] (and (cloud? evt) (k? evt :amqp_message) (kv? evt :action "received")))))
+   (fn [evt] (and (k? evt :amqp_message) (kv? evt :action "received")))))
 
 (defstat amqp-timeouts-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (k? evt :amqp_message) (kv? evt :action "timeout")))))
-
+   (fn [evt] (and (k? evt :amqp_message) (kv? evt :action "timeout")))))
 
 ; routing
 
 (defn nginx-request? [evt]
-  (and (and (cloud? evt) (kv? evt :source "nginx") (k? evt :http_status))))
+  (and (kv? evt :source "nginx") (k? evt :http_status)))
 
 (defstat nginx-requests-per-second
   (per-second nginx-request?))
@@ -300,9 +316,9 @@
 
 (defn nginx-per-minute [status]
   (per-minute
-    (fn [evt] (and (nginx-request? evt)
-                   (not (kv? evt :http_host "127.0.0.1"))
-                   (kv? evt :http_status status)))))
+   (fn [evt] (and (nginx-request? evt)
+                 (not (kv? evt :http_host "127.0.0.1"))
+                 (kv? evt :http_status status)))))
 
 (defstat nginx-500-per-minute
   (nginx-per-minute 500))
@@ -318,9 +334,9 @@
 
 (defn nginx-domains-per-minute [status]
   (per-minute-unique
-    (fn [evt] (and (nginx-request? evt)
-                   (not (kv? evt :http_host "127.0.0.1"))
-                   (kv? evt :http_status status)))
+   (fn [evt] (and (nginx-request? evt)
+                 (not (kv? evt :http_host "127.0.0.1"))
+                 (kv? evt :http_status status)))
     :http_domain))
 
 (defstat nginx-500-domains-per-minute
@@ -336,8 +352,7 @@
   (nginx-domains-per-minute 504))
 
 (defn nginx-error? [evt]
-  (and (cloud? evt)
-       (kv? evt :source "nginx")
+  (and (kv? evt :source "nginx")
        (kv? evt :level "crit")
        (cont? evt :msg "[error]")))
 
@@ -348,14 +363,14 @@
   (per-minute-unique nginx-error? :instance_id))
 
 (defn varnish-request? [evt]
-  (and (cloud? evt) (kv? evt :source "varnish") (k? evt :http_status)))
+  (and (kv? evt :source "varnish") (k? evt :http_status)))
 
 (defstat varnish-requests-per-second
   (per-second varnish-request?))
 
 (defn varnish-per-minute [status]
   (per-minute
-    (fn [evt] (and (varnish-request? evt) (kv? evt :http_status status)))))
+   (fn [evt] (and (varnish-request? evt) (kv? evt :http_status status)))))
 
 (defstat varnish-500-per-minute
   (varnish-per-minute 500))
@@ -371,18 +386,19 @@
 
 (defstat varnish-purges-per-minute
   (per-minute
-     (fn [evt] (and (cloud? evt) (k? evt :cache_purge)))))
+   (fn [evt] (k? evt :cache_purge))))
 
-(defstat rendezvous-joins-per-minute
+;; we only run a single rendezvous service for multiple clouds
+(defstat-single rendezvous-joins-per-minute
   (per-minute
     (fn [evt] (and (kv? evt :app "rendezvous") (kv? evt :fn "join") (kv? evt :at "start")))))
 
-(defstat rendezvous-rendezvous-per-minute
+(defstat-single rendezvous-rendezvous-per-minute
   (per-minute
     (fn [evt] (and (kv? evt :app "rendezvous") (kv? evt :fn "join") (kv? evt :at "rendezvous")))))
 
 (defn hermes-request? [evt]
-  (and (cloud? evt) (kv? evt :mod "hermes_proxy")))
+  (kv? evt :mod "hermes_proxy"))
 
 (defstat hermes-requests-per-second
   (per-second
@@ -393,7 +409,7 @@
 
 (defn hermes-per-minute [code]
   (per-minute
-    (fn [evt] (and (hermes-request? evt) (kv? evt :code code)))))
+   (fn [evt] (and (hermes-request? evt) (kv? evt :code code)))))
 
 (defstat hermes-h10-per-minute
   (hermes-per-minute "H10"))
@@ -480,104 +496,129 @@
 
 (defstat hermes-econns-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (kv? evt :error_type "econn") (kv? evt :mod "hermes_proxy")))))
+   (fn [evt] (and (kv? evt :error_type "econn") (kv? evt :mod "hermes_proxy")))))
 
 (defstat hermes-econns-apps-per-minute
   (per-minute-unique
-    (fn [evt] (and (cloud? evt) (kv? evt :error_type "econn") (kv? evt :mod "hermes_proxy")))
-    :app_id))
+   (fn [evt] (and (kv? evt :error_type "econn") (kv? evt :mod "hermes_proxy")))
+   :app_id))
 
 (defstat hermes-errors-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (kv? evt :level "err") (kv? evt :source "hermes")))))
+   (fn [evt] (and (kv? evt :level "err") (kv? evt :source "hermes")))))
 
 (defstat hermes-services-lockstep-updates-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (kv? evt :mod "services_callback") (kv? evt :at "msg")))))
+   (fn [evt] (and (kv? evt :mod "services_callback") (kv? evt :at "msg")))))
 
 (defstat hermes-services-lockstep-connections-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (kv? evt :mod "services_callback") (kv? evt :at "connect")))))
+   (fn [evt] (and (kv? evt :mod "services_callback") (kv? evt :at "connect")))))
 
 (defstat hermes-services-lockstep-disconnects-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (kv? evt :mod "services_callback") (kv? evt :at "disconnect")))))
+   (fn [evt] (and (kv? evt :mod "services_callback") (kv? evt :at "disconnect")))))
 
 (defstat hermes-services-lockstep-mean-latency
   (mean 70
-    (fn [evt] (and (cloud? evt) (kv? evt :mod "hermes_clock") (kv? evt :callback "services_callback") (k? evt :latency)))
-    :latency))
+        (fn [evt] (and (kv? evt :mod "hermes_clock")
+                      (kv? evt :callback "services_callback")
+                      (k? evt :latency)))
+        :latency))
 
 (defstat hermes-services-lockstep-mean-staleness
   (mean 70
-    (fn [evt] (and (cloud? evt) (kv? evt :mod "hermes_clock") (kv? evt :callback "services_callback") (k? evt :staleness)))
-    :staleness))
+        (fn [evt] (and (kv? evt :mod "hermes_clock")
+                      (kv? evt :callback "services_callback")
+                      (k? evt :staleness)))
+        :staleness))
 
 (defstat hermes-procs-lockstep-updates-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (kv? evt :mod "procs_callback") (kv? evt :at "msg")))))
+   (fn [evt] (and (kv? evt :mod "procs_callback")
+                 (kv? evt :at "msg")))))
 
 (defstat hermes-procs-lockstep-connections-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (kv? evt :mod "procs_callback") (kv? evt :at "connect")))))
+   (fn [evt] (and (kv? evt :mod "procs_callback")
+                 (kv? evt :at "connect")))))
 
 (defstat hermes-procs-lockstep-disconnects-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (kv? evt :mod "procs_callback") (kv? evt :at "disconnect")))))
+   (fn [evt] (and (kv? evt :mod "procs_callback")
+                 (kv? evt :at "disconnect")))))
 
 (defstat hermes-procs-lockstep-mean-latency
   (mean 70
-    (fn [evt] (and (cloud? evt) (kv? evt :mod "hermes_clock") (kv? evt :callback "procs_callback") (k? evt :latency)))
-    :latency))
+        (fn [evt] (and (kv? evt :mod "hermes_clock")
+                      (kv? evt :callback "procs_callback")
+                      (k? evt :latency)))
+        :latency))
 
 (defstat hermes-procs-lockstep-mean-staleness
   (mean 70
-    (fn [evt] (and (cloud? evt) (kv? evt :mod "hermes_clock") (kv? evt :callback "procs_callback") (k? evt :staleness)))
-    :staleness))
+        (fn [evt] (and (kv? evt :mod "hermes_clock")
+                      (kv? evt :callback "procs_callback")
+                      (k? evt :staleness)))
+        :staleness))
 
 (defstat hermes-domains-lockstep-updates-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (kv? evt :mod "domains_callback") (kv? evt :at "msg")))))
+   (fn [evt] (and (kv? evt :mod "domains_callback")
+                 (kv? evt :at "msg")))))
 
 (defstat hermes-domains-lockstep-connections-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (kv? evt :mod "domains_callback") (kv? evt :at "connect")))))
+   (fn [evt] (and (kv? evt :mod "domains_callback")
+                 (kv? evt :at "connect")))))
 
 (defstat hermes-domains-lockstep-disconnects-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (kv? evt :mod "domains_callback") (kv? evt :at "disconnect")))))
+   (fn [evt] (and (kv? evt :mod "domains_callback")
+                 (kv? evt :at "disconnect")))))
 
 (defstat hermes-domains-lockstep-mean-latency
   (mean 70
-    (fn [evt] (and (cloud? evt) (kv? evt :mod "hermes_clock") (kv? evt :callback "domains_callback") (k? evt :latency)))
-    :latency))
+        (fn [evt] (and (kv? evt :mod "hermes_clock")
+                      (kv? evt :callback "domains_callback")
+                      (k? evt :latency)))
+        :latency))
 
 (defstat hermes-domains-lockstep-mean-staleness
   (mean 70
-    (fn [evt] (and (cloud? evt) (kv? evt :mod "hermes_clock") (kv? evt :callback "domains_callback") (k? evt :staleness)))
-    :staleness))
+        (fn [evt] (and (kv? evt :mod "hermes_clock")
+                      (kv? evt :callback "domains_callback")
+                      (k? evt :staleness)))
+        :staleness))
 
 (defstat hermes-domain-groups-lockstep-updates-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (kv? evt :mod "domain_groups_callback") (kv? evt :at "msg")))))
+   (fn [evt] (and (kv? evt :mod "domain_groups_callback")
+                 (kv? evt :at "msg")))))
 
 (defstat hermes-domain-groups-lockstep-connections-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (kv? evt :mod "domain_groups_callback") (kv? evt :at "connect")))))
+   (fn [evt] (and (kv? evt :mod "domain_groups_callback")
+                 (kv? evt :at "connect")))))
 
 (defstat hermes-domain-groups-lockstep-disconnects-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (kv? evt :mod "domain_groups_callback") (kv? evt :at "disconnect")))))
+   (fn [evt] (and (kv? evt :mod "domain_groups_callback")
+                 (kv? evt :at "disconnect")))))
 
 (defstat hermes-domain-groups-lockstep-mean-latency
   (mean 70
-    (fn [evt] (and (cloud? evt) (kv? evt :mod "hermes_clock") (kv? evt :callback "domain_groups_callback") (k? evt :latency)))
-    :latency))
+        (fn [evt] (and (kv? evt :mod "hermes_clock")
+                      (kv? evt :callback "domain_groups_callback")
+                      (k? evt :latency)))
+        :latency))
 
 (defstat hermes-domain-groups-lockstep-mean-staleness
   (mean 70
-    (fn [evt] (and (cloud? evt) (kv? evt :mod "hermes_clock") (kv? evt :callback "domain_groups_callback") (k? evt :staleness)))
-    :staleness))
+        (fn [evt] (and (kv? evt :mod "hermes_clock")
+                      (kv? evt :callback "domain_groups_callback")
+                      (k? evt :staleness)))
+        :staleness))
 
 (defstat hermes-elevated-route-lookups-per-minute
   (per-minute
@@ -601,32 +642,32 @@
 
 (defstat hermes-processes-last
   (last-sum
-    (fn [evt] (and (cloud? evt) (kv? evt :mod "hermes_clock") (kv? evt :at "stats")))
-    :instance_id
-    :processes))
+   (fn [evt] (and (kv? evt :mod "hermes_clock") (kv? evt :at "stats")))
+   :instance_id
+   :processes))
 
 (defstat hermes-ports-last
   (last-sum
-    (fn [evt] (and (cloud? evt) (kv? evt :mod "hermes_clock") (kv? evt :at "stats")))
-    :instance_id
-    :ports))
+   (fn [evt] (and (kv? evt :mod "hermes_clock") (kv? evt :at "stats")))
+   :instance_id
+   :ports))
 
 (defstat logplex-msg-processed
   (last-sum
-    (fn [evt] (and (cloud? evt) (k? evt :logplex_stats) (k? evt :message_processed)))
-    :instance_id
-    :message_processed))
+   (fn [evt] (and (k? evt :logplex_stats) (k? evt :message_processed)))
+   :instance_id
+   :message_processed))
 
 (defstat logplex-drain-delivered
   (last-sum
-    (fn [evt] (and (cloud? evt) (k? evt :logplex_stats) (k? evt :drain_delivered)))
-    (fn [evt] [(:instance_id evt) (:drain_id evt)])
-    :drain_delivered))
+   (fn [evt] (and (k? evt :logplex_stats) (k? evt :drain_delivered)))
+   (fn [evt] [(:instance_id evt) (:drain_id evt)])
+   :drain_delivered))
 
 ; railgun
 
 (defn railgun? [evt]
-  (and (cloud? evt) (k? evt :railgun)))
+  (k? evt :railgun))
 
 (defstat railgun-running-count
   (last-count
@@ -888,8 +929,9 @@
 
 (defstat railgun-unhandled-exceptions-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (k? evt :railgun) (k? evt :exception)
-                   (not (k? evt :site)) (not (k? evt :reraise)) (not (k? evt :trapping))))))
+   (fn [evt] (and (k? evt :railgun) (k? evt :exception)
+                 (not (k? evt :site)) (not (k? evt :reraise))
+                 (not (k? evt :trapping))))))
 
 (defstat railgun-pings-per-minute
   (per-minute
@@ -989,184 +1031,154 @@
 
 (defstat psmgr-idles-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :function "up_to_up") (kv? evt :event "idle")))))
+   (fn [evt] (and (kv? evt :source "psmgr")
+                 (kv? evt :function "up_to_up")
+                 (kv? evt :event "idle")))))
 
 (defstat psmgr-unidles-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :function "unidle") (kv? evt :block "begin")))))
+   (fn [evt] (and (kv? evt :source "psmgr")
+                 (kv? evt :function "unidle")
+                 (kv? evt :block "begin")))))
 
 (defstat psmgr-run-requests-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :file "run/redis_helper") (kv? evt :queue "ps.run") (kv? evt :event "published")))))
+   (fn [evt] (and (kv? evt :source "psmgr")
+                 (kv? evt :file "run/redis_helper")
+                 (kv? evt :queue "ps.run")
+                 (kv? evt :event "published")))))
 
 (defstat psmgr-kill-requests-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :file "run/redis_helper") (cont? evt :queue "ps.kill.") (kv? evt :event "published")))))
+   (fn [evt] (and (kv? evt :source "psmgr")
+                 (kv? evt :file "run/redis_helper")
+                 (cont? evt :queue "ps.kill.")
+                 (kv? evt :event "published")))))
 
 (defstat psmgr-converges-per-second
   (per-second
-    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :function "transition") (kv? evt :block "begin")))))
+   (fn [evt] (and (kv? evt :source "psmgr")
+                 (kv? evt :function "transition")
+                 (kv? evt :block "begin")))))
 
 (defstat psmgr-unhandled-exceptions-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (kv? evt :level "err") (kv? evt :source "psmgr")))))
+   (fn [evt] (and (kv? evt :level "err")
+                 (kv? evt :source "psmgr")))))
 
 (defstat psmgr-runtime-bus-receives-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :file "run/redis_helper") (k? evt :queue) (kv? evt :event "received")))))
+   (fn [evt] (and (kv? evt :source "psmgr")
+                 (kv? evt :file "run/redis_helper")
+                 (k? evt :queue)
+                 (kv? evt :event "received")))))
 
 (defstat psmgr-runtime-bus-timeouts-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :file "run/redis_helper") (k? evt :queue) (kv? evt :event "timeout")))))
+   (fn [evt] (and (kv? evt :source "psmgr")
+                 (kv? evt :file "run/redis_helper")
+                 (k? evt :queue)
+                 (kv? evt :event "timeout")))))
 
 (defstat psmgr-runtime-bus-published-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :file "run/redis_helper") (k? evt :queue) (kv? evt :event "published")))))
+   (fn [evt] (and (kv? evt :source "psmgr")
+                 (kv? evt :file "run/redis_helper")
+                 (k? evt :queue)
+                 (kv? evt :event "published")))))
 
 (defstat psmgr-events-per-second
   (per-second
-    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr")))))
+   (fn [evt] (kv? evt :source "psmgr"))))
 
 (defstat psmgr-api-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :function "post") (kv? evt :block "finish")))))
+   (fn [evt] (and (kv? evt :source "psmgr")
+                 (kv? evt :function "post")
+                 (kv? evt :block "finish")))))
 
 (defstat psmgr-api-time
   (mean 60
-    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :function "post") (kv? evt :block "finish")))
-    :elapsed))
+        (fn [evt] (and (kv? evt :source "psmgr")
+                      (kv? evt :function "post")
+                      (kv? evt :block "finish")))
+        :elapsed))
 
 (defstat psmgr-runs-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :event "run")))))
+   (fn [evt] (and (kv? evt :source "psmgr")
+                 (kv? evt :event "run")))))
 
 (defstat psmgr-cycles-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :event "cycle")))))
+   (fn [evt] (and (kv? evt :source "psmgr")
+                 (kv? evt :event "cycle")))))
 
 (defstat psmgr-lost-runs-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :event "lost_run")))))
+   (fn [evt] (and (kv? evt :source "psmgr")
+                 (kv? evt :event "lost_run")))))
 
 (defstat psmgr-foregrounds-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :fun "foreground")))))
+   (fn [evt] (and (kv? evt :source "psmgr")
+                 (kv? evt :fun "foreground")))))
 
 (defstat psmgr-backgrounds-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :fun "background")))))
+   (fn [evt] (and (kv? evt :source "psmgr")
+                 (kv? evt :fun "background")))))
 
 ; packaging
 
 (defstat gitproxy-connections-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (k? evt :gitproxy) (k? evt :run) (kv? evt :at "start")))))
+   (fn [evt] (and (k? evt :gitproxy)
+                 (k? evt :run)
+                 (kv? evt :at "start")))))
 
 (defstat gitproxy-invalids-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (k? evt :gitproxy) (k? evt :run) (kv? evt :at "invalid")))))
+   (fn [evt] (and (k? evt :gitproxy)
+                 (k? evt :run)
+                 (kv? evt :at "invalid")))))
 
 (defstat gitproxy-errors-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (k? evt :gitproxy) (k? evt :run) (kv? evt :at "exception") (not (k? evt :reraise))))))
+   (fn [evt] (and (k? evt :gitproxy)
+                 (k? evt :run)
+                 (kv? evt :at "exception")
+                 (not (k? evt :reraise))))))
 
 (defstat gitproxy-successes-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (k? evt :gitproxy) (k? evt :run) (kv? evt :at "success")))))
+   (fn [evt] (and (k? evt :gitproxy)
+                 (k? evt :run)
+                 (kv? evt :at "success")))))
 
 (defstat gitproxy-mean-metadata-time
   (mean 60
-    (fn [evt] (and (cloud? evt) (k? evt :gitproxy) (k? evt :fetch_push_metadata) (finish? evt)))
-    :elapsed))
+        (fn [evt] (and (k? evt :gitproxy)
+                      (k? evt :fetch_push_metadata)
+                      (finish? evt)))
+        :elapsed))
 
 (defstat gitproxy-mean-provision-time
   (mean 60
-    (fn [evt] (and (cloud? evt) (k? evt :gitproxy) (k? evt :fetch_ssh_info) (finish? evt)))
-    :elapsed))
+        (fn [evt] (and (k? evt :gitproxy)
+                      (k? evt :fetch_ssh_info)
+                      (finish? evt)))
+        :elapsed))
 
 (defstat gitproxy-mean-service-time
   (mean 60
-    (fn [evt] (and (cloud? evt) (k? evt :gitproxy) (k? evt :run) (finish? evt)))
-    :elapsed))
-
-(defstat codon-launches-per-minute
-  (per-minute
-    (fn [evt] (and (k? evt :codon) (k? evt :production) (k? evt :monitor_processes) (kv? evt :at "launch")))))
-
-(defstat codon-receives-per-minute
-  (per-minute
-    (fn [evt] (and (k? evt :codon) (k? evt :production) (k? evt :receive) (kv? evt :at "dequeue") (not (kv? evt :timeout true))))))
-
-(defstat codon-exits-per-minute
-  (per-minute
-    (fn [evt] (and (k? evt :codon) (k? evt :production) (k? evt :receive) (kv? evt :at "exit")))))
-
-(defstat codon-cycles-per-minute
-  (per-minute
-    (fn [evt] (and (k? evt :codon) (k? evt :production) (k? evt :receive) (kv? evt :at "cycle")))))
-
-(defstat codon-up-last
-  (last-count
-    (fn [evt] (and (k? evt :codon) (k? evt :production) (k? evt :spawn_heartbeat) (emit? evt)))
-    :hostname
-    (constantly true)
-    3))
-
-(defstat codon-busy-last
-  (last-count
-    (fn [evt] (and (k? evt :codon) (k? evt :production) (k? evt :spawn_heartbeat) (emit? evt)))
-    :hostname
-    (fn [evt] (kv? evt :busy true))
-    3))
-
-(defstat codon-compiling-last
-  (last-count
-    (fn [evt] (and (k? evt :codon) (k? evt :production) (k? evt :spawn_heartbeat) (emit? evt)))
-    :hostname
-    (fn [evt] (kv? evt :compiling true))
-    3))
-
-(defstat codon-mean-fetch-time
-  (mean 60
-    (fn [evt] (and (k? evt :codon) (k? evt :production) (k? evt :fetch_repo) (finish? evt)))
-    :elapsed))
-
-(defstat codon-mean-stow-time
-  (mean 60
-    (fn [evt] (and (k? evt :codon) (k? evt :production) (k? evt :stow_repo) (finish? evt)))
-    :elapsed))
-
-(defstat codon-fetch-errors-per-minute
-  (per-minute
-    (fn [evt] (and (k? evt :codon) (k? evt :production) (k? evt :fetch_repo) (kv? evt :at "error")))))
-
-(defstat codon-stow-errors-per-minute
-  (per-minute
-    (fn [evt] (and (k? evt :codon) (k? evt :production) (k? evt :stow_repo) (finish? evt) (not (kv? evt :exit_status 0)) (not (kv? evt :out "200"))))))
-
-(defstat codon-mean-service-time
-  (mean 60
-    (fn [evt] (and (k? evt :codon) (k? evt :production) (k? evt :await) (finish? evt) (k? evt :service_elapsed)))
-    :service_elapsed))
-
-(defstat codon-mean-age
-  (mean 60
-    (fn [evt] (and (k? evt :codon) (k? evt :production) (k? evt :spawn_heartbeat) (emit? evt)))
-    :age))
-
-(defstat codon-unhandled-exceptions-per-minute
-  (per-minute
-    (fn [evt] (and (k? evt :codon) (k? evt :production) (k? evt :exception) (not (k? evt :site)) (not (k? evt :reraise))))))
-
-(defstat codon-queue-depth
-  (last-sum
-    (fn [evt] (and (k? evt :codon) (k? evt :production) (k? evt :monitor_queue) (kv? evt :at "emit")))
-    :queue
-    :depth
-    20))
+        (fn [evt] (and (k? evt :gitproxy)
+                      (k? evt :run)
+                      (finish? evt)))
+        :elapsed))
 
 (defn slugc? [evt]
-  (and (cloud? evt) (k? evt :slugc)))
+  (k? evt :slugc))
 
 (defstat slugc-compiles-per-minute
   (per-minute
@@ -1223,15 +1235,15 @@
 
 (defstat shen-errors-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (kv? evt :level "err") (kv? evt :source "shen")))))
+    (fn [evt] (and (kv? evt :level "err") (kv? evt :source "shen")))))
 
 ; internal
 
-(defstat pulse-events-per-second
+(defstat-single pulse-events-per-second
   (per-second
     (fn [evt] (and (kv? evt :app "pulse") (kv? evt :deploy (conf/deploy))))))
 
-(def all
+(def defaults
   [
   ; global
    events-per-second
@@ -1423,21 +1435,6 @@
    gitproxy-mean-metadata-time
    gitproxy-mean-provision-time
    gitproxy-mean-service-time
-   codon-launches-per-minute
-   codon-receives-per-minute
-   codon-exits-per-minute
-   codon-cycles-per-minute
-   codon-up-last
-   codon-busy-last
-   codon-compiling-last
-   codon-mean-fetch-time
-   codon-mean-stow-time
-   codon-fetch-errors-per-minute
-   codon-stow-errors-per-minute
-   codon-mean-service-time
-   codon-mean-age
-   codon-unhandled-exceptions-per-minute
-   codon-queue-depth
    slugc-compiles-per-minute
    slugc-failures-per-minute
    slugc-errors-per-minute
@@ -1457,3 +1454,13 @@
    ; internal
    pulse-events-per-second
    ])
+
+(defn non-defaults [stat]
+  (for [cloud (conf/clouds)
+        :when (not= cloud (conf/default-cloud))
+        :let [scoped-name (scope-stat cloud (:name stat))
+              stat-sym (symbol (string/replace scoped-name "." "-"))]
+        :when (resolve stat-sym)]
+    (resolve stat-sym)))
+
+(def all (apply concat defaults (map non-defaults defaults)))
