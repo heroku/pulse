@@ -250,7 +250,7 @@
            `(def ~scoped-var-name (assoc ~body-sym
                                     :name ~scoped-name
                                     :pred-fn (fn [evt#]
-                                               (and (= :cloud evt# ~cloud)
+                                               (and (= (:cloud evt#) ~cloud)
                                                     ((:pred-fn ~body-sym) evt#)))))))))
 
 (defn kv? [m k v]
