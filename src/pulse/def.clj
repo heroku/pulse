@@ -1001,7 +1001,7 @@
 
 (defstat psmgr-kill-requests-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :file "runtime") (cont? evt :queue "ps.kill.") (kv? evt :event "published")))))
+    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :file "runtime") (cont? evt :key "ps.kill.") (kv? evt :event "published")))))
 
 (defstat psmgr-converges-per-second
   (per-second
