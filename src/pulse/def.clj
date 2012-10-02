@@ -1044,15 +1044,15 @@
 (defstat psmgr-run-requests-per-minute
   (per-minute
    (fn [evt] (and (kv? evt :source "psmgr")
-                 (kv? evt :file "run/redis_helper")
-                 (kv? evt :queue "ps.run")
+                 (kv? evt :file "runtime")
+                 (kv? evt :key "ps.run")
                  (kv? evt :event "published")))))
 
 (defstat psmgr-kill-requests-per-minute
   (per-minute
    (fn [evt] (and (kv? evt :source "psmgr")
-                 (kv? evt :file "run/redis_helper")
-                 (cont? evt :queue "ps.kill.")
+                 (kv? evt :file "runtime")
+                 (cont? evt :key "ps.kill.")
                  (kv? evt :event "published")))))
 
 (defstat psmgr-converges-per-second
@@ -1069,22 +1069,22 @@
 (defstat psmgr-runtime-bus-receives-per-minute
   (per-minute
    (fn [evt] (and (kv? evt :source "psmgr")
-                 (kv? evt :file "run/redis_helper")
+                 (kv? evt :file "runtime")
                  (k? evt :queue)
                  (kv? evt :event "received")))))
 
 (defstat psmgr-runtime-bus-timeouts-per-minute
   (per-minute
    (fn [evt] (and (kv? evt :source "psmgr")
-                 (kv? evt :file "run/redis_helper")
+                 (kv? evt :file "runtime")
                  (k? evt :queue)
                  (kv? evt :event "timeout")))))
 
 (defstat psmgr-runtime-bus-published-per-minute
   (per-minute
    (fn [evt] (and (kv? evt :source "psmgr")
-                 (kv? evt :file "run/redis_helper")
-                 (k? evt :queue)
+                 (kv? evt :file "runtime")
+                 (k? evt :key)
                  (kv? evt :event "published")))))
 
 (defstat psmgr-events-per-second
@@ -1122,12 +1122,12 @@
 (defstat psmgr-foregrounds-per-minute
   (per-minute
    (fn [evt] (and (kv? evt :source "psmgr")
-                 (kv? evt :fun "foreground")))))
+                 (kv? evt :fn "foreground")))))
 
 (defstat psmgr-backgrounds-per-minute
   (per-minute
    (fn [evt] (and (kv? evt :source "psmgr")
-                 (kv? evt :fun "background")))))
+                 (kv? evt :fn "background")))))
 
 ; packaging
 
