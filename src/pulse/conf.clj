@@ -18,3 +18,4 @@
 (defn canonical-host [] (env! "CANONICAL_HOST"))
 (defn publish-threads [] (Integer. (env! "PUBLISH_THREADS")))
 (defn merger-count [] (Integer. (or (env "MERGER_COUNT") 5)))
+(defn graphite-prefix [] (env "GRAPHITE_PREFIX"))

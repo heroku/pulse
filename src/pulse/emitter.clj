@@ -13,11 +13,12 @@
   (atom '()))
 
 (defn post [metrics-url stats]
-  (let [{:keys [host]} (util/url-parse metrics-url)]
+  (let [{:keys [host]} (util/url-parse metrics-url)
+        stats (map #(update-in % [:name] (partial str (conf/graphite-prefix))) stats)]
     (log :fn "post" :at "start" :host host)
     (try
       (http/post metrics-url
-        {:body (json/generate-string stats)
+                 {:body (json/generate-string stats)
          :socket-timeout 5000
          :conn-timeout 5000
          :content-type :json})
