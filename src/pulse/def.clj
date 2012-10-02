@@ -1460,7 +1460,7 @@
         :when (not= cloud (conf/default-cloud))
         :let [scoped-name (scope-stat cloud (:name stat))
               stat-sym (symbol (string/replace scoped-name "." "-"))]
-        :when (resolve stat-sym)]
-    (resolve stat-sym)))
+        :when (ns-resolve 'pulse.def stat-sym)]
+    (ns-resolve 'pulse.def stat-sym)))
 
 (def all (apply concat defaults (map non-defaults defaults)))
