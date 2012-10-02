@@ -252,7 +252,7 @@
 (defn scope-stat [cloud stat-name]
   (if (= cloud (conf/default-cloud))
     (name stat-name)
-    (str cloud "." (name stat-name))))
+    (str (string/replace cloud #"\.com" "") "." (name stat-name))))
 
 (defmacro defstat [stat-name stat-body]
   `(do
