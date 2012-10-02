@@ -255,6 +255,8 @@
               (def ~scoped-var-name (assoc ~body-sym
                                     :name ~(str (conf/graphite-prefix) scoped-name)
                                     :pred-fn (fn [evt#]
+                                               (when (> (rand) 0.95)
+                                                 (log :at "defstat/pred-fn" :cloud (:cloud evt#)))
                                                (and (= (:cloud evt#) ~cloud)
                                                     ((:pred-fn ~body-sym) evt#)))))
               (swap! all conj ~scoped-var-name))))))
