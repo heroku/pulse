@@ -997,11 +997,11 @@
 
 (defstat psmgr-run-requests-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :file "run/redis_helper") (kv? evt :queue "ps.run") (kv? evt :event "published")))))
+    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :file "runtime") (kv? evt :key "ps.run") (kv? evt :event "published")))))
 
 (defstat psmgr-kill-requests-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :file "run/redis_helper") (cont? evt :queue "ps.kill.") (kv? evt :event "published")))))
+    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :file "runtime") (cont? evt :queue "ps.kill.") (kv? evt :event "published")))))
 
 (defstat psmgr-converges-per-second
   (per-second
@@ -1021,7 +1021,7 @@
 
 (defstat psmgr-runtime-bus-published-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :file "run/redis_helper") (k? evt :queue) (kv? evt :event "published")))))
+    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :file "runtime") (k? evt :key) (kv? evt :event "published")))))
 
 (defstat psmgr-events-per-second
   (per-second
