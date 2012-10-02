@@ -1055,14 +1055,14 @@
    (fn [evt] (and (kv? evt :source "psmgr")
                  (kv? evt :file "runtime")
                  (kv? evt :key "ps.run")
-                 (kv? evt :event "published")))))
+                 (kv? evt :at "published")))))
 
 (defstat psmgr-kill-requests-per-minute
   (per-minute
    (fn [evt] (and (kv? evt :source "psmgr")
                  (kv? evt :file "runtime")
                  (cont? evt :key "ps.kill.")
-                 (kv? evt :event "published")))))
+                 (kv? evt :at "published")))))
 
 (defstat psmgr-converges-per-second
   (per-second
@@ -1080,19 +1080,19 @@
    (fn [evt] (and (kv? evt :source "psmgr")
                  (kv? evt :file "runtime")
                  (k? evt :key)
-                 (kv? evt :event "received")))))
+                 (kv? evt :at "received")))))
 
 (defstat psmgr-runtime-bus-timeouts-per-minute
   (per-minute
    (fn [evt] (and (kv? evt :source "psmgr")
-                 (kv? evt :file "runtime")
-                 (k? evt :queue)
+                 (kv? evt :at "runtime")
+                 (k? evt :key)
                  (kv? evt :event "timeout")))))
 
 (defstat psmgr-runtime-bus-published-per-minute
   (per-minute
    (fn [evt] (and (kv? evt :source "psmgr")
-                 (kv? evt :file "runtime")
+                 (kv? evt :at "runtime")
                  (k? evt :key)
                  (kv? evt :event "published")))))
 
