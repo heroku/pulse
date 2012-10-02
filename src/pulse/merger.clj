@@ -40,7 +40,7 @@
   (log :fn "main" :at "start")
   (let [apply-queue (queue/init 2000)
         publish-queue (queue/init 100)
-        stats-map (init-stats def/all shard)]
+        stats-map (init-stats @def/all shard)]
     (queue/init-watcher apply-queue "apply")
     (queue/init-watcher publish-queue "publish")
     (io/init-publishers publish-queue (conf/redis-url) "stats.merged"

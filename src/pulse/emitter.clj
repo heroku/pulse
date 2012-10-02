@@ -13,8 +13,7 @@
   (atom '()))
 
 (defn post [metrics-url stats]
-  (let [{:keys [host]} (util/url-parse metrics-url)
-        stats (map #(update-in % [:name] (partial str (conf/graphite-prefix))) stats)]
+  (let [{:keys [host]} (util/url-parse metrics-url)]
     (log :fn "post" :at "start" :host host)
     (try
       (http/post metrics-url
