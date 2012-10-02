@@ -16,7 +16,6 @@
 (defn clouds [] (str/split (env! "CLOUDS") #","))
 (defn default-cloud [] (or (env "DEFAULT_CLOUD") (first (clouds))))
 (defn canonical-host [] (env! "CANONICAL_HOST"))
-(defn graphite-url [] (env! "GRAPHITE_URL"))
-(defn graphite-period [] (env! "GRAPHITE_PERIOD"))
-(defn publish-threads [] (Integer/parseInt (env! "PUBLISH_THREADS")))
-(defn merger-count [] 5)
+(defn publish-threads [] (Integer. (env! "PUBLISH_THREADS")))
+(defn merger-count [] (Integer. (or (env "MERGER_COUNT") 5)))
+(defn graphite-prefix [] (env "GRAPHITE_PREFIX")) ; for staging deploys

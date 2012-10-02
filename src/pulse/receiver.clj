@@ -36,7 +36,7 @@
   (log :fn "main" :at "start")
   (let [apply-queue (queue/init 10000)
         publish-queue (queue/init 1000)
-        stats-states (init-stats def/all)]
+        stats-states (init-stats @def/all)]
     (queue/init-watcher apply-queue "apply")
     (queue/init-watcher publish-queue "publish")
     (io/init-publishers publish-queue (conf/redis-url) io/shard-channel

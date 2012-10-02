@@ -1,9 +1,9 @@
 .env*
-!.end.sample
+!.env.sample
 lib
 *.xml
 *.jar
 classes
 .lein-deps-sum
 /.lein-plugins/checksum
-/target/stale/dependencies
+/target

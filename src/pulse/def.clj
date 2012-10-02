@@ -21,41 +21,49 @@
       0
       (float (/ (coll-sum c) n)))))
 
+(def ^:dynamic *cloud*)
+
+(defn cloud-scoped-pred [pred-fn cloud]
+  (fn [evt]
+    (and (= (:cloud evt) cloud) (pred-fn evt))))
+
 (defn max [time-buffer pred-fn val-fn]
-  {:receive-init
+  (let [pred-fn (cloud-scoped-pred pred-fn *cloud*)]
+    {:receive-init
      (fn []
        [(util/millis) nil])
-   :receive-apply
+     :receive-apply
      (fn [[window-start window-max :as window] evt]
        (if-not (pred-fn evt)
          window
          (let [val (val-fn evt)]
            (cond
-             (nil? window-max)  [window-start val]
-             (> val window-max) [window-start val]
-             :else              window))))
-   :receive-emit
+            (nil? window-max)  [window-start val]
+            (> val window-max) [window-start val]
+            :else              window))))
+     :receive-emit
      (fn [receive-buffer]
        receive-buffer)
-   :merge-init
+     :merge-init
      (fn []
        [])
-   :merge-apply
+     :merge-apply
      (fn [windows [window-start window-max :as window]]
        (conj windows window))
-   :merge-emit
+     :merge-emit
      (fn [windows]
        (let [now (util/millis)
              recent-windows (filter (fn [[window-start _]] (>= window-start (- now (* 1000 time-buffer)))) windows)
              recent-values (->> windows (map (fn [[_ window-max]] window-max)) (filter #(not (nil? %))))
              recent-max (or (and (seq recent-values) (apply clojure.core/max recent-values)) 0)]
-         [recent-windows recent-max]))})
+         [recent-windows recent-max]))}))
 
 (defn mean [time-buffer pred-fn val-fn]
-  {:receive-init
+  (let [pred-fn (cloud-scoped-pred pred-fn *cloud*)]
+    {:receive-init
      (fn []
        [(util/millis) 0 0])
-   :receive-apply
+     :receive-apply
      (fn [[window-start window-count window-sum :as receive-buffer] evt]
        (if-not (pred-fn evt)
          receive-buffer
@@ -65,48 +73,49 @@
                (prn :fn "mean" :at "nil-val" :msg (:msg evt))
                receive-buffer)
              [window-start (inc window-count) (+ window-sum val)]))))
-   :receive-emit
+     :receive-emit
      (fn [receive-buffer]
        receive-buffer)
-   :merge-init
+     :merge-init
      (fn []
        [])
-   :merge-apply
+     :merge-apply
      (fn [windows window]
        (conj windows window))
-   :merge-emit
+     :merge-emit
      (fn [windows]
        (let [now (util/millis)
              recent-windows (filter (fn [[window-start _ _]] (>= window-start (- now (* 1000 time-buffer)))) windows)
              recent-count (coll-sum (map (fn [[_ window-count _]] window-count) recent-windows))
              recent-sum (coll-sum (map (fn [[_ _ window-sum]] window-sum) recent-windows))
              recent-mean (double (if (zero? recent-count) 0 (/ recent-sum recent-count)))]
-         [recent-windows recent-mean]))})
+         [recent-windows recent-mean]))}))
 
 (defn rate [time-unit time-buffer pred-fn]
-  {:receive-init
+  (let [pred-fn (cloud-scoped-pred pred-fn *cloud*)]
+    {:receive-init
      (fn []
        [(util/millis) 0])
-   :receive-apply
+     :receive-apply
      (fn [[window-start window-count] event]
        [window-start (if (pred-fn event) (inc window-count) window-count)])
-   :receive-emit
+     :receive-emit
      (fn [[window-start window-count]]
        [window-start (util/millis) window-count])
-   :merge-init
+     :merge-init
      (fn []
        [])
-   :merge-apply
+     :merge-apply
      (fn [windows window]
        (conj windows window))
-   :merge-emit
+     :merge-emit
      (fn [windows]
        (let [now (util/millis)
              recent-windows (filter (fn [[window-start _ _]] (>= window-start (- now (* 1000 time-buffer) 1000))) windows)
              complete-windows (filter (fn [[window-start _ _]] (< window-start (- now 1000))) recent-windows)
              complete-count (coll-sum (map (fn [[_ _ window-count]] window-count) complete-windows))
              complete-rate (double (/ complete-count (/ time-buffer time-unit)))]
-         [recent-windows complete-rate]))})
+         [recent-windows complete-rate]))}))
 
 (defn per-second [pred-fn]
   (rate 1 10 pred-fn))
@@ -232,26 +241,26 @@
   (let [recent-interval (or recent-interval 300)]
     (last-sum pred-fn part-fn (fn [evt] (if (cnt-fn evt) 1 0)) recent-interval)))
 
+;; all stats
+(def all (atom []))
+
 ;; for stats which apply across clouds
 (defmacro defstat-single [stat-name stat-body]
-  `(def ~stat-name (merge ~stat-body {:name (name '~stat-name)})))
+  `(do (def ~stat-name (merge ~stat-body {:name (name '~stat-name)}))
+       (swap! all conj ~stat-name)))
 
 (defn scope-stat [cloud stat-name]
   (if (= cloud (conf/default-cloud))
     (name stat-name)
-    (str cloud "." (name stat-name))))
+    (str (string/replace cloud #"\.com" "") "." (name stat-name))))
 
 (defmacro defstat [stat-name stat-body]
-  (let [body-sym (gensym)]
-    `(let [~body-sym ~stat-body]
-       ~@(for [cloud (conf/clouds)
-               :let [scoped-name (scope-stat cloud stat-name)
-                     scoped-var-name (symbol (string/replace scoped-name "." "-"))]]
-           `(def ~scoped-var-name (assoc ~body-sym
-                                    :name ~scoped-name
-                                    :pred-fn (fn [evt#]
-                                               (and (= (:cloud evt#) ~cloud)
-                                                    ((:pred-fn ~body-sym) evt#)))))))))
+  `(do
+     ~@(for [cloud (conf/clouds)
+             :let [scoped-name (scope-stat cloud stat-name)
+                   scoped-var-name (symbol (string/replace scoped-name "." "-"))]]
+         `(swap! all conj (assoc (binding [*cloud* ~cloud] ~stat-body)
+                            :name ~(str (conf/graphite-prefix) scoped-name))))))
 
 (defn kv? [m k v]
   (= (k m) v))
@@ -620,17 +629,17 @@
                       (k? evt :staleness)))
         :staleness))
 
-(defstat hermes-elevated-route-lookups-per-minute
-  (per-minute
-    (fn [evt] (and (hermes-request? evt) (kv? evt :code "OK") (>=? evt :route 2.0)))))
+;; (defstat hermes-elevated-route-lookups-per-minute
+;;   (per-minute
+;;     (fn [evt] (and (hermes-request? evt) (kv? evt :code "OK") (>=? evt :route 2.0)))))
 
-(defstat hermes-slow-route-lookups-per-minute
-  (per-minute
-    (fn [evt] (and (hermes-request? evt) (kv? evt :code "OK") (>=? evt :route 10.0)))))
+;; (defstat hermes-slow-route-lookups-per-minute
+;;   (per-minute
+;;     (fn [evt] (and (hermes-request? evt) (kv? evt :code "OK") (>=? evt :route 10.0)))))
 
-(defstat hermes-catastrophic-route-lookups-per-minute
-  (per-minute
-    (fn [evt] (and (hermes-request? evt) (kv? evt :code "OK") (>=? evt :route 100.0)))))
+;; (defstat hermes-catastrophic-route-lookups-per-minute
+;;   (per-minute
+;;     (fn [evt] (and (hermes-request? evt) (kv? evt :code "OK") (>=? evt :route 100.0)))))
 
 (defstat hermes-slow-redis-lookups-per-minute
   (per-minute
@@ -1242,225 +1251,3 @@
 (defstat-single pulse-events-per-second
   (per-second
     (fn [evt] (and (kv? evt :app "pulse") (kv? evt :deploy (conf/deploy))))))
-
-(def defaults
-  [
-  ; global
-   events-per-second
-   events-per-second-unparsed
-   amqp-publishes-per-second
-   amqp-receives-per-second
-   amqp-timeouts-per-minute
-
-   ; routing
-   nginx-requests-per-second
-   nginx-requests-domains-per-minute
-   nginx-500-per-minute
-   nginx-502-per-minute
-   nginx-503-per-minute
-   nginx-504-per-minute
-   nginx-500-domains-per-minute
-   nginx-502-domains-per-minute
-   nginx-503-domains-per-minute
-   nginx-504-domains-per-minute
-   nginx-errors-per-minute
-   nginx-errors-instances-per-minute
-   varnish-requests-per-second
-   varnish-500-per-minute
-   varnish-502-per-minute
-   varnish-503-per-minute
-   varnish-504-per-minute
-   varnish-purges-per-minute
-   rendezvous-joins-per-minute
-   rendezvous-rendezvous-per-minute
-   hermes-requests-per-second
-   hermes-requests-apps-per-minute
-   hermes-h10-per-minute
-   hermes-h11-per-minute
-   hermes-h12-per-minute
-   hermes-h13-per-minute
-   hermes-h14-per-minute
-   hermes-h15-per-minute
-   hermes-h16-per-minute
-   hermes-h17-per-minute
-   hermes-h18-per-minute
-   hermes-h19-per-minute
-   hermes-h20-per-minute
-   hermes-h80-per-minute
-   hermes-h99-per-minute
-   hermes-h10-apps-per-minute
-   hermes-h11-apps-per-minute
-   hermes-h12-apps-per-minute
-   hermes-h13-apps-per-minute
-   hermes-h14-apps-per-minute
-   hermes-h15-apps-per-minute
-   hermes-h16-apps-per-minute
-   hermes-h17-apps-per-minute
-   hermes-h18-apps-per-minute
-   hermes-h19-apps-per-minute
-   hermes-h20-apps-per-minute
-   hermes-h80-apps-per-minute
-   hermes-h99-apps-per-minute
-   hermes-econns-per-minute
-   hermes-econns-apps-per-minute
-   hermes-errors-per-minute
-   hermes-services-lockstep-updates-per-minute
-   hermes-services-lockstep-connections-per-minute
-   hermes-services-lockstep-disconnects-per-minute
-   hermes-services-lockstep-mean-latency
-   hermes-services-lockstep-mean-staleness
-   hermes-procs-lockstep-updates-per-minute
-   hermes-procs-lockstep-connections-per-minute
-   hermes-procs-lockstep-disconnects-per-minute
-   hermes-procs-lockstep-mean-latency
-   hermes-procs-lockstep-mean-staleness
-   hermes-domains-lockstep-updates-per-minute
-   hermes-domains-lockstep-connections-per-minute
-   hermes-domains-lockstep-disconnects-per-minute
-   hermes-domains-lockstep-mean-latency
-   hermes-domains-lockstep-mean-staleness
-   hermes-domain-groups-lockstep-updates-per-minute
-   hermes-domain-groups-lockstep-connections-per-minute
-   hermes-domain-groups-lockstep-disconnects-per-minute
-   hermes-domain-groups-lockstep-mean-latency
-   hermes-domain-groups-lockstep-mean-staleness
-;  hermes-elevated-route-lookups-per-minute
-;  hermes-slow-route-lookups-per-minute
-;  hermes-catastrophic-route-lookups-per-minute
-   hermes-slow-redis-lookups-per-minute
-   hermes-catastrophic-redis-lookups-per-minute
-   hermes-processes-last
-   hermes-ports-last
-   logplex-msg-processed
-   logplex-drain-delivered
-
-   ; railgun
-   railgun-running-count
-   railgun-denied-count
-   railgun-packed-count
-   railgun-loaded-count
-   railgun-critical-count
-   railgun-accepting-count
-   railgun-load-avg-15m-mean
-   railgun-ps-running-total-last
-   railgun-ps-running-web-last
-   railgun-ps-running-worker-last
-   railgun-ps-running-clock-last
-   railgun-ps-running-console-last
-   railgun-ps-running-rake-last
-   railgun-ps-running-other-last
-   railgun-runs-per-minute
-   railgun-returns-per-minute
-   railgun-kills-per-minute
-   railgun-subscribes-per-minute
-   railgun-unsubscribes-per-minute
-   railgun-status-batches-per-minute
-   railgun-gcs-per-minute
-   railgun-kill-time-mean
-   railgun-save-time-mean
-   railgun-unpack-time-mean
-   railgun-setup-time-mean
-   railgun-launch-time-mean
-   railgun-status-batch-time-mean
-   railgun-gc-time-mean
-   railgun-s3-requests-per-minute
-   railgun-s3-errors-per-minute
-   railgun-s3-time-mean
-   railgun-slug-download-fails-per-minute
-   railgun-s3-canary-requests-per-minute
-   railgun-s3-canary-errors-per-minute
-   railgun-s3-canary-time-mean
-   railgun-r10-per-minute
-   railgun-r11-per-minute
-   railgun-r12-per-minute
-   railgun-r14-per-minute
-   railgun-r15-per-minute
-   railgun-r16-per-minute
-   railgun-r17-per-minute
-   railgun-r18-per-minute
-   railgun-r10-apps-per-minute
-   railgun-r11-apps-per-minute
-   railgun-r12-apps-per-minute
-   railgun-r14-apps-per-minute
-   railgun-r15-apps-per-minute
-   railgun-r17-apps-per-minute
-   railgun-r18-apps-per-minute
-   railgun-inits-per-minute
-   railgun-traps-per-minute
-   railgun-exits-per-minute
-   railgun-unhandled-exceptions-per-minute
-   railgun-pings-per-minute
-   railgun-heartbeats-per-minute
-   railgun-events-per-second
-   railgun-runtime-bus-publishes-per-minute
-   railgun-runtime-bus-processing-per-minute
-   railgun-runtime-bus-expired-per-minute
-   railgun-runtime-bus-invalid-per-minute
-   railgun-runtime-bus-failed-pushes-per-minute
-   railgun-runtime-bus-failed-lpops-per-minute
-
-   build-railgun-running-count
-   build-railgun-denied-count
-   build-railgun-packed-count
-   build-railgun-loaded-count
-   build-railgun-critical-count
-   build-railgun-accepting-count
-   build-railgun-load-avg-15m-mean
-   build-railgun-ps-running-total-last
-
-   ; psmgr
-   psmgr-idles-per-minute
-   psmgr-unidles-per-minute
-   psmgr-run-requests-per-minute
-   psmgr-kill-requests-per-minute
-   psmgr-converges-per-second
-   psmgr-unhandled-exceptions-per-minute
-   psmgr-runtime-bus-receives-per-minute
-   psmgr-runtime-bus-timeouts-per-minute
-   psmgr-runtime-bus-published-per-minute
-   psmgr-events-per-second
-   psmgr-api-per-minute
-   psmgr-api-time
-   psmgr-runs-per-minute
-   psmgr-cycles-per-minute
-   psmgr-lost-runs-per-minute
-   psmgr-foregrounds-per-minute
-   psmgr-backgrounds-per-minute
-
-   ; packaging
-   gitproxy-connections-per-minute
-   gitproxy-invalids-per-minute
-   gitproxy-errors-per-minute
-   gitproxy-successes-per-minute
-   gitproxy-mean-metadata-time
-   gitproxy-mean-provision-time
-   gitproxy-mean-service-time
-   slugc-compiles-per-minute
-   slugc-failures-per-minute
-   slugc-errors-per-minute
-   slugc-successes-per-minute
-   slugc-aspen-compiles-per-minute
-   slugc-bamboo-compiles-per-minute
-   slugc-cedar-compiles-per-minute
-   slugc-mean-stow-time
-   slugc-mean-release-time
-   slugc-stow-errors-per-minute
-   slugc-release-errors-per-minute
-   slugc-mean-compile-time
-
-   ; data
-   shen-errors-per-minute
-
-   ; internal
-   pulse-events-per-second
-   ])
-
-(defn non-defaults [stat]
-  (for [cloud (conf/clouds)
-        :when (not= cloud (conf/default-cloud))
-        :let [scoped-name (scope-stat cloud (:name stat))
-              stat-sym (symbol (string/replace scoped-name "." "-"))]
-        :when (ns-resolve 'pulse.def stat-sym)]
-    @(ns-resolve 'pulse.def stat-sym)))
-
-(def all (apply concat defaults (map non-defaults defaults)))
