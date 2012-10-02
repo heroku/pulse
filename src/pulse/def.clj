@@ -1013,11 +1013,11 @@
 
 (defstat psmgr-runtime-bus-receives-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :file "run/redis_helper") (k? evt :queue) (kv? evt :event "received")))))
+    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :file "runtime") (k? evt :queue) (kv? evt :event "received")))))
 
 (defstat psmgr-runtime-bus-timeouts-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :file "run/redis_helper") (k? evt :queue) (kv? evt :event "timeout")))))
+    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :file "runtime") (k? evt :queue) (kv? evt :event "timeout")))))
 
 (defstat psmgr-runtime-bus-published-per-minute
   (per-minute
@@ -1050,11 +1050,11 @@
 
 (defstat psmgr-foregrounds-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :fun "foreground")))))
+    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :fn "foreground")))))
 
 (defstat psmgr-backgrounds-per-minute
   (per-minute
-    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :fun "background")))))
+    (fn [evt] (and (cloud? evt) (kv? evt :source "psmgr") (kv? evt :fn "background")))))
 
 ; packaging
 
