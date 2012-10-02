@@ -42,15 +42,11 @@ $ heroku create pulse-$DEPLOY -s cedar
 $ heroku addons:add redistogo:large -r $DEPLOY
 $ heroku config:add BUILDPACK_URL=https://github.com/heroku/heroku-buildpack-clojure.git -r $DEPLOY
 $ heroku config:add DEPLOY=$DEPLOY -r $DEPLOY
-$ heroku config:add CLOUD=heroku.com -r $DEPLOY
-$ heroku config:add FORCE_HTTPS=true -r $DEPLOY
-$ heroku config:add GRAPHITE_PERIOD=21600 -r $DEPLOY
+$ heroku config:add CLOUDS=heroku.com -r $DEPLOY
 $ heroku config:add PUBLISH_THREADS=2 -r $DEPLOY
-$ heroku config:add GRAPHITE_URL=... -r $DEPLOY
-$ heroku config:add SCALES_URL=... -r $DEPLOY
+$ heroku config:add METRICS_URL=... -r $DEPLOY
 $ heroku config:add REDIS_URL=... -r $DEPLOY
 $ heroku config:add AORTA_URLS=... -r $DEPLOY
-$ heroku config:add METRICS_URLS=... -r $DEPLOY
 
 $ git push $DEPLOY master
 $ heroku scale receiver=60 merger0=1 merger1=1 merger2=1 merger3=1 merger4=1 emitter=1 -r $DEPLOY
