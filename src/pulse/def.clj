@@ -1079,7 +1079,7 @@
   (per-minute
    (fn [evt] (and (kv? evt :source "psmgr")
                  (kv? evt :file "runtime")
-                 (k? evt :queue)
+                 (k? evt :key)
                  (kv? evt :event "received")))))
 
 (defstat psmgr-runtime-bus-timeouts-per-minute
