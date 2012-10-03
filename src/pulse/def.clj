@@ -1042,13 +1042,13 @@
 (defstat psmgr-idles-per-minute
   (per-minute
    (fn [evt] (and (kv? evt :source "psmgr")
-                 (kv? evt :function "up_to_up")
+                 (kv? evt :fn "up_to_up")
                  (kv? evt :event "idle")))))
 
 (defstat psmgr-unidles-per-minute
   (per-minute
    (fn [evt] (and (kv? evt :source "psmgr")
-                 (kv? evt :function "unidle")
+                 (kv? evt :fn "unidle")
                  (kv? evt :block "begin")))))
 
 (defstat psmgr-run-requests-per-minute
