@@ -1068,8 +1068,8 @@
 (defstat psmgr-converges-per-second
   (per-second
    (fn [evt] (and (kv? evt :source "psmgr")
-                 (kv? evt :function "transition")
-                 (kv? evt :block "begin")))))
+                 (kv? evt :fn "transition")
+                 (kv? evt :at "finish")))))
 
 (defstat psmgr-unhandled-exceptions-per-minute
   (per-minute
