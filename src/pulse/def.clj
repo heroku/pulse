@@ -1104,8 +1104,8 @@
 (defstat psmgr-api-per-minute
   (per-minute
    (fn [evt] (and (kv? evt :source "psmgr")
-                 (kv? evt :function "post")
-                 (kv? evt :block "finish")))))
+                 (kv? evt :file "api")
+                 (k? evt :query)))))
 
 (defstat psmgr-api-time
   (mean 60
