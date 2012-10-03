@@ -1049,7 +1049,7 @@
   (per-minute
    (fn [evt] (and (kv? evt :source "psmgr")
                  (kv? evt :fn "unidle")
-                 (kv? evt :block "begin")))))
+                 (kv? evt :at "finish")))))
 
 (defstat psmgr-run-requests-per-minute
   (per-minute
