@@ -21,11 +21,13 @@
       0
       (float (/ (coll-sum c) n)))))
 
-(def ^:dynamic *cloud*)
+(def ^:dynamic *cloud* nil)
 
 (defn cloud-scoped-pred [pred-fn cloud]
-  (fn [evt]
-    (and (= (:cloud evt) cloud) (pred-fn evt))))
+  (if cloud
+    (fn [evt]
+      (and (= (:cloud evt) cloud) (pred-fn evt)))
+    pred-fn))
 
 (defn max [time-buffer pred-fn val-fn]
   (let [pred-fn (cloud-scoped-pred pred-fn *cloud*)]
@@ -246,8 +248,7 @@
 
 ;; for stats which apply across clouds
 (defmacro defstat-single [stat-name stat-body]
-  `(do (def ~stat-name (merge ~stat-body {:name (name '~stat-name)}))
-       (swap! all conj ~stat-name)))
+  `(swap! all conj (merge ~stat-body {:name (name '~stat-name)})))
 
 (defn scope-stat [cloud stat-name]
   (if (= cloud (conf/default-cloud))
