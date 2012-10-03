@@ -1086,14 +1086,14 @@
 (defstat psmgr-runtime-bus-timeouts-per-minute
   (per-minute
    (fn [evt] (and (kv? evt :source "psmgr")
-                 (kv? evt :at "runtime")
+                 (kv? evt :file "runtime")
                  (k? evt :key)
                  (kv? evt :at "timeout")))))
 
 (defstat psmgr-runtime-bus-published-per-minute
   (per-minute
    (fn [evt] (and (kv? evt :source "psmgr")
-                 (kv? evt :at "runtime")
+                 (kv? evt :file "runtime")
                  (k? evt :key)
                  (kv? evt :at "published")))))
 
