@@ -43,12 +43,8 @@
             (nil? window-max)  [window-start val]
             (> val window-max) [window-start val]
             :else              window))))
-     :receive-emit
-     (fn [receive-buffer]
-       receive-buffer)
-     :merge-init
-     (fn []
-       [])
+     :receive-emit identity
+     :merge-init (constantly [])
      :merge-apply
      (fn [windows [window-start window-max :as window]]
        (conj windows window))
@@ -75,15 +71,9 @@
                (prn :fn "mean" :at "nil-val" :msg (:msg evt))
                receive-buffer)
              [window-start (inc window-count) (+ window-sum val)]))))
-     :receive-emit
-     (fn [receive-buffer]
-       receive-buffer)
-     :merge-init
-     (fn []
-       [])
-     :merge-apply
-     (fn [windows window]
-       (conj windows window))
+     :receive-emit identity
+     :merge-init (constantly [])
+     :merge-apply conj
      :merge-emit
      (fn [windows]
        (let [now (util/millis)
@@ -104,12 +94,8 @@
      :receive-emit
      (fn [[window-start window-count]]
        [window-start (util/millis) window-count])
-     :merge-init
-     (fn []
-       [])
-     :merge-apply
-     (fn [windows window]
-       (conj windows window))
+     :merge-init (constantly [])
+     :merge-apply conj
      :merge-emit
      (fn [windows]
        (let [now (util/millis)
@@ -136,12 +122,8 @@
      :receive-emit
      (fn [[window-start window-counts]]
        [window-start (util/millis) window-counts])
-     :merge-init
-     (fn []
-       [])
-     :merge-apply
-     (fn [windows window]
-       (conj windows window))
+     :merge-init (constantly [])
+     :merge-apply conj
      :merge-emit
      (fn [windows]
        (let [now (util/millis)
@@ -167,15 +149,9 @@
      :receive-apply
      (fn [[window-start window-hits] event]
        [window-start (if (pred-fn event) (conj window-hits (key-fn event)) window-hits)])
-     :receive-emit
-     (fn [window]
-       window)
-     :merge-init
-     (fn []
-       [])
-     :merge-apply
-     (fn [windows window]
-       (conj windows window))
+     :receive-emit identity
+     :merge-init (constantly [])
+     :merge-apply conj
      :merge-emit
      (fn [windows]
        (let [now (util/millis)
@@ -189,45 +165,30 @@
 
 (defn last [pred-fn val-fn]
   (let [pred-fn (cloud-scoped-pred pred-fn *cloud*)]
-    {:receive-init
-     (fn []
-       nil)
+    {:receive-init (constantly nil)
      :receive-apply
      (fn [last-val event]
        (if (pred-fn event)
          (val-fn event)
          last-val))
-     :receive-emit
-     (fn [last-val]
-       last-val)
-     :merge-init
-     (fn []
-       nil)
+     :receive-emit identity
+     :merge-init (constantly nil)
      :merge-apply
      (fn [last-val received]
        (or received last-val))
-     :merge-emit
-     (fn [last-val]
-       [last-val last-val])}))
+     :merge-emit (juxt identity identity)}))
 
 (defn last-agg [recent-interval pred-fn part-fn val-fn agg-fn]
   (let [pred-fn (cloud-scoped-pred pred-fn *cloud*)]
-    {:receive-init
-     (fn [] {})
+    {:receive-init (constantly {})
      :receive-apply
      (fn [last-timed-vals evt]
        (if (pred-fn evt)
          (assoc last-timed-vals (part-fn evt) [(util/millis) (val-fn evt)])
          last-timed-vals))
-     :receive-emit
-     (fn [last-timed-vals]
-       last-timed-vals)
-     :merge-init
-     (fn []
-       {})
-     :merge-apply
-     (fn [last-timed-vals received]
-       (merge last-timed-vals received))
+     :receive-emit identity
+     :merge-init (constantly {})
+     :merge-apply merge
      :merge-emit
      (fn [last-timed-vals]
        (let [now (util/millis)
