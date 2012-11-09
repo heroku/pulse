@@ -1042,104 +1042,107 @@
 
 ; psmgr
 
+(defn psmgr? [evt]
+  (kv? evt :source "psmgr"))
+
 (defstat psmgr-idles-per-minute
   (per-minute
-   (fn [evt] (and (kv? evt :source "psmgr")
+   (fn [evt] (and (psmgr? evt)
                  (kv? evt :fn "up_to_up")
                  (kv? evt :event "idle")))))
 
 (defstat psmgr-unidles-per-minute
   (per-minute
-   (fn [evt] (and (kv? evt :source "psmgr")
+   (fn [evt] (and (psmgr? evt)
                  (kv? evt :fn "unidle")
                  (kv? evt :at "finish")))))
 
 (defstat psmgr-run-requests-per-minute
   (per-minute
-   (fn [evt] (and (kv? evt :source "psmgr")
+   (fn [evt] (and (psmgr? evt)
                  (kv? evt :file "runtime")
                  (kv? evt :key "ps.run")
                  (kv? evt :at "published")))))
 
 (defstat psmgr-kill-requests-per-minute
   (per-minute
-   (fn [evt] (and (kv? evt :source "psmgr")
+   (fn [evt] (and (psmgr? evt)
                  (kv? evt :file "runtime")
                  (cont? evt :key "ps.kill.")
                  (kv? evt :at "published")))))
 
 (defstat psmgr-converges-per-second
   (per-second
-   (fn [evt] (and (kv? evt :source "psmgr")
+   (fn [evt] (and (psmgr? evt)
                  (kv? evt :fn "transition")
                  (kv? evt :at "finish")))))
 
 (defstat psmgr-unhandled-exceptions-per-minute
   (per-minute
    (fn [evt] (and (kv? evt :level "err")
-                 (kv? evt :source "psmgr")))))
+                 (psmgr? evt)))))
 
 (defstat psmgr-runtime-bus-receives-per-minute
   (per-minute
-   (fn [evt] (and (kv? evt :source "psmgr")
+   (fn [evt] (and (psmgr? evt)
                  (kv? evt :file "runtime")
                  (k? evt :key)
                  (kv? evt :at "received")))))
 
 (defstat psmgr-runtime-bus-timeouts-per-minute
   (per-minute
-   (fn [evt] (and (kv? evt :source "psmgr")
+   (fn [evt] (and (psmgr? evt)
                  (kv? evt :file "runtime")
                  (k? evt :key)
                  (kv? evt :at "timeout")))))
 
 (defstat psmgr-runtime-bus-published-per-minute
   (per-minute
-   (fn [evt] (and (kv? evt :source "psmgr")
+   (fn [evt] (and (psmgr? evt)
                  (kv? evt :file "runtime")
                  (k? evt :key)
                  (kv? evt :at "published")))))
 
 (defstat psmgr-events-per-second
   (per-second
-   (fn [evt] (kv? evt :source "psmgr"))))
+   (fn [evt] (psmgr? evt))))
 
 (defstat psmgr-api-per-minute
   (per-minute
-   (fn [evt] (and (kv? evt :source "psmgr")
+   (fn [evt] (and (psmgr? evt)
                  (kv? evt :file "api")
                  (k? evt :query)))))
 
 (defstat psmgr-api-time
   (mean 60
-        (fn [evt] (and (kv? evt :source "psmgr")
+        (fn [evt] (and (psmgr? evt)
                       (kv? evt :function "post")
                       (kv? evt :block "finish")))
         :elapsed))
 
 (defstat psmgr-runs-per-minute
   (per-minute
-   (fn [evt] (and (kv? evt :source "psmgr")
+   (fn [evt] (and (psmgr? evt)
                  (kv? evt :event "run")))))
 
 (defstat psmgr-cycles-per-minute
   (per-minute
-   (fn [evt] (and (kv? evt :source "psmgr")
+   (fn [evt] (and (psmgr? evt)
                  (kv? evt :event "cycle")))))
 
 (defstat psmgr-lost-runs-per-minute
   (per-minute
-   (fn [evt] (and (kv? evt :source "psmgr")
+   (fn [evt] (and (psmgr? evt)
                  (kv? evt :event "lost_run")))))
 
 (defstat psmgr-foregrounds-per-minute
   (per-minute
-   (fn [evt] (and (kv? evt :source "psmgr")
+   (fn [evt] (and (psmgr? evt)
                  (kv? evt :fn "foreground")))))
 
 (defstat psmgr-backgrounds-per-minute
   (per-minute
-   (fn [evt] (and (kv? evt :source "psmgr")
+   (fn [evt] (and (psmgr? evt)
                  (kv? evt :fn "background")))))
 
 ; packaging
