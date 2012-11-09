@@ -1043,7 +1043,7 @@
 ; psmgr
 
 (defn psmgr? [evt]
-  (kv? evt :source "psmgr"))
+  (kv? evt :app "psmgr-production"))
 
 (defstat psmgr-idles-per-minute
   (per-minute
