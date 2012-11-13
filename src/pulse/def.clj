@@ -1148,28 +1148,28 @@
 (defstat psmgr-xdiff-count
   (last
    (fn [evt] (and (psmgr? evt)
-                 (kv? evt :fn "timers")
+                 (kv? evt :fn "timer")
                  (kv? evt :file "clock")))
    :xdiff))
 
 (defstat psmgr-xmin-count
   (last
    (fn [evt] (and (psmgr? evt)
-                 (kv? evt :fn "timers")
+                 (kv? evt :fn "timer")
                  (kv? evt :file "clock")))
    :xmin))
 
 (defstat psmgr-ydiff-count
   (last
    (fn [evt] (and (psmgr? evt)
-                 (kv? evt :fn "timers")
+                 (kv? evt :fn "timer")
                  (kv? evt :file "clock")))
    :ydiff))
 
 (defstat psmgr-ymin-count
   (last
    (fn [evt] (and (psmgr? evt)
-                 (kv? evt :fn "timers")
+                 (kv? evt :fn "timer")
                  (kv? evt :file "clock")))
    :ymin))
 
