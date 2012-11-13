@@ -1176,7 +1176,7 @@
 (defstat psmgr-zdiff-count
   (last
    (fn [evt] (and (psmgr? evt)
-                 (kv? evt :fn "timers")
+                 (kv? evt :fn "timer")
                  (kv? evt :file "clock")))
    :zdiff))
 
