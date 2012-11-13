@@ -1133,7 +1133,7 @@
 (defstat psmgr-lost-runs-per-minute
   (per-minute
    (fn [evt] (and (psmgr? evt)
-                 (kv? evt :event "lost_run")))))
+                 (kv? evt :at "lost_run")))))
 
 (defstat psmgr-foregrounds-per-minute
   (per-minute
@@ -1144,6 +1144,13 @@
   (per-minute
    (fn [evt] (and (psmgr? evt)
                  (kv? evt :fn "background")))))
+
+(defstat psmgr-xdiff-count
+  (last
+   (fn [evt] (and (psmgr? evt)
+                 (kv? evt :fn "timers")
+                 (kv? evt :file "clock")))
+   :xdiff))
 
 ; packaging
 
