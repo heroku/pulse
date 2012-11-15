@@ -1048,8 +1048,7 @@
 (defstat psmgr-idles-per-minute
   (per-minute
    (fn [evt] (and (psmgr? evt)
-                 (kv? evt :fn "up_to_up")
-                 (kv? evt :event "idle")))))
+                 (kv? evt :at "idle")))))
 
 (defstat psmgr-unidles-per-minute
   (per-minute
@@ -1074,8 +1073,8 @@
 (defstat psmgr-converges-per-second
   (per-second
    (fn [evt] (and (psmgr? evt)
-                 (kv? evt :fn "transition")
-                 (kv? evt :at "finish")))))
+                 (kv? evt :file "service")
+                 (kv? evt :fn "converge")))))
 
 (defstat psmgr-unhandled-exceptions-per-minute
   (per-minute
@@ -1123,12 +1122,12 @@
 (defstat psmgr-runs-per-minute
   (per-minute
    (fn [evt] (and (psmgr? evt)
-                 (kv? evt :event "run")))))
+                 (kv? evt :fn "run")))))
 
 (defstat psmgr-cycles-per-minute
   (per-minute
    (fn [evt] (and (psmgr? evt)
-                 (kv? evt :event "cycle")))))
+                 (kv? evt :at "cycle")))))
 
 (defstat psmgr-lost-runs-per-minute
   (per-minute
