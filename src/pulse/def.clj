@@ -1147,37 +1147,42 @@
 (defstat psmgr-xdiff-count
   (last
    (fn [evt] (and (psmgr? evt)
+                 (kv? evt :event "xdiff")
                  (kv? evt :fn "timer")
                  (kv? evt :file "clock")))
-   :xdiff))
+   :val))
 
 (defstat psmgr-xmin-count
   (last
    (fn [evt] (and (psmgr? evt)
+                 (kv? evt :event "xmin")
                  (kv? evt :fn "timer")
                  (kv? evt :file "clock")))
-   :xmin))
+   :val))
 
 (defstat psmgr-ydiff-count
   (last
    (fn [evt] (and (psmgr? evt)
+                 (kv? evt :event "ydiff")
                  (kv? evt :fn "timer")
                  (kv? evt :file "clock")))
-   :ydiff))
+   :val))
 
 (defstat psmgr-ymin-count
   (last
    (fn [evt] (and (psmgr? evt)
+                 (kv? evt :event "ymin")
                  (kv? evt :fn "timer")
                  (kv? evt :file "clock")))
-   :ymin))
+   :val))
 
 (defstat psmgr-zdiff-count
   (last
    (fn [evt] (and (psmgr? evt)
+                 (kv? evt :event "zdiff")
                  (kv? evt :fn "timer")
                  (kv? evt :file "clock")))
-   :zdiff))
+   :val))
 
 ; packaging
 
