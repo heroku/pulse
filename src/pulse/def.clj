@@ -1048,7 +1048,7 @@
 (defstat psmgr-idles-per-minute
   (per-minute
    (fn [evt] (and (psmgr? evt)
-                 (kv? evt :at "idle")))))
+                 (kv? evt :event "idle")))))
 
 (defstat psmgr-unidles-per-minute
   (per-minute
@@ -1061,14 +1061,14 @@
    (fn [evt] (and (psmgr? evt)
                  (kv? evt :file "runtime")
                  (kv? evt :key "ps.run")
-                 (kv? evt :at "published")))))
+                 (kv? evt :event "published")))))
 
 (defstat psmgr-kill-requests-per-minute
   (per-minute
    (fn [evt] (and (psmgr? evt)
                  (kv? evt :file "runtime")
                  (cont? evt :key "ps.kill.")
-                 (kv? evt :at "published")))))
+                 (kv? evt :event "published")))))
 
 (defstat psmgr-converges-per-second
   (per-second
@@ -1086,21 +1086,21 @@
    (fn [evt] (and (psmgr? evt)
                  (kv? evt :file "runtime")
                  (k? evt :key)
-                 (kv? evt :at "received")))))
+                 (kv? evt :event "received")))))
 
 (defstat psmgr-runtime-bus-timeouts-per-minute
   (per-minute
    (fn [evt] (and (psmgr? evt)
                  (kv? evt :file "runtime")
                  (k? evt :key)
-                 (kv? evt :at "timeout")))))
+                 (kv? evt :event "timeout")))))
 
 (defstat psmgr-runtime-bus-published-per-minute
   (per-minute
    (fn [evt] (and (psmgr? evt)
                  (kv? evt :file "runtime")
                  (k? evt :key)
-                 (kv? evt :at "published")))))
+                 (kv? evt :event "published")))))
 
 (defstat psmgr-events-per-second
   (per-second
@@ -1127,12 +1127,12 @@
 (defstat psmgr-cycles-per-minute
   (per-minute
    (fn [evt] (and (psmgr? evt)
-                 (kv? evt :at "cycle")))))
+                 (kv? evt :event "cycle")))))
 
 (defstat psmgr-lost-runs-per-minute
   (per-minute
    (fn [evt] (and (psmgr? evt)
-                 (kv? evt :at "lost_run")))))
+                 (kv? evt :event "lost_run")))))
 
 (defstat psmgr-foregrounds-per-minute
   (per-minute
