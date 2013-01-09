@@ -1142,12 +1142,6 @@
     (fn [evt] (and (slugc? evt) (k? evt :bin) (or (finish? evt) (kv? evt :event "finish"))))
     :elapsed))
 
-; data
-
-(defstat shen-errors-per-minute
-  (per-minute
-    (fn [evt] (and (kv? evt :level "err") (kv? evt :source "shen")))))
-
 ; internal
 
 (defstat-single pulse-events-per-second
