@@ -981,65 +981,6 @@
 (defstat railgun-events-per-second
   (per-second railgun?))
 
-; railgun build cluster
-
-(defn build-railgun? [evt]
-  (and (railgun? evt) (kv? evt :cluster "build")))
-
-(defstat build-railgun-running-count
-  (last-count
-    (fn [evt] (and (build-railgun? evt) (k? evt :heartbeat)))
-    :instance_id
-    (constantly true)
-    40))
-
-(defstat build-railgun-denied-count
-  (last-count
-    (fn [evt] (and (build-railgun? evt) (k? evt :stats) (emit? evt)))
-    :instance_id
-    :deny
-    40))
-
-(defstat build-railgun-packed-count
-  (last-count
-    (fn [evt] (and (build-railgun? evt) (k? evt :stats) (emit? evt)))
-    :instance_id
-    :packed
-    40))
-
-(defstat build-railgun-loaded-count
-  (last-count
-    (fn [evt] (and (build-railgun? evt) (k? evt :stats) (emit? evt)))
-    :instance_id
-    (fn [evt] (kv? evt :load_status "loaded"))
-    40))
-
-(defstat build-railgun-critical-count
-  (last-count
-    (fn [evt] (and (build-railgun? evt) (k? evt :stats) (emit? evt)))
-    :instance_id
-    (fn [evt] (kv? evt :load_status "critical"))
-    40))
-
-(defstat build-railgun-accepting-count
-  (last-count
-    (fn [evt] (and (build-railgun? evt) (k? evt :stats) (emit? evt)))
-    :instance_id
-    (fn [evt] (kv? evt :run_factor 1))
-    40))
-
-(defstat build-railgun-load-avg-15m-mean
-  (last-mean 90
-    (fn [evt] (and (build-railgun? evt) (k? evt :check_load_status) (kv? evt :at "report")))
-    :instance_id
-    :load_avg_fifteen))
-
-(defstat build-railgun-ps-running-total-last
-  (last-sum
-    (fn [evt] (and (build-railgun? evt) (k? evt :counts) (kv? evt :key "total")))
-    :instance_id
-    :num))
-
 ; packaging
 
 (defstat gitproxy-connections-per-minute
