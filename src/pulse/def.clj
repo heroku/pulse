@@ -1029,60 +1029,6 @@
                       (finish? evt)))
         :elapsed))
 
-(defn slugc? [evt]
-  (k? evt :slugc))
-
-(defstat slugc-compiles-per-minute
-  (per-minute
-    (fn [evt] (and (slugc? evt) (k? evt :bin) (or (start? evt) (kv? evt :event "start"))))))
-
-(defstat slugc-aspen-compiles-per-minute
-  (per-minute
-    (fn [evt] (and (slugc? evt) (k? evt :bin) (or (start? evt) (kv? evt :event "start")) (kv? evt :major_stack "aspen")))))
-
-(defstat slugc-bamboo-compiles-per-minute
-  (per-minute
-    (fn [evt] (and (slugc? evt) (k? evt :bin) (or (start? evt) (kv? evt :event "start")) (kv? evt :major_stack "bamboo")))))
-
-(defstat slugc-cedar-compiles-per-minute
-  (per-minute
-    (fn [evt] (and (slugc? evt) (k? evt :bin) (or (start? evt) (kv? evt :event "start")) (kv? evt :major_stack "cedar")))))
-
-(defstat slugc-failures-per-minute
-  (per-minute
-    (fn [evt] (and (slugc? evt) (k? evt :bin) (or (kv? evt :at "fail") (kv? evt :event "fail"))))))
-
-(defstat slugc-errors-per-minute
-  (per-minute
-    (fn [evt] (and (slugc? evt) (k? evt :bin) (or (error? evt) (kv? evt :event "error"))))))
-
-(defstat slugc-successes-per-minute
-  (per-minute
-    (fn [evt] (and (slugc? evt) (k? evt :bin) (or (finish? evt) (kv? evt :event "finish"))))))
-
-(defstat slugc-mean-stow-time
-  (mean 60
-    (fn [evt] (and (slugc? evt) (k? evt :store_in_s3) (or (finish? evt) (kv? evt :event "finish"))))
-    :elapsed))
-
-(defstat slugc-mean-release-time
-  (mean 60
-    (fn [evt] (and (slugc? evt) (k? evt :post_release) (or (finish? evt) (kv? evt :event "finish"))))
-    :elapsed))
-
-(defstat slugc-stow-errors-per-minute
-  (per-minute
-    (fn [evt] (and (slugc? evt) (k? evt :store_in_s3) (or (error? evt) (kv? evt :event "error"))))))
-
-(defstat slugc-release-errors-per-minute
-  (per-minute
-    (fn [evt] (and (slugc? evt) (k? evt :post_release) (or (error? evt) (kv? evt :event "error"))))))
-
-(defstat slugc-mean-compile-time
-  (mean 60
-    (fn [evt] (and (slugc? evt) (k? evt :bin) (or (finish? evt) (kv? evt :event "finish"))))
-    :elapsed))
-
 ; internal
 
 (defstat-single pulse-events-per-second
