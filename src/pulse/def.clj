@@ -981,54 +981,6 @@
 (defstat railgun-events-per-second
   (per-second railgun?))
 
-; packaging
-
-(defstat gitproxy-connections-per-minute
-  (per-minute
-   (fn [evt] (and (k? evt :gitproxy)
-                 (k? evt :run)
-                 (kv? evt :at "start")))))
-
-(defstat gitproxy-invalids-per-minute
-  (per-minute
-   (fn [evt] (and (k? evt :gitproxy)
-                 (k? evt :run)
-                 (kv? evt :at "invalid")))))
-
-(defstat gitproxy-errors-per-minute
-  (per-minute
-   (fn [evt] (and (k? evt :gitproxy)
-                 (k? evt :run)
-                 (kv? evt :at "exception")
-                 (not (k? evt :reraise))))))
-
-(defstat gitproxy-successes-per-minute
-  (per-minute
-   (fn [evt] (and (k? evt :gitproxy)
-                 (k? evt :run)
-                 (kv? evt :at "success")))))
-
-(defstat gitproxy-mean-metadata-time
-  (mean 60
-        (fn [evt] (and (k? evt :gitproxy)
-                      (k? evt :fetch_push_metadata)
-                      (finish? evt)))
-        :elapsed))
-
-(defstat gitproxy-mean-provision-time
-  (mean 60
-        (fn [evt] (and (k? evt :gitproxy)
-                      (k? evt :fetch_ssh_info)
-                      (finish? evt)))
-        :elapsed))
-
-(defstat gitproxy-mean-service-time
-  (mean 60
-        (fn [evt] (and (k? evt :gitproxy)
-                      (k? evt :run)
-                      (finish? evt)))
-        :elapsed))
-
 ; internal
 
 (defstat-single pulse-events-per-second
