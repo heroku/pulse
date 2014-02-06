@@ -1,4 +1,4 @@
-# Pulse
+# DEPRECATED: Pulse
 
 Real-time, streaming, distributed event -> metric computation.
 
